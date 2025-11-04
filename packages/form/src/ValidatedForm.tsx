@@ -115,6 +115,27 @@ function nonNull<T>(value: T | null | undefined): value is T {
   return value !== null;
 }
 
+const scrollIntoView = (element?: HTMLElement) => {
+  if (!element) {
+    return;
+  }
+
+  // try the container route first as scrollIntoView sometimes have side effects by moving the wrong container
+  const container = element.closest(".overflow-hidden > .h-full");
+  if (container) {
+    // Get the position of the target relative to the container
+    const offsetTop = element.offsetTop;
+
+    // Scroll the container only
+    container.scrollTo({
+      top: offsetTop,
+      behavior: "smooth", // use 'auto' if you don't want smooth scrolling
+    });
+  } else {
+    element.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+};
+
 const focusFirstInvalidInput = (
   fieldErrors: FieldErrors,
   customFocusHandlers: MultiValueMap<string, () => void>,
@@ -153,16 +174,19 @@ const focusFirstInvalidInput = (
           .find((item) => item.value === elem.value) ?? elem[0];
       if (selectedRadio && selectedRadio instanceof HTMLInputElement) {
         selectedRadio.focus();
+        scrollIntoView(selectedRadio);
         break;
       }
     }
 
     if (elem instanceof HTMLElement) {
       if (elem instanceof HTMLInputElement && elem.type === "hidden") {
+        scrollIntoView(elem.parentElement);
         continue;
       }
 
       elem.focus();
+      scrollIntoView(elem);
       break;
     }
   }
