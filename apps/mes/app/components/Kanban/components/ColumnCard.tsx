@@ -162,7 +162,7 @@ export function BoardContainer({ children }: { children: React.ReactNode }) {
       <div className="flex gap-0 items-start flex-row justify-start p-0">
         {children}
       </div>
-      <ScrollBar orientation="horizontal" />
+      <ScrollBar orientation="horizontal" forceMount className="h-5" />
     </ScrollArea>
   );
 }
