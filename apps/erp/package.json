@@ -2,10 +2,11 @@
   "name": "erp",
   "type": "module",
   "dependencies": {
-    "@ai-sdk-tools/artifacts": "^1.0.0",
-    "@ai-sdk-tools/cache": "^1.0.0",
-    "@ai-sdk-tools/memory": "^1.0.0",
-    "@ai-sdk-tools/agents": "^1.0.0",
+    "@ai-sdk-tools/artifacts": "1.0.8",
+    "@ai-sdk-tools/cache": "1.0.8",
+    "@ai-sdk-tools/memory": "1.0.8",
+    "@ai-sdk-tools/agents": "1.0.8",
+    "@ai-sdk-tools/store": "1.0.8",
     "@ai-sdk/openai": "^2.0.60",
     "@ai-sdk/react": "^2.0.86",
     "@carbon/auth": "*",
@@ -24,7 +25,6 @@
     "@epic-web/remember": "^1.1.0",
     "@internationalized/date": "^3.5.2",
     "@marsidev/react-turnstile": "^1.1.0",
-    "@modelcontextprotocol/sdk": "1.7.0",
     "@monaco-editor/react": "^4.6.0",
     "@nanostores/react": "^0.7.1",
     "@novu/framework": "^2.3.0",
@@ -78,6 +78,7 @@
     "react-hotkeys-hook": "~4.5.0",
     "react-icons": "^5.4.0",
     "react-intersection-observer": "^9.13.1",
+    "react-markdown": "^8.0.7",
     "react-pdf": "^7.7.1",
     "react-use-measure": "^2.1.1",
     "recharts": "^2.15.0",
@@ -85,8 +86,10 @@
     "spin-delay": "2.0.1",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
+    "use-stick-to-bottom": "^1.1.1",
     "zod": "^3.25.76",
-    "zod-form-data": "2.0.8"
+    "zod-form-data": "2.0.8",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@carbon/tailwind": "*",

@@ -81,8 +81,6 @@ What NOT to suggest:
 </rules>
 </instructions>`;
 
-
-
 export function formatContextForLLM(context: ChatContext): string {
   return `<company_info>
 <current_date>${context.currentDateTime}</current_date>
@@ -104,4 +102,3 @@ export const COMMON_AGENT_RULES = `<behavior_rules>
 - When presenting repeated structured data (lists of items, multiple entries, time series), always use markdown tables
 - Tables make data scannable and easier to compare - use them for any data with 2+ rows
 </behavior_rules>`;
-

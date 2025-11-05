@@ -210,7 +210,7 @@ export default function App() {
 
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.env = ${JSON.stringify(env)}`,
+          __html: `window.env = ${JSON.stringify(env)};`,
         }}
       />
     </Document>

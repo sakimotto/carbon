@@ -24,6 +24,7 @@ export default defineConfig({
   },
   ssr: {
     noExternal: [
+      "katex",
       "react-tweet",
       "react-dropzone",
       "react-icons",

@@ -1,23 +1,49 @@
-import { openai } from "npm:@ai-sdk/openai@2.0.60";
+import { openai } from "../../lib/ai/openai.ts";
+import { getPartTool } from "../tools/parts.ts";
+import { createPurchaseOrderTool } from "../tools/purchasing.ts";
 import {
-  createPurchaseOrderTool,
-  getPartTool,
   getSupplierForPartsTool,
   getSupplierTool,
-} from "../tools/purchasing.ts";
+} from "../tools/suppliers.ts";
 import { createAgent } from "./shared/agent.ts";
-import {
-  COMMON_AGENT_RULES,
-  formatContextForLLM,
-} from "./shared/prompts.ts";
+import { COMMON_AGENT_RULES, formatContextForLLM } from "./shared/prompts.ts";
 
 export const purchasingAgent = createAgent({
   name: "purchasing",
   model: openai("gpt-4o-mini"),
   temperature: 0.3,
-  instructions: (
-    ctx,
-  ) => `You are a purchasing specialist for ${ctx.companyName}. Create purchase orders or get quotes from suppliers.
+  instructions: (ctx) => `You are a purchasing specialist for ${
+    ctx.companyName
+  }. Create purchase orders or get quotes from suppliers.
+
+When handling purchase order requests:
+1. First identify the part details (including quantities and measurements)
+2. Use getPart to look up the part ID
+3. If no supplier is explicitly specified in the prompt:
+   - Use getSupplierForParts to get recommended suppliers
+   - Ask the user to confirm which supplier they want to use
+4. Only proceed with createPurchaseOrder when both part and supplier are confirmed
+5. If there are multiple options for a part or supplier, ask the user to confirm which one they want to use
+6. If there are no options, ask the user for clarification
+
+For example:
+- If user says "create a purchase order for 5lb of 1/4" steel":
+  1. First look up the part ID for "1/4" steel"
+  2. Then ask user to specify a supplier, potentially offering suggestions
+  3. Only create the PO once supplier is confirmed
+
+- If user says "create a purchase order for 5lb of 1/4" steel from MetalCorp":
+  1. Look up part ID for "1/4" steel"
+  2. Look up supplier ID for "MetalCorp"
+  3. Create the PO with both IDs
+
+Key capabilities:
+- Create and update purchase orders
+- Search for suppliers and parts
+- Suggest suppliers for parts
+- Search for existing purchase orders
+- Search for open purchase orders
+- Search for purchase order history
 
 <background-data>
 ${formatContextForLLM(ctx)}
@@ -29,13 +55,9 @@ ${COMMON_AGENT_RULES}
 - For direct queries: lead with results, add context
 </guidelines>`,
   tools: {
-    // @ts-expect-error - version mismatch between ai@5.0.86 and @ai-sdk-tools/agents@1.0.0
     getPart: getPartTool,
-    // @ts-expect-error - version mismatch between ai@5.0.86 and @ai-sdk-tools/agents@1.0.0
     getSupplier: getSupplierTool,
-    // @ts-expect-error - version mismatch between ai@5.0.86 and @ai-sdk-tools/agents@1.0.0
     getSupplierForParts: getSupplierForPartsTool,
-    // @ts-expect-error - version mismatch between ai@5.0.86 and @ai-sdk-tools/agents@1.0.0
     createPurchaseOrder: createPurchaseOrderTool,
   },
   maxTurns: 10,

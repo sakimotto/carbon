@@ -284,6 +284,7 @@ import { Status } from "./Status";
 import { Switch } from "./Switch";
 import { Table, TableCaption, Tbody, Td, Tfoot, Th, Thead, Tr } from "./Table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./Tabs";
+import { TextShimmer } from "./TextShimmer";
 import type { TextareaProps } from "./Textarea";
 import { Textarea } from "./Textarea";
 import { Toaster, toast } from "./Toast";
@@ -546,9 +547,7 @@ export {
   TabsList,
   TabsTrigger,
   Tbody,
-  Td,
-  Textarea,
-  Tfoot,
+  Td, TextShimmer, Textarea, Tfoot,
   Th,
   Thead,
   TimePicker,
@@ -573,7 +572,7 @@ export {
   useModalCardType,
   useModalDrawerType,
   useOperatingSystem,
-  useSidebar,
+  useSidebar
 };
 export type {
   AvatarProps,
@@ -590,5 +589,6 @@ export type {
   OperatingSystemPlatform,
   Shortcut,
   ShortcutDefinition,
-  TextareaProps,
+  TextareaProps
 };
+

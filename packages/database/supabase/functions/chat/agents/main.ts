@@ -1,10 +1,7 @@
-import { openai } from "npm:@ai-sdk/openai@2.0.60";
-
-
+import { openai } from "../../lib/ai/openai.ts";
 import { purchasingAgent } from "./purchasing.ts";
 import { createAgent } from "./shared/agent.ts";
 import { formatContextForLLM } from "./shared/prompts.ts";
-
 
 export const mainAgent = createAgent({
   name: "triage",

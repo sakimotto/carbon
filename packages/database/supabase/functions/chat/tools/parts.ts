@@ -1,5 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { tool } from "npm:ai@5.0.86";
+import { tool } from "npm:ai@5.0.87";
 import z from "npm:zod@^3.24.1/v3";
 import { ChatContext } from "../agents/shared/context.ts";
 

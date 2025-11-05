@@ -24,7 +24,7 @@
     "react-phone-number-input": "^3.3.9",
     "remeda": "^1.2.0",
     "tiny-invariant": "^1.2.0",
-    "zustand": "^4.3.0"
+    "zustand": "^5.0.8"
   },
   "exports": {
     ".": "./src/index.tsx"

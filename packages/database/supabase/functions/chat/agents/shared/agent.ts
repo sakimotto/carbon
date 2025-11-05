@@ -1,10 +1,9 @@
 import { Agent, type AgentConfig } from "npm:@ai-sdk-tools/agents@1.0.0";
 import { UpstashProvider } from "npm:@ai-sdk-tools/memory@1.0.0/upstash";
-import { openai } from "npm:@ai-sdk/openai@2.0.60";
 import { Redis } from "npm:@upstash/redis@1.34.3";
-import { ChatContext } from "./context.ts";
+import { openai } from "../../../lib/ai/openai.ts";
+import type { ChatContext } from "./context.ts";
 import { PROFILE_PROMPT, SUGGESTION_PROMPT, TITLE_PROMPT } from "./prompts.ts";
-
 
 export const memoryProvider = new UpstashProvider(
   new Redis({
