@@ -5,6 +5,9 @@ import { validationError, validator } from "@carbon/form";
 import { useLoaderData, useNavigate, useParams } from "@remix-run/react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@vercel/remix";
 import { json, redirect } from "@vercel/remix";
+import type z from "zod";
+import type {
+  calibrationAttempt} from "~/modules/quality";
 import {
   gaugeCalibrationRecordValidator,
   getGaugeCalibrationRecord,
@@ -15,7 +18,6 @@ import GaugeCalibrationRecordForm from "~/modules/quality/ui/Calibrations/GaugeC
 import { getCustomFields, setCustomFields } from "~/utils/form";
 import type { Handle } from "~/utils/handle";
 import { getParams, path } from "~/utils/path";
-import type { CalibrationAttempt } from "../../../modules/quality/types";
 export const handle: Handle = {
   breadcrumb: "Gauges",
   to: path.to.gauges,
@@ -118,8 +120,9 @@ export default function GaugeCalibrationRecordRoute() {
     notes: JSON.stringify(record.notes),
     supplierId: record.supplierId ?? "",
     measurementStandard: record.measurementStandard ?? "",
-    calibrationAttempts: (record.calibrationAttempts ||
-      []) as CalibrationAttempt[],
+    calibrationAttempts: (record.calibrationAttempts || []) as z.infer<
+      typeof calibrationAttempt
+    >[],
     ...getCustomFields(record.customFields),
   };
 

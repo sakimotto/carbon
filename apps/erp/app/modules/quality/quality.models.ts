@@ -71,6 +71,11 @@ export const gaugeValidator = z.object({
   ),
 });
 
+export const calibrationAttempt = z.object({
+  reference: zfd.numeric(z.number()),
+  actual: zfd.numeric(z.number()),
+});
+
 export const gaugeCalibrationRecordValidator = z.object({
   id: z.string().min(1, { message: "ID is required" }),
   gaugeId: z.string().min(1, { message: "Gauge is required" }),
@@ -83,12 +88,7 @@ export const gaugeCalibrationRecordValidator = z.object({
   humidity: zfd.numeric(z.number().min(0).max(1).optional()),
   approvedBy: zfd.text(z.string().optional()),
   measurementStandard: zfd.text(z.string().optional()),
-  calibrationAttempts: zfd.repeatableOfType(
-    z.object({
-      reference: zfd.numeric(z.number()),
-      actual: zfd.numeric(z.number()),
-    })
-  ),
+  calibrationAttempts: zfd.repeatableOfType(calibrationAttempt),
   notes: z
     .string()
     .optional()

@@ -101,8 +101,3 @@ export type QualityDocument = NonNullable<
 export type QualityDocumentStep = NonNullable<
   Awaited<ReturnType<typeof getQualityDocumentSteps>>["data"]
 >[number];
-
-export type CalibrationAttempt = {
-  reference: number;
-  actual: number;
-};
