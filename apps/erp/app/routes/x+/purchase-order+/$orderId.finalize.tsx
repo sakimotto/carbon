@@ -10,7 +10,7 @@ import { PurchaseOrderEmail } from "@carbon/documents/email";
 import { validationError, validator } from "@carbon/form";
 import type { sendEmailResendTask } from "@carbon/jobs/trigger/send-email-resend"; // Assuming you have a sendEmail task defined
 import { renderAsync } from "@react-email/components";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { redirect, type ActionFunctionArgs } from "@vercel/remix";
 import { parseAcceptLanguage } from "intl-parse-accept-language";
 import { getPaymentTermsList } from "~/modules/accounting";

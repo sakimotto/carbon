@@ -1,7 +1,7 @@
 import { getCarbonServiceRole } from "@carbon/auth";
 import { requirePermissions } from "@carbon/auth/auth.server";
 import type { recalculateTask } from "@carbon/jobs/trigger/recalculate";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { json, type ActionFunctionArgs } from "@vercel/remix";
 import {
   recalculateJobRequirements,

@@ -11,7 +11,7 @@ import { validationError, validator } from "@carbon/form";
 import type { userAdminTask } from "@carbon/jobs/trigger/user-admin";
 import { updateSubscriptionQuantityForCompany } from "@carbon/stripe/stripe.server";
 import { Edition } from "@carbon/utils";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { json, type ActionFunctionArgs } from "@vercel/remix";
 import { revokeInviteValidator } from "~/modules/users";
 

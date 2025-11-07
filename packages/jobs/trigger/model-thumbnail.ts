@@ -1,6 +1,6 @@
 import { getCarbonServiceRole, SUPABASE_URL, VERCEL_URL } from "@carbon/auth";
 
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 
 const isLocal = VERCEL_URL === undefined || VERCEL_URL.includes("localhost");
 

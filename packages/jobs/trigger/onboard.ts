@@ -7,7 +7,7 @@ import { getSlackClient } from "@carbon/lib/slack.server";
 import { getTwentyClient } from "@carbon/lib/twenty.server";
 import { render } from "@react-email/components";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { task, wait } from "@trigger.dev/sdk/v3";
+import { task, wait } from "@trigger.dev/sdk";
 import { generateObject } from "ai";
 import z from "zod";
 

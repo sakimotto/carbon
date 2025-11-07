@@ -5,7 +5,7 @@ import { validator } from "@carbon/form";
 import type { sendEmailResendTask } from "@carbon/jobs/trigger/send-email-resend";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { renderAsync } from "@react-email/components";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { json, type ActionFunctionArgs } from "@vercel/remix";
 import { parseAcceptLanguage } from "intl-parse-accept-language";
 import { getPaymentTermsList } from "~/modules/accounting";

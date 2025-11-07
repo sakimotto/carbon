@@ -9,7 +9,7 @@ import type {
 import { redis } from "@carbon/kv";
 import { isUrl } from "@carbon/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { createSlackWebClient } from "./client";
 
 export type DocumentType = "nonConformance";

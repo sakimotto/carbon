@@ -12,7 +12,7 @@ import {
   parseDateTime,
   toCalendarDateTime,
 } from "@internationalized/date";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { redirect, type ActionFunctionArgs } from "@vercel/remix";
 import { getDefaultShelfForJob } from "~/modules/inventory";
 import { getItemReplenishment } from "~/modules/items";

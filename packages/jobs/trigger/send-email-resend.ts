@@ -1,6 +1,6 @@
 import { getCarbonServiceRole } from "@carbon/auth";
 import { Resend as ResendConfig } from "@carbon/ee";
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 import { Resend } from "resend";
 
 const serviceRole = getCarbonServiceRole();

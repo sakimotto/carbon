@@ -2,7 +2,7 @@ import { assertIsPost, error } from "@carbon/auth";
 import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import type { modelThumbnailTask } from "@carbon/jobs/trigger/model-thumbnail";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { json, redirect, type ActionFunctionArgs } from "@vercel/remix";
 import { nanoid } from "nanoid";
 import { salesRfqDragValidator, upsertSalesRFQLine } from "~/modules/sales";

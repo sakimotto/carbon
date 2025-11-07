@@ -1,17 +1,18 @@
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 import { z } from "zod";
 
+import type {
+  Result} from "@carbon/auth";
 import {
   error,
   getCarbonServiceRole,
   getClaims,
   getPermissionCacheKey,
-  Result,
   success,
 } from "@carbon/auth";
-import { Database } from "@carbon/database";
+import type { Database } from "@carbon/database";
 import { redis } from "@carbon/kv";
-import { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const serviceRole = getCarbonServiceRole();
 export const permissionsUpdateSchema = z.object({

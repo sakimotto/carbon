@@ -1,7 +1,7 @@
 import { EXCHANGE_RATES_API_KEY, getCarbonServiceRole } from "@carbon/auth";
 import type { Rates } from "@carbon/ee/exchange-rates.server";
 import { getExchangeRatesClient } from "@carbon/ee/exchange-rates.server";
-import { schedules } from "@trigger.dev/sdk/v3";
+import { schedules } from "@trigger.dev/sdk";
 
 type CurrencyCode =
   | "EUR"

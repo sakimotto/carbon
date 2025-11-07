@@ -2,7 +2,7 @@ import { error, getCarbonServiceRole, success } from "@carbon/auth";
 import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import type { recalculateTask } from "@carbon/jobs/trigger/recalculate";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { redirect, type ActionFunctionArgs } from "@vercel/remix";
 import { upsertJobMethod } from "~/modules/production";
 import { path, requestReferrer } from "~/utils/path";

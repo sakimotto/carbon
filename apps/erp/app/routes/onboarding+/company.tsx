@@ -20,7 +20,7 @@ import {
 import { Edition } from "@carbon/utils";
 import { getLocalTimeZone } from "@internationalized/date";
 import { Link, useLoaderData } from "@remix-run/react";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { json, redirect, type ActionFunctionArgs } from "@vercel/remix";
 import {
   AddressAutocomplete,

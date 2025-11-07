@@ -6,7 +6,7 @@ import { Loading } from "@carbon/react";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { Await, useLoaderData } from "@remix-run/react";
 import { FunctionRegion, type SupabaseClient } from "@supabase/supabase-js";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { defer, type LoaderFunctionArgs } from "@vercel/remix";
 import { Suspense } from "react";
 import { Redirect } from "~/components/Redirect";

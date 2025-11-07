@@ -9,7 +9,7 @@ import type { Database } from "@carbon/database";
 import { redis } from "@carbon/kv";
 import { Edition, Plan } from "@carbon/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import { Stripe } from "stripe";
 import { z } from "zod";
 

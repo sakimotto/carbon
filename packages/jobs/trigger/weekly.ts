@@ -1,5 +1,5 @@
 import { getCarbonServiceRole } from "@carbon/auth";
-import { schedules } from "@trigger.dev/sdk/v3";
+import { schedules } from "@trigger.dev/sdk";
 import { Edition } from "../../utils/src/types.ts";
 
 const serviceRole = getCarbonServiceRole();

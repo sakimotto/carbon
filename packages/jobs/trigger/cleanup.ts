@@ -7,7 +7,7 @@ import {
   triggerBulk,
 } from "@carbon/notifications";
 import { Novu } from "@novu/node";
-import { schedules } from "@trigger.dev/sdk/v3";
+import { schedules } from "@trigger.dev/sdk";
 
 const serviceRole = getCarbonServiceRole();
 const novu = new Novu(NOVU_SECRET_KEY!);

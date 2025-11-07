@@ -1,6 +1,6 @@
 import { getCarbonServiceRole } from "@carbon/auth";
 import type { paperlessPartsTask } from "@carbon/jobs/trigger/paperless-parts";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@vercel/remix";
 import { json } from "@vercel/remix";
 import crypto from "crypto";

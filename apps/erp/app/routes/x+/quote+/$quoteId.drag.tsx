@@ -4,7 +4,7 @@ import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import type { modelThumbnailTask } from "@carbon/jobs/trigger/model-thumbnail";
 import { supportedModelTypes } from "@carbon/utils";
-import { tasks } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk";
 import type { ActionFunctionArgs } from "@vercel/remix";
 import { json, redirect } from "@vercel/remix";
 import { generateObject } from "ai";

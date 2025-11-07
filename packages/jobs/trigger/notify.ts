@@ -14,7 +14,7 @@ import {
   type TriggerPayload,
 } from "@carbon/notifications";
 import { Novu } from "@novu/node";
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 
 const novu = new Novu(NOVU_SECRET_KEY!);
 const isLocal = VERCEL_URL === undefined || VERCEL_URL.includes("localhost");

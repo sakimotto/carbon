@@ -13,7 +13,7 @@ import {
 } from "@carbon/ee/slack/messages";
 import { WebClient } from "@slack/web-api";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { task } from "@trigger.dev/sdk/v3";
+import { task } from "@trigger.dev/sdk";
 
 export const slackDocumentCreated = task({
   id: "slack-document-created",
