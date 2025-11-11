@@ -34,6 +34,7 @@ export default defineConfig({
       "react-json-view-lite",
       "react-phone-number-input",
       "tailwind-merge",
+      "novel",
     ],
     external: ["katex"],
   },
