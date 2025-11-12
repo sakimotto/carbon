@@ -120,7 +120,6 @@ const InventoryTable = memo(
             ),
           meta: {
             icon: <LuPackage />,
-            formatter: numberFormatter.format,
             renderTotal: true,          },
         },
 
@@ -130,7 +129,6 @@ const InventoryTable = memo(
           cell: ({ row }) => numberFormatter.format(row.original.daysRemaining),
           meta: {
             icon: <LuClock />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -140,7 +138,6 @@ const InventoryTable = memo(
           cell: ({ row }) => numberFormatter.format(row.original.leadTime),
           meta: {
             icon: <LuClock />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -197,7 +194,6 @@ const InventoryTable = memo(
             numberFormatter.format(row.original.usageLast30Days),
           meta: {
             icon: <LuCalculator />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -208,7 +204,6 @@ const InventoryTable = memo(
             numberFormatter.format(row.original.usageLast90Days),
           meta: {
             icon: <LuCalculator />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -219,7 +214,6 @@ const InventoryTable = memo(
             numberFormatter.format(row.original.quantityOnPurchaseOrder),
           meta: {
             icon: <LuMoveUp className="text-emerald-500" />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -230,7 +224,6 @@ const InventoryTable = memo(
             numberFormatter.format(row.original.quantityOnProductionOrder),
           meta: {
             icon: <LuMoveUp className="text-emerald-500" />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -241,7 +234,6 @@ const InventoryTable = memo(
             numberFormatter.format(row.original.quantityOnProductionDemand),
           meta: {
             icon: <LuMoveDown className="text-red-500" />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },
@@ -252,7 +244,6 @@ const InventoryTable = memo(
             numberFormatter.format(row.original.quantityOnSalesOrder),
           meta: {
             icon: <LuMoveDown className="text-red-500" />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },

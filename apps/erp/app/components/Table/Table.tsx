@@ -24,6 +24,7 @@ import {
 } from "@carbon/react";
 import { clamp } from "@carbon/utils";
 import { useNavigation } from "@remix-run/react";
+import { useNumberFormatter } from "@react-aria/i18n";
 import type {
   Column,
   ColumnDef,
@@ -135,6 +136,7 @@ const Table = <T extends object>({
   renderContextMenu,
 }: TableProps<T>) => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const numberFormatter = useNumberFormatter();
 
   const { currentView, view } = useSavedViews();
 
@@ -962,7 +964,7 @@ const Table = <T extends object>({
                         >
                           {!footer.isPlaceholder && footer.column.columnDef.meta?.renderTotal &&
                             <div className="flex justify-start items-center gap-2">
-                              {footer.column.columnDef.meta?.formatter ? footer.column.columnDef.meta.formatter(total) : total}
+                              {footer.column.columnDef.meta?.formatter ? footer.column.columnDef.meta.formatter(total) : numberFormatter.format(total)}
                             </div>
                           }
                         </Th>

@@ -381,7 +381,6 @@ const PlanningTable = memo(
             numberFormatter.format(row.original.quantityOnHand),
           meta: {
             icon: <LuPackage />,
-            formatter: numberFormatter.format,
             renderTotal: true,
           },
         },

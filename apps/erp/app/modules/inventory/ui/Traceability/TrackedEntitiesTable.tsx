@@ -69,6 +69,7 @@ const TrackedEntitiesTable = memo(
           ),
           meta: {
             icon: <LuHash />,
+            renderTotal: true,
           },
         },
         {
