@@ -255,22 +255,29 @@ function makeItem(
         </HStack>
         <HStack>
           <JobOperationTags operation={operation} availableTags={tags} />
-          <Link
-            to={`${path.to.newIssue}?${new URLSearchParams({
-              jobOperationId: operation.id,
-              operationSupplierProcessId:
-                operation.operationSupplierProcessId ?? "",
-              ...urlParams,
-            }).toString()}`}
-            title="Create Issue"
-          >
-            <IconButton
-              icon={<LuShieldX />}
-              variant="secondary"
-              aria-label="Create Issue"
-              size="sm"
-            ></IconButton>
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                to={`${path.to.newIssue}?${new URLSearchParams({
+                  jobOperationId: operation.id,
+                  operationSupplierProcessId:
+                    operation.operationSupplierProcessId ?? "",
+                  ...urlParams,
+                }).toString()}`}
+                title="Create Issue"
+              >
+                <IconButton
+                  icon={<LuShieldX />}
+                  variant="secondary"
+                  aria-label="Create Issue"
+                  size="sm"
+                ></IconButton>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <span>Create Issue</span>
+            </TooltipContent>
+          </Tooltip>
         </HStack>
       </HStack>
     ),
