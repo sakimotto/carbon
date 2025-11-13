@@ -155,6 +155,8 @@ export default function IssueNewRoute() {
   const supplierId = params.get("supplierId");
   const customerId = params.get("customerId");
   const jobId = params.get("jobId");
+  const jobOperationId = params.get("jobOperationId");
+  const itemId = params.get("itemId");
   const salesOrderId = params.get("salesOrderId");
   const shipmentId = params.get("shipmentId");
   const purchaseOrderId = params.get("purchaseOrderId");
@@ -168,8 +170,10 @@ export default function IssueNewRoute() {
     approvalRequirements: [],
     customerId: customerId ?? "",
     investigationTypeIds: [],
-    items: [],
+    items: [itemId],
     jobId: jobId ?? "",
+    jobOperationId: jobOperationId ?? "",
+    itemId: itemId ?? "",
     locationId: defaults.locationId ?? "",
     name: "",
     nonConformanceTypeId: "",

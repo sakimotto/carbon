@@ -53,7 +53,7 @@ import {
   formatRelativeTime,
 } from "@carbon/utils";
 import { getLocalTimeZone, today } from "@internationalized/date";
-import { useFetcher, useFetchers, useParams } from "@remix-run/react";
+import { Link, useFetcher, useFetchers, useParams } from "@remix-run/react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { AnimatePresence, LayoutGroup, motion, Reorder } from "framer-motion";
 import { nanoid } from "nanoid";
@@ -76,6 +76,7 @@ import {
   LuRefreshCcw,
   LuSend,
   LuSettings2,
+  LuShieldX,
   LuTriangleAlert,
   LuX,
 } from "react-icons/lu";
@@ -173,19 +174,24 @@ type JobBillOfProcessProps = {
     jobOperationStep: JobOperationStep[];
   })[];
   tags: { name: string }[];
+  itemId: string;
 };
 
 function makeItems(
+  jobId: string,
+  itemId: string,
   operations: Operation[],
   tags: { name: string }[],
   temporaryItems: TemporaryItems
 ): ItemWithData[] {
   return operations.map((operation) =>
-    makeItem(operation, tags, temporaryItems)
+    makeItem(jobId, itemId, operation, tags, temporaryItems)
   );
 }
 
 function makeItem(
+  jobId: string,
+  itemId: string,
   operation: Operation,
   tags: { name: string }[],
   temporaryItems: TemporaryItems
@@ -247,8 +253,20 @@ function makeItem(
             value={operation.assignee ?? undefined}
           />
         </HStack>
-
-        <JobOperationTags operation={operation} availableTags={tags} />
+        <HStack>
+          <JobOperationTags operation={operation} availableTags={tags} />
+          <Link
+            to={`${path.to.newIssue}?jobId=${jobId}&jobOperationId=${operation.id}&itemId=${itemId}`}
+            title="Create Issue"
+          >
+            <IconButton
+              icon={<LuShieldX />}
+              variant="secondary"
+              aria-label="Create Issue"
+              size="sm"
+            ></IconButton>
+          </Link>
+        </HStack>
       </HStack>
     ),
     data: operation,
@@ -331,6 +349,7 @@ const JobBillOfProcess = ({
   locationId,
   operations: initialOperations,
   tags,
+  itemId,
 }: JobBillOfProcessProps) => {
   const { carbon, accessToken } = useCarbon();
   const sortOrderFetcher = useFetcher<{}>();
@@ -413,10 +432,12 @@ const JobBillOfProcess = ({
     (a, b) => (orderState[a.id!] ?? a.order) - (orderState[b.id!] ?? b.order)
   );
 
-  const items = makeItems(operations, tags, temporaryItems).map((item) => ({
-    ...item,
-    checked: checkedState[item.id] ?? false,
-  }));
+  const items = makeItems(jobId, itemId, operations, tags, temporaryItems).map(
+    (item) => ({
+      ...item,
+      checked: checkedState[item.id] ?? false,
+    })
+  );
 
   const isDisabled = ["Completed", "Cancelled"].includes(
     jobData?.job?.status ?? ""

@@ -2,7 +2,7 @@ import { fetchAllFromTable, type Database, type Json } from "@carbon/database";
 import type { JSONContent } from "@carbon/react";
 import { parseDate } from "@internationalized/date";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { z } from 'zod/v3';
+import type { z } from "zod/v3";
 import type { GenericQueryFilters } from "~/utils/query";
 import { setGenericQueryFilters } from "~/utils/query";
 import { sanitize } from "~/utils/supabase";
@@ -446,7 +446,13 @@ export async function getIssueAssociations(
         id,
         jobOperationId,
         jobId,
-        jobReadableId
+        jobReadableId,
+        jobOperation (
+          id,
+          process (
+            name
+          )
+        )
       `
       )
       .eq("nonConformanceId", nonConformanceId)
@@ -568,7 +574,9 @@ export async function getIssueAssociations(
         id: item.id,
         documentId: item.jobId ?? "",
         documentLineId: item.jobOperationId,
-        documentReadableId: item.jobReadableId || "",
+        documentReadableId: `${item.jobReadableId || ""} - ${
+          item.jobOperation?.process?.name || ""
+        }`,
       })) || [],
     purchaseOrderLines:
       purchaseOrderLines.data?.map((item) => ({
@@ -1183,24 +1191,53 @@ export async function upsertIssue(
       })
 ) {
   if ("createdBy" in nonConformance) {
-    const { items, ...data } = nonConformance;
+    const { items, jobId, jobOperationId, ...data } = nonConformance;
     const result = await client
       .from("nonConformance")
       .insert([data])
       .select("id")
       .single();
 
-    if (result.data?.id && items && items.length > 0) {
-      const itemInsert = await client.from("nonConformanceItem").insert(
-        items.map((item) => ({
-          nonConformanceId: result.data.id,
-          itemId: item,
-          companyId: nonConformance.companyId,
-          createdBy: nonConformance.createdBy,
-        }))
-      );
-      if (itemInsert.error) {
-        console.error(itemInsert);
+    if (result.data?.id) {
+      if (items && items.length > 0) {
+        const itemInsert = await client.from("nonConformanceItem").insert(
+          items.map((item) => ({
+            nonConformanceId: result.data.id,
+            itemId: item,
+            companyId: nonConformance.companyId,
+            createdBy: nonConformance.createdBy,
+          }))
+        );
+        if (itemInsert.error) {
+          console.error(itemInsert);
+        }
+      }
+      if (jobId && jobOperationId) {
+        const [job, jobOperation] = await Promise.all([
+          client.from("job").select("*").eq("id", jobId).single(),
+          client
+            .from("jobOperation")
+            .select("*")
+            .eq("id", jobOperationId)
+            .single(),
+        ]);
+        if (job?.data && jobOperation?.data) {
+          const jobOperationInsert = await client
+            .from("nonConformanceJobOperation")
+            .insert([
+              {
+                jobId,
+                jobOperationId,
+                nonConformanceId: result.data.id,
+                jobReadableId: job.data?.jobId,
+                companyId: nonConformance.companyId,
+                createdBy: nonConformance.createdBy,
+              },
+            ]);
+          if (jobOperationInsert.error) {
+            console.error(jobOperationInsert);
+          }
+        }
       }
     }
 

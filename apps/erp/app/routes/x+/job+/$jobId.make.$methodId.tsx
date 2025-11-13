@@ -136,6 +136,7 @@ export default function JobMakeMethodRoute() {
         operations={operations}
         locationId={routeData?.job?.locationId ?? ""}
         tags={tags}
+        itemId={makeMethod.itemId}
       />
       <JobBillOfMaterial
         key={`bom:${methodId}`}

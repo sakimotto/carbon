@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from "zod/v3";
 import { zfd } from "zod-form-data";
 import { procedureStepType } from "../shared/shared.models";
 
@@ -150,6 +150,8 @@ export const issueValidator = z.object({
   closeDate: zfd.text(z.string().optional()),
   quantity: zfd.numeric(z.number().optional()),
   items: z.array(z.string()).optional(),
+  jobId: z.string().optional(),
+  jobOperationId: z.string().optional(),
 });
 
 export const nonConformanceReviewerValidator = z.object({
