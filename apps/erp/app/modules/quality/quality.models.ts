@@ -1,6 +1,20 @@
-import { z } from "zod/v3";
 import { zfd } from "zod-form-data";
+import { z } from "zod/v3";
 import { procedureStepType } from "../shared/shared.models";
+
+export const disposition = [
+  // "Conditional Acceptance",
+  // "Deviation Accepted",
+  // "Hold",
+  // "No Action Required",
+  "Pending",
+  // "Quarantine",
+  // "Repair",
+  // "Return to Supplier",
+  "Rework",
+  "Scrap",
+  "Use As Is",
+] as const;
 
 export const gaugeStatus = ["Active", "Inactive"] as const;
 export const gaugeCalibrationStatus = [

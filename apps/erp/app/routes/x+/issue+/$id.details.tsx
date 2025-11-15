@@ -8,7 +8,8 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@vercel/remix";
 import { defer, redirect } from "@vercel/remix";
 import { Suspense } from "react";
 import { Documents } from "~/components";
-import { usePermissions, useRouteData } from "~/hooks";
+import { useRouteData } from "~/hooks";
+import type { IssueAssociationNode } from "~/modules/quality";
 import {
   getIssueActionTasks,
   getIssueInvestigationTasks,
@@ -18,6 +19,7 @@ import {
 } from "~/modules/quality";
 import {
   ActionTasksList,
+  AssociatedItemsList,
   InvestigationTasksList,
   IssueContent,
   ReviewersList,
@@ -107,10 +109,10 @@ export default function IssueDetailsRoute() {
 
   const routeData = useRouteData<{
     files: Promise<StorageItem[]>;
+    associations: Promise<{ items: IssueAssociationNode["children"] }>;
   }>(path.to.issue(id));
 
   if (!routeData) throw new Error("Could not find issue data");
-  const permissions = usePermissions();
 
   return (
     <VStack spacing={2}>
@@ -122,27 +124,41 @@ export default function IssueDetailsRoute() {
         isDisabled={nonConformance?.status === "Closed"}
       />
 
-      {permissions.is("employee") && (
-        <Suspense
-          fallback={
-            <div className="flex min-h-[420px] w-full h-full rounded bg-gradient-to-tr from-background to-card items-center justify-center">
-              <Spinner className="size-10" />
-            </div>
-          }
-        >
-          <Await resolve={routeData?.files}>
-            {(resolvedFiles) => (
-              <Documents
-                files={resolvedFiles}
-                sourceDocument="Issue"
-                sourceDocumentId={id}
-                writeBucket="parts"
-                writeBucketPermission="parts"
-              />
-            )}
-          </Await>
-        </Suspense>
-      )}
+      <Suspense
+        fallback={
+          <div className="flex min-h-[420px] w-full h-full rounded bg-gradient-to-tr from-background to-card items-center justify-center">
+            <Spinner className="size-10" />
+          </div>
+        }
+      >
+        <Await resolve={routeData?.associations}>
+          {(resolvedAssociations) => (
+            <AssociatedItemsList
+              associatedItems={resolvedAssociations?.items ?? []}
+            />
+          )}
+        </Await>
+      </Suspense>
+
+      <Suspense
+        fallback={
+          <div className="flex min-h-[420px] w-full h-full rounded bg-gradient-to-tr from-background to-card items-center justify-center">
+            <Spinner className="size-10" />
+          </div>
+        }
+      >
+        <Await resolve={routeData?.files}>
+          {(resolvedFiles) => (
+            <Documents
+              files={resolvedFiles}
+              sourceDocument="Issue"
+              sourceDocumentId={id}
+              writeBucket="parts"
+              writeBucketPermission="parts"
+            />
+          )}
+        </Await>
+      </Suspense>
 
       <Suspense
         fallback={

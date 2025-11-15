@@ -446,6 +446,7 @@ export async function getIssueAssociations(
         `
       id,
       itemId,
+      disposition,
       ...item(
         readableIdWithRevision
       )
@@ -582,6 +583,7 @@ export async function getIssueAssociations(
         documentId: item.itemId,
         documentReadableId: item.readableIdWithRevision || "",
         documentLineId: "",
+        disposition: item.disposition,
       })) || [],
     jobOperations:
       jobOperations.data?.map((item) => ({
