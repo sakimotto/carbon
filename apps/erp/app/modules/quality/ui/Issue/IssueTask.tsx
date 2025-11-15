@@ -246,7 +246,7 @@ export function TaskItem({
 }: {
   task: IssueInvestigationTask | IssueActionTask | IssueReviewer;
   type: "investigation" | "action" | "review";
-  suppliers: { supplierId: string }[];
+  suppliers: { supplierId: string; externalLinkId: string | null }[];
   isDisabled?: boolean;
 }) {
   const permissions = usePermissions();

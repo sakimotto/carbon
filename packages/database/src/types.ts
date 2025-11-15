@@ -17343,6 +17343,7 @@ export type Database = {
           companyId: string
           createdAt: string
           createdBy: string
+          externalLinkId: string | null
           id: string
           nonConformanceId: string
           supplierId: string
@@ -17353,6 +17354,7 @@ export type Database = {
           companyId: string
           createdAt?: string
           createdBy: string
+          externalLinkId?: string | null
           id?: string
           nonConformanceId: string
           supplierId: string
@@ -17363,6 +17365,7 @@ export type Database = {
           companyId?: string
           createdAt?: string
           createdBy?: string
+          externalLinkId?: string | null
           id?: string
           nonConformanceId?: string
           supplierId?: string
@@ -17432,6 +17435,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "userDefaults"
             referencedColumns: ["userId"]
+          },
+          {
+            foreignKeyName: "nonConformanceSupplier_externalLinkId_fkey"
+            columns: ["externalLinkId"]
+            isOneToOne: false
+            referencedRelation: "externalLink"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "nonConformanceSupplier_nonConformanceId_fkey"

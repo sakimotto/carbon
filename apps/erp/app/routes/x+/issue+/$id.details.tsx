@@ -109,7 +109,7 @@ export default function IssueDetailsRoute() {
 
   const routeData = useRouteData<{
     files: Promise<StorageItem[]>;
-    suppliers: { supplierId: string }[];
+    suppliers: { supplierId: string; externalLinkId: string | null }[];
     associations: Promise<{ items: IssueAssociationNode["children"] }>;
   }>(path.to.issue(id));
 

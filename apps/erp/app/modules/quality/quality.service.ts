@@ -674,7 +674,7 @@ export async function getIssueSuppliers(
 ) {
   return client
     .from("nonConformanceSupplier")
-    .select("supplierId")
+    .select("supplierId, externalLinkId")
     .eq("nonConformanceId", id)
     .eq("companyId", companyId)
     .order("id", { ascending: true });

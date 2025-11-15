@@ -46495,6 +46495,9 @@ export default {
             $ref: "#/parameters/rowFilter.nonConformanceSupplier.updatedBy",
           },
           {
+            $ref: "#/parameters/rowFilter.nonConformanceSupplier.externalLinkId",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -46578,6 +46581,9 @@ export default {
             $ref: "#/parameters/rowFilter.nonConformanceSupplier.updatedBy",
           },
           {
+            $ref: "#/parameters/rowFilter.nonConformanceSupplier.externalLinkId",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -46613,6 +46619,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.nonConformanceSupplier.updatedBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.nonConformanceSupplier.externalLinkId",
           },
           {
             $ref: "#/parameters/body.nonConformanceSupplier",
@@ -82324,6 +82333,12 @@ export default {
           format: "text",
           type: "string",
         },
+        externalLinkId: {
+          description:
+            "Note:\nThis is a Foreign Key to `externalLink.id`.<fk table='externalLink' column='id'/>",
+          format: "uuid",
+          type: "string",
+        },
       },
       type: "object",
     },
@@ -112030,6 +112045,12 @@ export default {
     },
     "rowFilter.nonConformanceSupplier.updatedBy": {
       name: "updatedBy",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.nonConformanceSupplier.externalLinkId": {
+      name: "externalLinkId",
       required: false,
       in: "query",
       type: "string",

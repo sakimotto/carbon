@@ -75,6 +75,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         });
 
       if (supplierError) {
+        console.error(supplierError);
         return json({
           success: false,
           message: "Failed to create issue supplier",

@@ -30,7 +30,7 @@ export function InvestigationTasksList({
   isDisabled,
 }: {
   tasks: IssueInvestigationTask[];
-  suppliers: { supplierId: string }[];
+  suppliers: { supplierId: string; externalLinkId: string | null }[];
   isDisabled: boolean;
 }) {
   if (tasks.length === 0) return <NewInvestigation isDisabled={isDisabled} />;

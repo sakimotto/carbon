@@ -30,7 +30,7 @@ export function ActionTasksList({
   isDisabled,
 }: {
   tasks: IssueActionTask[];
-  suppliers: { supplierId: string }[];
+  suppliers: { supplierId: string; externalLinkId: string | null }[];
   isDisabled: boolean;
 }) {
   if (tasks.length === 0) return <NewAction isDisabled={isDisabled} />;

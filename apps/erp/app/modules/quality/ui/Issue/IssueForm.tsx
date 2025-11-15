@@ -124,13 +124,12 @@ const IssueForm = ({
           <VStack spacing={4}>
             <div className="grid w-full gap-4 grid-cols-1 md:grid-cols-2">
               <Input name="name" label="Name" />
-              <MultiSelect
-                name="items"
-                label="Items"
-                options={items.map((item) => ({
-                  label: item.readableIdWithRevision,
-                  value: item.id,
-                  helper: item.name,
+              <Select
+                name="nonConformanceTypeId"
+                label="Issue Type"
+                options={nonConformanceTypes.map((type) => ({
+                  label: type.name,
+                  value: type.id,
                 }))}
               />
             </div>
@@ -146,12 +145,13 @@ const IssueForm = ({
                 onChange={onWorkflowChange}
               />
 
-              <Select
-                name="nonConformanceTypeId"
-                label="Issue Type"
-                options={nonConformanceTypes.map((type) => ({
-                  label: type.name,
-                  value: type.id,
+              <MultiSelect
+                name="items"
+                label="Items"
+                options={items.map((item) => ({
+                  label: item.readableIdWithRevision,
+                  value: item.id,
+                  helper: item.name,
                 }))}
               />
             </div>

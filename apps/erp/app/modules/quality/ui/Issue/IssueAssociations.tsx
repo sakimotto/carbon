@@ -20,6 +20,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalTitle,
+  ScrollArea,
   Skeleton,
   toast,
   useDisclosure,
@@ -97,7 +98,7 @@ export function IssueAssociationsTree({
   };
 
   return (
-    <>
+    <ScrollArea className="h-full">
       <VStack className="px-2">
         <HStack className="w-full py-2">
           <InputGroup size="sm" className="flex flex-grow">
@@ -150,7 +151,7 @@ export function IssueAssociationsTree({
           onSubmit={onDeleteCancel}
         />
       )}
-    </>
+    </ScrollArea>
   );
 }
 

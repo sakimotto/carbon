@@ -1,3 +1,5 @@
+ALTER TABLE "nonConformanceSupplier" ADD COLUMN "externalLinkId" UUID REFERENCES "externalLink" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
 CREATE TYPE "disposition" AS ENUM (
   'Conditional Acceptance',
   'Deviation Accepted',
@@ -44,11 +46,20 @@ ALTER TYPE "externalLinkDocumentType" ADD VALUE IF NOT EXISTS 'Non-Conformance';
 -- Create trigger function to auto-create external link for non-conformance suppliers
 CREATE OR REPLACE FUNCTION create_non_conformance_external_link()
 RETURNS TRIGGER AS $$
+DECLARE
+  external_link_id UUID;
 BEGIN
-  -- Insert into externalLink table
+  -- Insert into externalLink table and get the ID
   INSERT INTO "externalLink" ("documentType", "documentId", "companyId")
   VALUES ('Non-Conformance', NEW."nonConformanceId", NEW."companyId")
-  ON CONFLICT ("documentId", "documentType", "companyId") DO NOTHING;
+  ON CONFLICT ("documentId", "documentType", "companyId") DO UPDATE SET
+    "documentType" = EXCLUDED."documentType"
+  RETURNING "id" INTO external_link_id;
+
+  -- Update the nonConformanceSupplier row with the external link ID
+  UPDATE "nonConformanceSupplier"
+  SET "externalLinkId" = external_link_id
+  WHERE "id" = NEW."id";
   
   RETURN NEW;
 END;

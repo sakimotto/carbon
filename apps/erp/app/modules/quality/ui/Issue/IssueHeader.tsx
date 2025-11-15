@@ -1,13 +1,28 @@
-import { Button, Copy, HStack, Heading, VStack } from "@carbon/react";
+import {
+  Button,
+  Copy,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuIcon,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  HStack,
+  Heading,
+  VStack,
+} from "@carbon/react";
 
 import { Link, useFetcher, useParams } from "@remix-run/react";
 import {
+  LuChevronDown,
   LuCircleCheck,
   LuCirclePlay,
+  LuExternalLink,
+  LuEye,
   LuFile,
   LuLoaderCircle,
 } from "react-icons/lu";
 import { usePermissions, useRouteData } from "~/hooks";
+import { useSuppliers } from "~/stores/suppliers";
 import { path } from "~/utils/path";
 import type { Issue } from "../../types";
 import IssueStatus from "./IssueStatus";
@@ -16,11 +31,15 @@ const IssueHeader = () => {
   const { id } = useParams();
   if (!id) throw new Error("id not found");
 
-  const routeData = useRouteData<{ nonConformance: Issue }>(path.to.issue(id));
+  const routeData = useRouteData<{
+    nonConformance: Issue;
+    suppliers: { supplierId: string; externalLinkId: string | null }[];
+  }>(path.to.issue(id));
 
   const status = routeData?.nonConformance?.status;
   const permissions = usePermissions();
   const statusFetcher = useFetcher<{}>();
+  const [suppliers] = useSuppliers();
 
   return (
     <div className="flex flex-shrink-0 items-center justify-between px-4 py-2 bg-card border-b border-border h-[50px] overflow-x-auto scrollbar-hide dark:border-none dark:shadow-[inset_0_0_1px_rgb(255_255_255_/_0.24),_0_0_0_0.5px_rgb(0,0,0,1),0px_0px_4px_rgba(0,_0,_0,_0.08)]">
@@ -38,20 +57,41 @@ const IssueHeader = () => {
       </VStack>
 
       <HStack>
-        <Button
-          variant="secondary"
-          leftIcon={<LuFile />}
-          isDisabled={status !== "Closed"}
-          asChild
-        >
-          <a
-            href={path.to.file.nonConformance(id)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Report
-          </a>
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              leftIcon={<LuEye />}
+              variant="secondary"
+              rightIcon={<LuChevronDown />}
+            >
+              Preview
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {routeData?.suppliers?.map((s) => {
+              if (!s.externalLinkId) return null;
+              const supplier = suppliers.find((sup) => sup.id === s.supplierId);
+              return (
+                <DropdownMenuItem key={s.supplierId} asChild>
+                  <Link to={path.to.externalScar(s.externalLinkId)}>
+                    <DropdownMenuIcon icon={<LuExternalLink />} />
+                    {supplier?.name} SCAR
+                  </Link>
+                </DropdownMenuItem>
+              );
+            })}
+            <DropdownMenuItem asChild>
+              <a
+                target="_blank"
+                href={path.to.file.nonConformance(id)}
+                rel="noreferrer"
+              >
+                <DropdownMenuIcon icon={<LuFile />} />
+                Report
+              </a>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <statusFetcher.Form method="post" action={path.to.issueStatus(id)}>
           <input type="hidden" name="status" value="In Progress" />
           <Button

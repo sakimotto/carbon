@@ -427,7 +427,6 @@ export const path = {
     convertSupplierQuoteToOrder: (id: string) =>
       generatePath(`${x}/supplier-quote/${id}/convert`),
     currency: (id: string) => generatePath(`${x}/accounting/currencies/${id}`),
-    correctiveActions: `${x}/quality/corrective-actions`,
     currencies: `${x}/accounting/currencies`,
     customer: (id: string) => generatePath(`${x}/customer/${id}`),
     customerDetails: (id: string) =>
@@ -708,6 +707,7 @@ export const path = {
     externalCustomerFile: (id: string, path: string) =>
       generatePath(`/share/customer/${id}/${path}`),
     externalQuote: (id: string) => generatePath(`/share/quote/${id}`),
+    externalScar: (id: string) => generatePath(`/share/scar/${id}`),
     feedback: `${x}/feedback`,
     fiscalYears: `${x}/accounting/years`,
     gauge: (id: string) => generatePath(`${x}/quality/gauges/${id}`),
