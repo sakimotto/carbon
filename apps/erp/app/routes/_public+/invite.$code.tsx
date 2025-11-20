@@ -5,7 +5,12 @@ import {
   getCarbonServiceRole,
   getPermissionCacheKey,
 } from "@carbon/auth";
-import { flash, getAuthSession } from "@carbon/auth/session.server";
+import { setCompanyId } from "@carbon/auth/company.server";
+import {
+  flash,
+  getAuthSession,
+  updateCompanySession,
+} from "@carbon/auth/session.server";
 import { redis } from "@carbon/kv";
 import { Button as _Button, Heading as _Heading, VStack } from "@carbon/react";
 import { updateSubscriptionQuantityForCompany } from "@carbon/stripe/stripe.server";
@@ -66,7 +71,17 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   if (authSession) {
     await redis.del(getPermissionCacheKey(authSession.userId));
-    throw redirect(path.to.authenticatedRoot);
+    const sessionCookie = await updateCompanySession(
+      request,
+      accept.data.companyId
+    );
+    const companyIdCookie = setCompanyId(accept.data.companyId);
+    throw redirect(path.to.authenticatedRoot, {
+      headers: [
+        ["Set-Cookie", sessionCookie],
+        ["Set-Cookie", companyIdCookie],
+      ],
+    });
   } else {
     const magicLink = await serviceRole.auth.admin.generateLink({
       type: "magiclink",
