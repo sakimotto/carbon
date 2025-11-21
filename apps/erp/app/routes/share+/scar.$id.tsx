@@ -37,14 +37,10 @@ import { LuChevronRight } from "react-icons/lu";
 import z from "zod";
 import { zfd } from "zod-form-data";
 import { getSupplier } from "~/modules/purchasing";
-import type {
-  IssueActionTask,
-  IssueInvestigationTask,
-} from "~/modules/quality";
+import type { IssueActionTask } from "~/modules/quality";
 import {
   getIssueActionTasks,
   getIssueFromExternalLink,
-  getIssueInvestigationTasks,
   nonConformanceTaskStatus,
   updateIssueTaskContent,
   updateIssueTaskStatus,
@@ -70,22 +66,16 @@ const translations = {
     "Issue not found": "Issue not found",
     "Oops! The link you're trying to access is not valid.":
       "Oops! The link you're trying to access is not valid.",
-    Actions: "Actions",
-    Investigations: "Investigations",
   },
   es: {
     "Issue not found": "No se encontró el problema",
     "Oops! The link you're trying to access is not valid.":
       "¡Ups! El enlace al que intenta acceder no es válido.",
-    Actions: "Acciones",
-    Investigations: "Investigaciones",
   },
   de: {
     "Issue not found": "Problem nicht gefunden",
     "Oops! The link you're trying to access is not valid.":
       "Ups! Der Link, den Sie aufrufen möchten, ist nicht gültig.",
-    Actions: "Aktionen",
-    Investigations: "Untersuchungen",
   },
 };
 
@@ -127,23 +117,16 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     });
   }
 
-  const [company, supplier, actionTasks, investigationTasks] =
-    await Promise.all([
-      getCompany(serviceRole, externalLink.data.companyId),
-      getSupplier(serviceRole, issue.data.supplierId),
-      getIssueActionTasks(
-        serviceRole,
-        issue.data.nonConformanceId,
-        externalLink.data.companyId,
-        issue.data.supplierId
-      ),
-      getIssueInvestigationTasks(
-        serviceRole,
-        issue.data.nonConformanceId,
-        externalLink.data.companyId,
-        issue.data.supplierId
-      ),
-    ]);
+  const [company, supplier, actionTasks] = await Promise.all([
+    getCompany(serviceRole, externalLink.data.companyId),
+    getSupplier(serviceRole, issue.data.supplierId),
+    getIssueActionTasks(
+      serviceRole,
+      issue.data.nonConformanceId,
+      externalLink.data.companyId,
+      issue.data.supplierId
+    ),
+  ]);
 
   return json({
     state: IssueState.Valid,
@@ -152,7 +135,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       company: company.data,
       supplier: supplier.data,
       actionTasks: actionTasks.data,
-      investigationTasks: investigationTasks.data,
     },
     strings,
   });
@@ -160,7 +142,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 export const scarValidator = z.object({
   taskId: zfd.text(z.string()),
-  type: z.enum(["action", "investigation"]),
+  type: z.enum(["action"]),
   supplierId: zfd.text(z.string()),
   status: z.enum(nonConformanceTaskStatus).optional(),
   content: z
@@ -209,20 +191,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return validationError(validation.error);
   }
 
-  const tasks =
-    validation.data.type === "action"
-      ? await getIssueActionTasks(
-          serviceRole,
-          issue.data.nonConformanceId,
-          externalLink.data.companyId,
-          issue.data.supplierId
-        )
-      : await getIssueInvestigationTasks(
-          serviceRole,
-          issue.data.nonConformanceId,
-          externalLink.data.companyId,
-          issue.data.supplierId
-        );
+  const tasks = await getIssueActionTasks(
+    serviceRole,
+    issue.data.nonConformanceId,
+    externalLink.data.companyId,
+    issue.data.supplierId
+  );
 
   const isTaskValid = tasks.data?.find((t) => t.id === validation.data.taskId);
   if (!isTaskValid) {
@@ -324,11 +298,11 @@ function useTaskStatus({
 }: {
   task: {
     id?: string;
-    status: IssueInvestigationTask["status"];
+    status: IssueActionTask["status"];
     supplierId: string | null;
   };
-  type: "investigation" | "action" | "approval" | "review";
-  onChange?: (status: IssueInvestigationTask["status"]) => void;
+  type: "action" | "approval" | "review";
+  onChange?: (status: IssueActionTask["status"]) => void;
 }) {
   const { id } = useParams();
   if (!id) throw new Error("Could not find external quote id");
@@ -336,7 +310,7 @@ function useTaskStatus({
   const submit = useSubmit();
 
   const onOperationStatusChange = useCallback(
-    (taskId: string, status: IssueInvestigationTask["status"]) => {
+    (taskId: string, status: IssueActionTask["status"]) => {
       onChange?.(status);
       submit(
         {
@@ -373,7 +347,7 @@ function useTaskNotes({
   initialContent: JSONContent;
   taskId: string;
   supplierId: string;
-  type: "investigation" | "action" | "approval" | "review";
+  type: "action" | "approval" | "review";
 }) {
   const { id } = useParams();
   if (!id) throw new Error("Could not find external quote id");
@@ -404,8 +378,8 @@ export function TaskItem({
   type,
   isDisabled = false,
 }: {
-  task: IssueInvestigationTask | IssueActionTask;
-  type: "investigation" | "action" | "review";
+  task: IssueActionTask;
+  type: "action" | "review";
   isDisabled?: boolean;
   permissionsOverride?: Permissions;
 }) {
@@ -427,10 +401,7 @@ export function TaskItem({
 
   const hasStartedRef = useRef(false);
 
-  const taskTitle =
-    type === "investigation"
-      ? (task as IssueInvestigationTask).name
-      : (task as IssueActionTask).name;
+  const taskTitle = task.name;
   return (
     <div className="rounded-lg border w-full flex flex-col">
       <div className="flex w-full justify-between px-4 py-2 items-center">
@@ -502,41 +473,33 @@ export function TaskItem({
 export function TaskList({
   tasks,
   isDisabled,
-  type,
   strings,
 }: {
-  tasks: IssueActionTask[] | IssueInvestigationTask[];
+  tasks: IssueActionTask[];
   isDisabled: boolean;
-  type: "action" | "investigation";
   strings: (typeof translations)["en"];
 }) {
   if (tasks.length === 0) return null;
 
   return (
-    <Card className="w-full" isCollapsible>
-      <HStack className="justify-between w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            {type === "action" ? strings["Actions"] : strings["Investigations"]}
-          </CardTitle>
-        </CardHeader>
-        <TaskProgress tasks={tasks} />
+    <>
+      <HStack className="justify-center w-full">
+        <TaskProgress tasks={tasks} className="pr-0" />
       </HStack>
-      <CardContent>
-        <VStack spacing={3}>
-          {tasks
-            .sort((a, b) => a.name?.localeCompare(b.name ?? "") ?? 0)
-            .map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                type={type}
-                isDisabled={isDisabled}
-              />
-            ))}
-        </VStack>
-      </CardContent>
-    </Card>
+
+      <VStack spacing={3}>
+        {tasks
+          .sort((a, b) => a.name?.localeCompare(b.name ?? "") ?? 0)
+          .map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              type="action"
+              isDisabled={isDisabled}
+            />
+          ))}
+      </VStack>
+    </>
   );
 }
 
@@ -547,7 +510,7 @@ const Issue = ({
   data: IssueData;
   strings: (typeof translations)["en"];
 }) => {
-  const { company, issue, actionTasks, investigationTasks, supplier } = data;
+  const { company, issue, actionTasks, supplier } = data;
 
   const { id } = useParams();
   if (!id) throw new Error("Could not find external quote id");
@@ -567,18 +530,9 @@ const Issue = ({
       <Card className="w-full max-w-5xl mx-auto gap-4">
         <Header company={company} issue={issue} supplier={supplier} />
         <CardContent className="gap-4">
-          {investigationTasks?.length ? (
-            <TaskList
-              tasks={investigationTasks}
-              type="investigation"
-              isDisabled={issue.status === "Closed"}
-              strings={strings}
-            />
-          ) : null}
           {actionTasks?.length ? (
             <TaskList
               tasks={actionTasks}
-              type="action"
               isDisabled={issue.status === "Closed"}
               strings={strings}
             />

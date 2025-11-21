@@ -4,7 +4,7 @@ import { createTw } from "react-pdf-tailwind";
 
 import type { JSONContent } from "@carbon/react";
 import type { PDF } from "../types";
-import { Header, Note, Summary, Template } from "./components";
+import { Footer, Header, Note, Summary, Template } from "./components";
 
 type ListItem = {
   id: string;
@@ -20,6 +20,29 @@ type ActionTask =
     supplier: { name: string } | null;
   };
 
+type JobOperationStepRecord =
+  Database["public"]["Tables"]["jobOperationStepRecord"]["Row"];
+
+type JobOperationStepWithRecords = {
+  id: string;
+  name: string | null;
+  operationId: string;
+  nonConformanceActionId: string | null;
+  jobOperationStepRecord: JobOperationStepRecord[];
+};
+
+type Associations = {
+  items: any[];
+  customers: any[];
+  suppliers: any[];
+  jobOperations: any[];
+  purchaseOrderLines: any[];
+  salesOrderLines: any[];
+  shipmentLines: any[];
+  receiptLines: any[];
+  trackedEntities: any[];
+};
+
 interface IssuePDFProps extends PDF {
   nonConformance: Database["public"]["Tables"]["nonConformance"]["Row"];
   nonConformanceTypes: Database["public"]["Tables"]["nonConformanceType"]["Row"][];
@@ -27,6 +50,10 @@ interface IssuePDFProps extends PDF {
   requiredActions: ListItem[];
   reviewers: Database["public"]["Tables"]["nonConformanceReviewer"]["Row"][];
   items: IssueItem[];
+  associations?: Associations | null;
+  assignees?: Record<string, string>;
+  jobOperationStepRecords?: JobOperationStepWithRecords[];
+  operationToJobId?: Record<string, string>;
 }
 
 // Initialize tailwind-styled-components
@@ -55,6 +82,10 @@ const IssuePDF = ({
   requiredActions,
   reviewers,
   items,
+  associations,
+  assignees = {},
+  jobOperationStepRecords = [],
+  operationToJobId = {},
   title = "Issue Report",
 }: IssuePDFProps) => {
   // Sort action tasks by sortOrder
@@ -99,53 +130,169 @@ const IssuePDF = ({
             },
           ]}
         />
-        <View style={tw("flex flex-col gap-2 mb-10")}>
+        <View style={tw("flex flex-col gap-2 mb-4")}>
           <View style={tw("flex flex-row justify-between")}>
-            <Text style={tw("font-bold")}>{nonConformance.name}</Text>
+            <Text style={[tw("font-bold"), { letterSpacing: -0.5 }]}>
+              {nonConformance.name}
+            </Text>
           </View>
         </View>
+        {associations && (
+          <View style={tw("mb-10")}>
+            <View style={tw("flex flex-col gap-1")}>
+              {associations.items?.map((item: any) => (
+                <View
+                  key={item.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>Item:</Text>
+                  </View>
+                  <Text>{item.documentReadableId}</Text>
+                  {item.disposition && (
+                    <>
+                      <Text>-</Text>
+                      <Text>{item.disposition}</Text>
+                    </>
+                  )}
+                  {item.quantity && (
+                    <>
+                      <Text>-</Text>
+                      <Text>Qty: {item.quantity}</Text>
+                    </>
+                  )}
+                </View>
+              ))}
+              {associations.customers?.map((customer: any) => (
+                <View
+                  key={customer.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Customer:
+                    </Text>
+                  </View>
+                  <Text>{customer.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.suppliers?.map((supplier: any) => (
+                <View
+                  key={supplier.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Supplier:
+                    </Text>
+                  </View>
+                  <Text>{supplier.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.jobOperations?.map((job: any) => (
+                <View
+                  key={job.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Job Operation:
+                    </Text>
+                  </View>
+                  <Text>{job.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.purchaseOrderLines?.map((po: any) => (
+                <View
+                  key={po.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Purchase Order:
+                    </Text>
+                  </View>
+                  <Text>{po.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.salesOrderLines?.map((so: any) => (
+                <View
+                  key={so.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Sales Order:
+                    </Text>
+                  </View>
+                  <Text>{so.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.shipmentLines?.map((shipment: any) => (
+                <View
+                  key={shipment.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Shipment:
+                    </Text>
+                  </View>
+                  <Text>{shipment.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.receiptLines?.map((receipt: any) => (
+                <View
+                  key={receipt.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>Receipt:</Text>
+                  </View>
+                  <Text>{receipt.documentReadableId}</Text>
+                </View>
+              ))}
+              {associations.trackedEntities?.map((entity: any) => (
+                <View
+                  key={entity.id}
+                  style={tw("flex flex-row gap-2 text-sm py-1")}
+                >
+                  <View style={tw("w-1/4")}>
+                    <Text style={tw("font-bold text-[#7d7d7d]")}>
+                      Tracked Entity:
+                    </Text>
+                  </View>
+                  <Text>{entity.documentReadableId}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
         {Object.keys(nonConformance.content ?? {}).length > 0 && (
-          <View
-            style={tw("flex flex-col gap-2 border-b border-gray-300 mb-10")}
-          >
+          <View style={tw("flex flex-col gap-2 mb-10")}>
             <View style={tw("flex flex-row justify-between")}>
-              <Text style={tw("font-bold")}>Overview</Text>
+              <Text style={[tw("font-bold"), { letterSpacing: -0.5 }]}>
+                Description of Issue
+              </Text>
             </View>
 
-            <Note content={nonConformance.content as JSONContent} />
+            <View style={tw("flex flex-col my-2")}>
+              <Note content={nonConformance.content as JSONContent} />
+            </View>
           </View>
         )}
-        {items.length > 0 && (
-          <View style={tw("mb-10")} wrap={false}>
-            <Text style={tw("font-bold mb-2")}>Dispositions</Text>
-            {items.map((item) => (
-              <View
-                key={item.id}
-                style={tw("flex flex-col gap-1 py-2 border-b border-gray-300")}
-              >
-                <View style={tw("flex flex-row justify-between")}>
-                  <Text style={tw("font-bold text-sm")}>{item.name}</Text>
-                  <Badge>{item.disposition ?? "Pending"}</Badge>
-                </View>
-                {item.quantity > 0 && (
-                  <Text style={tw("text-sm text-gray-500")}>
-                    Quantity: {item.quantity}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
-        )}
+
         {sortedActionTasks.length > 0 && (
-          <View style={tw("mb-10")} wrap={false}>
-            <Text style={tw("font-bold mb-2")}>Actions</Text>
+          <View style={tw("mb-10")}>
             {sortedActionTasks.map((task) => (
               <View
                 key={task.id}
-                style={tw("flex flex-col gap-2 border-b border-gray-300 mb-10")}
+                style={tw("flex flex-col gap-2 mb-10")}
+                wrap={false}
               >
                 <View style={tw("flex flex-row justify-between")}>
-                  <Text style={tw("font-bold")}>
+                  <Text style={[tw("font-bold"), { letterSpacing: -0.5 }]}>
+                    {task.supplier?.name ? "Supplier " : ""}
                     {
                       requiredActions.find(
                         (action) => action.id === task.actionTypeId
@@ -153,18 +300,109 @@ const IssuePDF = ({
                     }
                   </Text>
                 </View>
-                {task.supplier?.name && (
-                  <View style={tw("flex flex-row items-center gap-2")}>
-                    <Badge>{task.supplier.name}</Badge>
+                <View style={tw("flex flex-col gap-1")}>
+                  {task.supplier?.name && (
+                    <View style={tw("flex flex-row gap-2 text-sm")}>
+                      <View style={tw("w-1/4")}>
+                        <Text style={tw("font-bold text-[#7d7d7d]")}>
+                          Supplier:
+                        </Text>
+                      </View>
+                      <Text>{task.supplier.name}</Text>
+                    </View>
+                  )}
+                  {task.assignee && assignees[task.assignee] && (
+                    <View style={tw("flex flex-row gap-2 text-sm")}>
+                      <View style={tw("w-1/4")}>
+                        <Text style={tw("font-bold text-[#7d7d7d]")}>
+                          {task.supplier?.name ? "Verified by" : "Completed by"}
+                          :
+                        </Text>
+                      </View>
+                      <Text>{assignees[task.assignee]}</Text>
+                    </View>
+                  )}
+                  {task.completedDate && (
+                    <View style={tw("flex flex-row gap-2 text-sm")}>
+                      <View style={tw("w-1/4")}>
+                        <Text style={tw("font-bold text-[#7d7d7d]")}>
+                          Completed on:
+                        </Text>
+                      </View>
+                      <Text>{task.completedDate}</Text>
+                    </View>
+                  )}
+                </View>
+                {Object.keys(task.notes ?? {}).length > 0 && (
+                  <View style={tw("flex flex-col my-2")}>
+                    <Note content={task.notes as JSONContent} />
                   </View>
                 )}
-                {task.completedDate && (
-                  <Text style={tw("text-sm")}>
-                    Completed: {task.completedDate}
-                  </Text>
-                )}
-                {Object.keys(task.notes ?? {}).length > 0 && (
-                  <Note content={task.notes as JSONContent} />
+                {/* Job Operation Step Records */}
+                {jobOperationStepRecords
+                  .filter((step) => step.nonConformanceActionId === task.id)
+                  .some((step) =>
+                    step.jobOperationStepRecord?.some(
+                      (record) => record.booleanValue !== null
+                    )
+                  ) && (
+                  <View style={tw("flex flex-col gap-2")}>
+                    <Text
+                      style={[tw("font-bold text-sm"), { letterSpacing: -0.5 }]}
+                    >
+                      Inspections
+                    </Text>
+                    {jobOperationStepRecords
+                      .filter((step) => step.nonConformanceActionId === task.id)
+                      .map((step) =>
+                        step.jobOperationStepRecord
+                          ?.filter((record) => record.booleanValue !== null)
+                          .map((record) => (
+                            <View
+                              key={record.id}
+                              style={tw("flex flex-row gap-2 text-sm")}
+                            >
+                              <View
+                                style={{
+                                  width: 12,
+                                  height: 12,
+                                  border: "1px solid #000",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  marginTop: 2,
+                                }}
+                              >
+                                {record.booleanValue && (
+                                  <Text
+                                    style={{ fontSize: 10, fontWeight: "bold" }}
+                                  >
+                                    ✓
+                                  </Text>
+                                )}
+                              </View>
+                              <View style={tw("flex flex-col")}>
+                                <Text style={tw("font-medium")}>
+                                  {step.name}
+                                </Text>
+                                <Text style={tw("text-xs")}>
+                                  {operationToJobId[step.operationId] && (
+                                    <>
+                                      Job {operationToJobId[step.operationId]} •{" "}
+                                    </>
+                                  )}
+                                  {assignees[record.createdBy] || "Unknown"} •{" "}
+                                  {
+                                    new Date(record.createdAt)
+                                      .toISOString()
+                                      .split("T")[0]
+                                  }
+                                </Text>
+                              </View>
+                            </View>
+                          ))
+                      )}
+                  </View>
                 )}
               </View>
             ))}
@@ -172,15 +410,18 @@ const IssuePDF = ({
         )}
 
         {reviewers.length > 0 && (
-          <View style={tw("mb-5")} wrap={false}>
-            <Text style={tw("font-bold mb-2")}>Reviewers</Text>
+          <View style={tw("mb-5")}>
+            <Text style={[tw("font-bold mb-2"), { letterSpacing: -0.5 }]}>
+              Reviewers
+            </Text>
             {reviewers.map((reviewer) => (
-              <View
-                key={reviewer.id}
-                style={tw("flex flex-col gap-2 py-2 border-b border-gray-300")}
-              >
+              <View key={reviewer.id} style={tw("flex flex-col gap-2 py-2")}>
                 <View style={tw("flex flex-row justify-between")}>
-                  <Text style={tw("font-bold text-sm")}>{reviewer.title}</Text>
+                  <Text
+                    style={[tw("font-bold text-sm"), { letterSpacing: -0.5 }]}
+                  >
+                    {reviewer.title}
+                  </Text>
                   <Text style={tw("text-gray-500 text-sm")}>
                     {reviewer.status}
                   </Text>
@@ -194,18 +435,9 @@ const IssuePDF = ({
           </View>
         )}
       </View>
+      <Footer nonConformanceId={nonConformance.nonConformanceId} />
     </Template>
   );
 };
 
 export default IssuePDF;
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return (
-    <Text
-      style={tw("text-xs bg-gray-100 px-2 py-1 rounded border border-gray-300")}
-    >
-      {children}
-    </Text>
-  );
-}

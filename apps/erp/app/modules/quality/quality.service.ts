@@ -1022,9 +1022,25 @@ export async function updateIssueTaskStatus(
 
   const finalAssignee = assignee || userId;
 
+  // Set completedDate to today when status is "Completed"
+  const updateData: {
+    status: string;
+    updatedBy?: string;
+    assignee?: string | null;
+    completedDate?: string;
+  } = {
+    status,
+    updatedBy: userId,
+    assignee: finalAssignee,
+  };
+
+  if (status === "Completed") {
+    updateData.completedDate = new Date().toISOString().split("T")[0];
+  }
+
   return client
     .from(table)
-    .update({ status, updatedBy: userId, assignee: finalAssignee })
+    .update(updateData)
     .eq("id", id)
     .select("nonConformanceId")
     .single();

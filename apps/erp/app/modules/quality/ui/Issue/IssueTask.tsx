@@ -30,8 +30,8 @@ import { Editor } from "@carbon/react/Editor";
 import { formatDate } from "@carbon/utils";
 import { parseDate } from "@internationalized/date";
 import { useFetchers, useParams, useSubmit } from "@remix-run/react";
-import { nanoid } from "nanoid";
 import type { DragControls } from "framer-motion";
+import { nanoid } from "nanoid";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   LuCalendar,
@@ -62,8 +62,10 @@ import { getPrivateUrl, path } from "~/utils/path";
 
 export function TaskProgress({
   tasks,
+  className,
 }: {
   tasks: { status: IssueInvestigationTask["status"] }[];
+  className?: string;
 }) {
   const completedOrSkippedTasks = tasks.filter(
     (task) => task.status === "Completed" || task.status === "Skipped"
@@ -71,7 +73,7 @@ export function TaskProgress({
   const progressPercentage = (completedOrSkippedTasks / tasks.length) * 100;
 
   return (
-    <div className="flex flex-col items-end gap-2 pt-2 pr-14">
+    <div className={cn("flex flex-col items-end gap-2 pt-2 pr-14", className)}>
       <Progress value={progressPercentage} className="h-2 w-24" />
       <span className="text-xs text-muted-foreground">
         {completedOrSkippedTasks} of {tasks.length} complete
@@ -276,12 +278,15 @@ export function TaskItem({
   const submit = useSubmit();
   const hasStartedRef = useRef(false);
 
-  const taskTitle =
-    type === "investigation"
-      ? (task as IssueInvestigationTask).name
-      : type === "action"
+  let taskTitle =
+    type === "action"
       ? (task as IssueActionTask).name
       : (task as IssueReviewer).title;
+
+  if (task.supplierId) {
+    taskTitle = `Supplier ${taskTitle}`;
+  }
+
   return (
     <div className="rounded-lg border w-full flex flex-col bg-card">
       <div className="flex w-full justify-between px-4 py-2 items-center">

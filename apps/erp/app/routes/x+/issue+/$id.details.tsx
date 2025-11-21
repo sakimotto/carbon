@@ -116,8 +116,8 @@ export default function IssueDetailsRoute() {
     <VStack spacing={2}>
       <IssueContent
         id={id}
-        title={nonConformance?.name ?? ""}
-        subTitle={nonConformance?.nonConformanceId ?? ""}
+        title={"Description of Issue"}
+        subTitle={nonConformance?.name}
         content={nonConformance?.content as JSONContent}
         isDisabled={nonConformance?.status === "Closed"}
       />
