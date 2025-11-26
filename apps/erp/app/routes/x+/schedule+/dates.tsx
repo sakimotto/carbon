@@ -48,6 +48,7 @@ import type { Column, JobItem } from "~/modules/production/ui/Schedule";
 import type { DisplaySettings } from "~/modules/production/ui/Schedule/Kanban";
 import { DateKanban } from "~/modules/production/ui/Schedule/Kanban/DateKanban";
 import { ScheduleNavigation } from "~/modules/production/ui/Schedule/Kanban/ScheuleNavigation";
+import { getLocationsList } from "~/modules/resources";
 import { getTagsList } from "~/modules/shared";
 import { getUserDefaults } from "~/modules/users/users.server";
 import { usePeople } from "~/stores";
@@ -113,7 +114,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const userDefaults = await getUserDefaults(client, userId, companyId);
     if (userDefaults.error) {
       throw redirect(
-        path.to.inventory,
+        path.to.production,
         await flash(
           request,
           error(userDefaults.error, "Failed to load default location")
@@ -122,6 +123,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
 
     locationId = userDefaults.data?.locationId ?? null;
+  }
+
+  if (!locationId) {
+    const locations = await getLocationsList(client, companyId);
+    if (locations.error || !locations.data?.length) {
+      throw redirect(
+        path.to.production,
+        await flash(
+          request,
+          error(locations.error, "Failed to load any locations")
+        )
+      );
+    }
+    locationId = locations.data?.[0].id as string;
   }
 
   // Calculate date range based on view
