@@ -6528,30 +6528,54 @@ export type Database = {
           companyId: string
           createdAt: string
           customerId: string | null
+          declinedAt: string | null
+          declinedBy: string | null
+          declinedByEmail: string | null
+          declineNote: string | null
           documentId: string
           documentType: Database["public"]["Enums"]["externalLinkDocumentType"]
           expiresAt: string | null
           id: string
+          lastAccessedAt: string | null
+          submittedAt: string | null
+          submittedBy: string | null
+          submittedByEmail: string | null
           supplierId: string | null
         }
         Insert: {
           companyId: string
           createdAt?: string
           customerId?: string | null
+          declinedAt?: string | null
+          declinedBy?: string | null
+          declinedByEmail?: string | null
+          declineNote?: string | null
           documentId: string
           documentType: Database["public"]["Enums"]["externalLinkDocumentType"]
           expiresAt?: string | null
           id?: string
+          lastAccessedAt?: string | null
+          submittedAt?: string | null
+          submittedBy?: string | null
+          submittedByEmail?: string | null
           supplierId?: string | null
         }
         Update: {
           companyId?: string
           createdAt?: string
           customerId?: string | null
+          declinedAt?: string | null
+          declinedBy?: string | null
+          declinedByEmail?: string | null
+          declineNote?: string | null
           documentId?: string
           documentType?: Database["public"]["Enums"]["externalLinkDocumentType"]
           expiresAt?: string | null
           id?: string
+          lastAccessedAt?: string | null
+          submittedAt?: string | null
+          submittedBy?: string | null
+          submittedByEmail?: string | null
           supplierId?: string | null
         }
         Relationships: [
@@ -16438,6 +16462,7 @@ export type Database = {
         Row: {
           assignee: string | null
           companyId: string
+          completedDate: string | null
           createdAt: string
           createdBy: string
           id: string
@@ -16451,6 +16476,7 @@ export type Database = {
         Insert: {
           assignee?: string | null
           companyId: string
+          completedDate?: string | null
           createdAt?: string
           createdBy: string
           id?: string
@@ -16464,6 +16490,7 @@ export type Database = {
         Update: {
           assignee?: string | null
           companyId?: string
+          completedDate?: string | null
           createdAt?: string
           createdBy?: string
           id?: string
@@ -19639,6 +19666,7 @@ export type Database = {
           name: string
           processId: string | null
           status: Database["public"]["Enums"]["procedureStatus"]
+          tags: string[] | null
           updatedAt: string | null
           updatedBy: string | null
           version: number
@@ -19654,6 +19682,7 @@ export type Database = {
           name: string
           processId?: string | null
           status?: Database["public"]["Enums"]["procedureStatus"]
+          tags?: string[] | null
           updatedAt?: string | null
           updatedBy?: string | null
           version?: number
@@ -19669,6 +19698,7 @@ export type Database = {
           name?: string
           processId?: string | null
           status?: Database["public"]["Enums"]["procedureStatus"]
+          tags?: string[] | null
           updatedAt?: string | null
           updatedBy?: string | null
           version?: number
@@ -32852,6 +32882,7 @@ export type Database = {
           exchangeRate: number | null
           exchangeRateUpdatedAt: string | null
           expirationDate: string | null
+          externalLinkId: string | null
           externalNotes: Json | null
           id: string
           internalNotes: Json | null
@@ -32879,6 +32910,7 @@ export type Database = {
           exchangeRate?: number | null
           exchangeRateUpdatedAt?: string | null
           expirationDate?: string | null
+          externalLinkId?: string | null
           externalNotes?: Json | null
           id?: string
           internalNotes?: Json | null
@@ -32906,6 +32938,7 @@ export type Database = {
           exchangeRate?: number | null
           exchangeRateUpdatedAt?: string | null
           expirationDate?: string | null
+          externalLinkId?: string | null
           externalNotes?: Json | null
           id?: string
           internalNotes?: Json | null
@@ -33028,6 +33061,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "currencyCode"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "supplierQuote_externalLinkId_fkey"
+            columns: ["externalLinkId"]
+            isOneToOne: false
+            referencedRelation: "externalLink"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "supplierQuote_supplierContactId_fkey"
@@ -42055,6 +42095,7 @@ export type Database = {
           name: string | null
           processId: string | null
           status: Database["public"]["Enums"]["procedureStatus"] | null
+          tags: string[] | null
           version: number | null
           versions: Json | null
         }
@@ -43192,14 +43233,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["supplierCountryCode"]
+            columns: ["customerCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
           },
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["customerCountryCode"]
+            columns: ["supplierCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
@@ -46255,14 +46296,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["paymentCountryCode"]
+            columns: ["customerCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
           },
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["customerCountryCode"]
+            columns: ["paymentCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
@@ -47928,6 +47969,7 @@ export type Database = {
           exchangeRate: number | null
           exchangeRateUpdatedAt: string | null
           expirationDate: string | null
+          externalLinkId: string | null
           externalNotes: Json | null
           id: string | null
           internalNotes: Json | null
@@ -48054,6 +48096,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "currencyCode"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "supplierQuote_externalLinkId_fkey"
+            columns: ["externalLinkId"]
+            isOneToOne: false
+            referencedRelation: "externalLink"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "supplierQuote_supplierContactId_fkey"
@@ -50372,7 +50421,9 @@ export type Database = {
         | "Reject"
         | "Request Approval"
       purchaseOrderType: "Purchase" | "Return" | "Outside Processing"
-      purchasePriceUpdateTiming: "Invoice Post" | "Purchase Order Finalize"
+      purchasePriceUpdateTiming:
+        | "Purchase Invoice Post"
+        | "Purchase Order Finalize"
       qualityDocumentStatus: "Draft" | "Active" | "Archived"
       quoteLineStatus: "Not Started" | "In Progress" | "Complete" | "No Quote"
       quoteStatus:
@@ -50487,7 +50538,14 @@ export type Database = {
         | "Finance Charge Memo"
         | "Reminder"
         | "Refund"
-      supplierQuoteStatus: "Active" | "Expired"
+      supplierQuoteStatus:
+        | "Active"
+        | "Expired"
+        | "Sent"
+        | "Ordered"
+        | "Partial"
+        | "Declined"
+        | "Cancelled"
       supplySourceType: "Purchase Order" | "Production Order"
       tableViewType: "Public" | "Private"
       trackedEntityStatus: "Available" | "Reserved" | "On Hold" | "Consumed"
@@ -51476,7 +51534,10 @@ export const Constants = {
         "Request Approval",
       ],
       purchaseOrderType: ["Purchase", "Return", "Outside Processing"],
-      purchasePriceUpdateTiming: ["Invoice Post", "Purchase Order Finalize"],
+      purchasePriceUpdateTiming: [
+        "Purchase Invoice Post",
+        "Purchase Order Finalize",
+      ],
       qualityDocumentStatus: ["Draft", "Active", "Archived"],
       quoteLineStatus: ["Not Started", "In Progress", "Complete", "No Quote"],
       quoteStatus: [
@@ -51601,7 +51662,15 @@ export const Constants = {
         "Reminder",
         "Refund",
       ],
-      supplierQuoteStatus: ["Active", "Expired"],
+      supplierQuoteStatus: [
+        "Active",
+        "Expired",
+        "Sent",
+        "Ordered",
+        "Partial",
+        "Declined",
+        "Cancelled",
+      ],
       supplySourceType: ["Purchase Order", "Production Order"],
       tableViewType: ["Public", "Private"],
       trackedEntityStatus: ["Available", "Reserved", "On Hold", "Consumed"],
