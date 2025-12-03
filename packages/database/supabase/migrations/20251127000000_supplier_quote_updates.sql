@@ -4,6 +4,7 @@ ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Ordered';
 ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Partial';
 ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Declined';
 ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Cancelled';
+ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Submitted';
 
 
 -- Add externalLinkId column to supplierQuote table

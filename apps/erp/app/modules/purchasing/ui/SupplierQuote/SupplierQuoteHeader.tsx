@@ -188,7 +188,7 @@ const SupplierQuoteHeader = () => {
 
             <Button
               isDisabled={
-                routeData?.quote?.status !== "Sent" ||
+                (routeData?.quote?.status !== "Sent" && routeData?.quote?.status !== "Submitted") ||
                 !permissions.can("update", "purchasing")
               }
               leftIcon={<LuShoppingCart />}
@@ -228,7 +228,9 @@ const SupplierQuoteHeader = () => {
                 <Button
                   isDisabled={
                     statusFetcher.state !== "idle" ||
-                    !permissions.can("update", "purchasing")
+                    !permissions.can("update", "purchasing") ||
+                    routeData?.quote?.status === "Ordered" ||
+                    routeData?.quote?.status === "Partial"
                   }
                   isLoading={
                     statusFetcher.state !== "idle" &&

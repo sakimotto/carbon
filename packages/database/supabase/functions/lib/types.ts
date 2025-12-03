@@ -6528,54 +6528,30 @@ export type Database = {
           companyId: string
           createdAt: string
           customerId: string | null
-          declinedAt: string | null
-          declinedBy: string | null
-          declinedByEmail: string | null
-          declineNote: string | null
           documentId: string
           documentType: Database["public"]["Enums"]["externalLinkDocumentType"]
           expiresAt: string | null
           id: string
-          lastAccessedAt: string | null
-          submittedAt: string | null
-          submittedBy: string | null
-          submittedByEmail: string | null
           supplierId: string | null
         }
         Insert: {
           companyId: string
           createdAt?: string
           customerId?: string | null
-          declinedAt?: string | null
-          declinedBy?: string | null
-          declinedByEmail?: string | null
-          declineNote?: string | null
           documentId: string
           documentType: Database["public"]["Enums"]["externalLinkDocumentType"]
           expiresAt?: string | null
           id?: string
-          lastAccessedAt?: string | null
-          submittedAt?: string | null
-          submittedBy?: string | null
-          submittedByEmail?: string | null
           supplierId?: string | null
         }
         Update: {
           companyId?: string
           createdAt?: string
           customerId?: string | null
-          declinedAt?: string | null
-          declinedBy?: string | null
-          declinedByEmail?: string | null
-          declineNote?: string | null
           documentId?: string
           documentType?: Database["public"]["Enums"]["externalLinkDocumentType"]
           expiresAt?: string | null
           id?: string
-          lastAccessedAt?: string | null
-          submittedAt?: string | null
-          submittedBy?: string | null
-          submittedByEmail?: string | null
           supplierId?: string | null
         }
         Relationships: [
@@ -50546,6 +50522,7 @@ export type Database = {
         | "Partial"
         | "Declined"
         | "Cancelled"
+        | "Submitted"
       supplySourceType: "Purchase Order" | "Production Order"
       tableViewType: "Public" | "Private"
       trackedEntityStatus: "Available" | "Reserved" | "On Hold" | "Consumed"
@@ -51670,6 +51647,7 @@ export const Constants = {
         "Partial",
         "Declined",
         "Cancelled",
+        "Submitted",
       ],
       supplySourceType: ["Purchase Order", "Production Order"],
       tableViewType: ["Public", "Private"],

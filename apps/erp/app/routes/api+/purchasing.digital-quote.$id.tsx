@@ -2,14 +2,13 @@ import { assertIsPost, getCarbonServiceRole, notFound } from "@carbon/auth";
 import { validationError, validator } from "@carbon/form";
 import type { ActionFunctionArgs } from "@vercel/remix";
 import { json } from "@vercel/remix";
+import { z } from "zod/v3";
 import {
   externalSupplierQuoteValidator,
-  selectedLinesValidator,
+  selectedLineSchema,
 } from "~/modules/purchasing/purchasing.models";
 import {
-  convertSupplierQuoteToOrder,
   getSupplierQuoteByExternalId,
-  getSupplierQuoteLines,
 } from "~/modules/purchasing/purchasing.service";
 import { getCompanySettings } from "~/modules/settings";
 
@@ -39,85 +38,6 @@ export async function action({ request, params }: ActionFunctionArgs) {
   );
 
   switch (intent) {
-    case "accept": {
-      const digitalSupplierQuoteSubmittedBy = String(
-        formData.get("digitalSupplierQuoteSubmittedBy") ?? ""
-      );
-      const digitalSupplierQuoteSubmittedByEmail = String(
-        formData.get("digitalSupplierQuoteSubmittedByEmail") ?? ""
-      );
-      const selectedLinesRaw = formData.get("selectedLines") ?? "{}";
-
-      if (typeof selectedLinesRaw !== "string") {
-        return json({ success: false, message: "Invalid selected lines data" });
-      }
-
-      const parseResult = selectedLinesValidator.safeParse(
-        JSON.parse(selectedLinesRaw)
-      );
-
-      if (!parseResult.success) {
-        console.error("Validation error:", parseResult.error);
-        return json({ success: false, message: "Invalid selected lines data" });
-      }
-
-      const selectedLines = parseResult.data;
-
-      // Convert quote to purchase order
-      const convert = await convertSupplierQuoteToOrder(serviceRole, {
-        id: quote.data.id,
-        companyId: quote.data.companyId,
-        userId: quote.data.createdBy,
-        selectedLines,
-      });
-
-      if (convert.error) {
-        console.error("Failed to convert quote to order", convert.error);
-        return json({
-          success: false,
-          message: "Failed to convert quote to order",
-        });
-      }
-
-      const now = new Date().toISOString();
-
-      // Update quote status to Ordered
-      await serviceRole
-        .from("supplierQuote")
-        .update({
-          status: "Ordered",
-          updatedAt: now,
-          externalNotes: {
-            ...((quote.data.externalNotes as Record<string, unknown>) || {}),
-            acceptedBy: digitalSupplierQuoteSubmittedBy,
-            acceptedByEmail: digitalSupplierQuoteSubmittedByEmail,
-            acceptedAt: now,
-          },
-        })
-        .eq("id", quote.data.id);
-
-      // Update externalLink if it exists
-      if (quote.data.externalLinkId) {
-        await serviceRole
-          .from("externalLink")
-          .update({
-            submittedAt: now,
-            submittedBy: digitalSupplierQuoteSubmittedBy,
-            submittedByEmail: digitalSupplierQuoteSubmittedByEmail,
-          })
-          .eq("id", quote.data.externalLinkId);
-      }
-
-      if (companySettings.error) {
-        console.error("Failed to get company settings", companySettings.error);
-      }
-
-      return json({
-        success: true,
-        message: "Quote accepted and purchase order created successfully",
-      });
-    }
-
     case "decline": {
       const validation = await validator(
         externalSupplierQuoteValidator
@@ -159,7 +79,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             declinedBy: digitalSupplierQuoteSubmittedBy,
             declinedByEmail: digitalSupplierQuoteSubmittedByEmail,
             declineNote: note ?? null,
-          })
+          } as any)
           .eq("id", quote.data.externalLinkId);
       }
 
@@ -189,9 +109,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
         return json({ success: false, message: "Invalid selected lines data" });
       }
 
-      const parseResult = selectedLinesValidator.safeParse(
-        JSON.parse(selectedLinesRaw)
+      let parsedData: unknown;
+      try {
+        parsedData = JSON.parse(selectedLinesRaw);
+      } catch (e) {
+        return json({ success: false, message: "Invalid JSON in selected lines data" });
+      }
+
+      // selectedLines is Record<string, Record<number, SelectedLine>>
+      // where first key is lineId, second key is quantity
+      // Validate the nested structure
+      const nestedSelectedLinesValidator = z.record(
+        z.string(),
+        z.record(z.string(), selectedLineSchema)
       );
+
+      const parseResult = nestedSelectedLinesValidator.safeParse(parsedData);
 
       if (!parseResult.success) {
         console.error("Validation error:", parseResult.error);
@@ -200,71 +133,97 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
       const selectedLines = parseResult.data;
 
-      // Update prices for selected lines only
-      const updates = [];
+      // Update prices for all selected quantities across all lines
+      // First, collect all price records that need to be updated/inserted
+      const priceRecordsToProcess: Array<{
+        lineId: string;
+        quantity: number;
+        selectedLine: z.infer<typeof selectedLineSchema>;
+      }> = [];
 
-      for (const [lineId, selectedLine] of Object.entries(selectedLines)) {
-        // Only update if quantity > 0 (line is selected)
-        if (selectedLine.quantity > 0) {
-          updates.push(
+      for (const [lineId, lineSelections] of Object.entries(selectedLines)) {
+        // lineSelections is Record<number, SelectedLine>
+        for (const [quantityStr, selectedLine] of Object.entries(lineSelections)) {
+          const quantity = Number(quantityStr);
+
+          // Only process if quantity > 0 (line is selected)
+          if (quantity > 0 && selectedLine.quantity > 0) {
+            priceRecordsToProcess.push({
+              lineId,
+              quantity,
+              selectedLine,
+            });
+          }
+        }
+      }
+
+      // Batch check which price records exist
+      const existingPriceChecks = await Promise.all(
+        priceRecordsToProcess.map(({ lineId, quantity }) =>
+          serviceRole
+            .from("supplierQuoteLinePrice")
+            .select("id")
+            .eq("supplierQuoteLineId", lineId)
+            .eq("quantity", quantity)
+            .maybeSingle()
+        )
+      );
+
+      // Prepare updates and inserts
+      const priceUpdates = [];
+      const priceInserts = [];
+
+      for (let i = 0; i < priceRecordsToProcess.length; i++) {
+        const { lineId, quantity, selectedLine } = priceRecordsToProcess[i];
+        const existingPrice = existingPriceChecks[i];
+
+        if (existingPrice.data) {
+          // Update existing price record
+          priceUpdates.push(
             serviceRole
               .from("supplierQuoteLinePrice")
               .update({
                 supplierUnitPrice: selectedLine.supplierUnitPrice,
-                unitPrice: selectedLine.unitPrice,
                 leadTime: selectedLine.leadTime,
-                shippingCost: selectedLine.shippingCost,
                 supplierShippingCost: selectedLine.supplierShippingCost,
                 supplierTaxAmount: selectedLine.supplierTaxAmount,
+                updatedAt: new Date().toISOString(),
+                updatedBy: quote.data.createdBy,
               })
               .eq("supplierQuoteLineId", lineId)
-              .eq("quantity", selectedLine.quantity)
+              .eq("quantity", quantity)
           );
+        } else {
+          // Insert new price record
+          priceInserts.push({
+            supplierQuoteId: quote.data.id,
+            supplierQuoteLineId: lineId,
+            quantity: quantity,
+            supplierUnitPrice: selectedLine.supplierUnitPrice,
+            leadTime: selectedLine.leadTime,
+            supplierShippingCost: selectedLine.supplierShippingCost,
+            supplierTaxAmount: selectedLine.supplierTaxAmount,
+            exchangeRate: quote.data.exchangeRate ?? 1,
+            createdBy: quote.data.createdBy,
+          });
         }
       }
 
-      await Promise.all(updates);
-
-      // Get all quote lines to determine if submission is partial or full
-      const allLines = await getSupplierQuoteLines(serviceRole, quote.data.id);
-      const allLineIds = new Set(
-        (allLines.data ?? [])
-          .map((line) => line.id)
-          .filter((id): id is string => !!id)
-      );
-      const selectedLineIds = new Set(
-        Object.keys(selectedLines).filter(
-          (lineId) => selectedLines[lineId].quantity > 0
-        )
-      );
-
-      // Determine if partial or full submission
-      const isPartial = selectedLineIds.size < allLineIds.size;
-      const newStatus = isPartial ? "Partial" : "Ordered";
-
-      // Convert quote to purchase order for submitted lines
-      const convert = await convertSupplierQuoteToOrder(serviceRole, {
-        id: quote.data.id,
-        companyId: quote.data.companyId,
-        userId: quote.data.createdBy,
-        selectedLines,
-      });
-
-      if (convert.error) {
-        console.error("Failed to convert quote to order", convert.error);
-        return json({
-          success: false,
-          message: "Failed to convert quote to order",
-        });
-      }
+      // Execute all updates and inserts
+      await Promise.all([
+        ...priceUpdates,
+        priceInserts.length > 0
+          ? serviceRole.from("supplierQuoteLinePrice").insert(priceInserts)
+          : Promise.resolve({ data: null, error: null }),
+      ]);
 
       const now = new Date().toISOString();
 
-      // Update quote status based on partial/full submission
+      // Update quote status to Submitted
       await serviceRole
         .from("supplierQuote")
         .update({
-          status: newStatus,
+          status: "Submitted",
           updatedAt: now,
           externalNotes: {
             ...((quote.data.externalNotes as Record<string, unknown>) || {}),
@@ -283,7 +242,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
             submittedAt: now,
             submittedBy: digitalSupplierQuoteSubmittedBy,
             submittedByEmail: digitalSupplierQuoteSubmittedByEmail,
-          })
+          } as any)
           .eq("id", quote.data.externalLinkId);
       }
 
@@ -293,9 +252,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
       return json({
         success: true,
-        message: `Quote submitted successfully${
-          isPartial ? " (partial)" : ""
-        } and purchase order created`,
+        message: "Quote submitted successfully",
       });
     }
 

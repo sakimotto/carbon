@@ -44419,30 +44419,6 @@ export default {
             $ref: "#/parameters/rowFilter.externalLink.supplierId",
           },
           {
-            $ref: "#/parameters/rowFilter.externalLink.lastAccessedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedBy",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedByEmail",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedBy",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedByEmail",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declineNote",
-          },
-          {
             $ref: "#/parameters/select",
           },
           {
@@ -44526,30 +44502,6 @@ export default {
             $ref: "#/parameters/rowFilter.externalLink.supplierId",
           },
           {
-            $ref: "#/parameters/rowFilter.externalLink.lastAccessedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedBy",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedByEmail",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedBy",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedByEmail",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declineNote",
-          },
-          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -44585,30 +44537,6 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.externalLink.supplierId",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.lastAccessedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedBy",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.submittedByEmail",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedAt",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedBy",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declinedByEmail",
-          },
-          {
-            $ref: "#/parameters/rowFilter.externalLink.declineNote",
           },
           {
             $ref: "#/parameters/body.externalLink",
@@ -74194,6 +74122,7 @@ export default {
             "Partial",
             "Declined",
             "Cancelled",
+            "Submitted",
           ],
           format: 'public."supplierQuoteStatus"',
           type: "string",
@@ -75877,6 +75806,7 @@ export default {
             "Partial",
             "Declined",
             "Cancelled",
+            "Submitted",
           ],
           format: 'public."supplierQuoteStatus"',
           type: "string",
@@ -81386,38 +81316,6 @@ export default {
         supplierId: {
           description:
             "Note:\nThis is a Foreign Key to `supplier.id`.<fk table='supplier' column='id'/>",
-          format: "text",
-          type: "string",
-        },
-        lastAccessedAt: {
-          format: "timestamp with time zone",
-          type: "string",
-        },
-        submittedAt: {
-          format: "timestamp with time zone",
-          type: "string",
-        },
-        submittedBy: {
-          format: "text",
-          type: "string",
-        },
-        submittedByEmail: {
-          format: "text",
-          type: "string",
-        },
-        declinedAt: {
-          format: "timestamp with time zone",
-          type: "string",
-        },
-        declinedBy: {
-          format: "text",
-          type: "string",
-        },
-        declinedByEmail: {
-          format: "text",
-          type: "string",
-        },
-        declineNote: {
           format: "text",
           type: "string",
         },
@@ -111038,54 +110936,6 @@ export default {
     },
     "rowFilter.externalLink.supplierId": {
       name: "supplierId",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.lastAccessedAt": {
-      name: "lastAccessedAt",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.submittedAt": {
-      name: "submittedAt",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.submittedBy": {
-      name: "submittedBy",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.submittedByEmail": {
-      name: "submittedByEmail",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.declinedAt": {
-      name: "declinedAt",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.declinedBy": {
-      name: "declinedBy",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.declinedByEmail": {
-      name: "declinedByEmail",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.externalLink.declineNote": {
-      name: "declineNote",
       required: false,
       in: "query",
       type: "string",

@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Checkbox,
   generateHTML,
   Heading,
   HStack,
@@ -19,8 +20,8 @@ import {
   ModalHeader,
   ModalOverlay,
   ModalTitle,
-  RadioGroup,
-  RadioGroupItem,
+  NumberField,
+  NumberInput,
   Table,
   Tbody,
   Td,
@@ -39,7 +40,7 @@ import { json } from "@vercel/remix";
 import { motion } from "framer-motion";
 import MotionNumber from "motion-number";
 import { useEffect, useRef, useState } from "react";
-import { LuChevronRight, LuCircleX, LuImage } from "react-icons/lu";
+import { LuChevronRight, LuImage, LuPencil } from "react-icons/lu";
 import type { Company } from "~/modules/settings";
 import { getCompany, getCompanySettings } from "~/modules/settings";
 import { getBase64ImageFromSupabase } from "~/modules/shared";
@@ -78,16 +79,6 @@ type SelectedLine = {
   supplierTaxAmount: number;
 };
 
-const deselectedLine: SelectedLine = {
-  quantity: 0,
-  supplierUnitPrice: 0,
-  unitPrice: 0,
-  leadTime: 0,
-  shippingCost: 0,
-  supplierShippingCost: 0,
-  supplierTaxAmount: 0,
-};
-
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) {
@@ -113,7 +104,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
       .from("externalLink")
       .update({
         lastAccessedAt: new Date().toISOString(),
-      })
+      } as any)
       .eq("id", quote.data.externalLinkId);
   }
 
@@ -182,9 +173,19 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   });
 }
 
+
+// rounded icon in badge class name "rounded-full"
+const EditableBadge = () => {
+  return (
+    <Badge  variant="green">
+      <LuPencil className="w-3 h-3" />
+    </Badge>
+  );
+};
+
 const Header = ({ company, quote }: { company: any; quote: any }) => (
-  <CardHeader className="flex flex-col sm:flex-row items-start sm:items-start justify-between space-y-4 sm:space-y-2 pb-7">
-    <div className="flex items-center space-x-4">
+  <CardHeader className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-4 sm:space-y-2 pb-7">
+    <VStack spacing={4}>
       <div>
         <CardTitle className="text-3xl">{company?.name ?? ""}</CardTitle>
         {quote?.supplierQuoteId && (
@@ -198,7 +199,11 @@ const Header = ({ company, quote }: { company: any; quote: any }) => (
           </p>
         )}
       </div>
-    </div>
+
+      <span className="text-base font-semibold text-blue-900 dark:text-blue-100">
+        Please fill the columns marked with the <EditableBadge /> icon to update pricing
+      </span>
+    </VStack>
   </CardHeader>
 );
 
@@ -212,8 +217,8 @@ const LineItems = ({
 }: {
   currencyCode: string;
   locale: string;
-  selectedLines: Record<string, SelectedLine>;
-  setSelectedLines: Dispatch<SetStateAction<Record<string, SelectedLine>>>;
+  selectedLines: Record<string, Record<number, SelectedLine>>;
+  setSelectedLines: Dispatch<SetStateAction<Record<string, Record<number, SelectedLine>>>>;
   quoteStatus: SupplierQuote["status"];
   quoteLinePrices: SupplierQuoteLinePrice[];
 }) => {
@@ -223,15 +228,6 @@ const LineItems = ({
       ? quoteLines.map((line) => line.id!).filter(Boolean)
       : []
   );
-
-  useEffect(() => {
-    Object.entries(selectedLines).forEach(([lineId, line]) => {
-      if (line.quantity === 0 && openItems.includes(lineId)) {
-        setOpenItems((prev) => prev.filter((item) => item !== lineId));
-      }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedLines]);
 
   const toggleOpen = (id: string) => {
     setOpenItems((prev) =>
@@ -273,22 +269,26 @@ const LineItems = ({
                   <div className="flex items-center gap-x-4 justify-between flex-grow">
                     <Heading>{line.itemReadableId}</Heading>
                     <HStack spacing={4}>
-                      {selectedLines[line.id!]?.quantity > 0 && (
-                        <MotionNumber
-                          className="font-bold text-xl"
-                          value={
-                            selectedLines[line.id!].supplierUnitPrice *
-                              selectedLines[line.id!].quantity +
-                            selectedLines[line.id!].supplierShippingCost +
-                            selectedLines[line.id!].supplierTaxAmount
+                      {(() => {
+                        const lineSelections = selectedLines[line.id!] || {};
+                        const total = Object.values(lineSelections).reduce((acc, sel) => {
+                          if (sel.quantity > 0) {
+                            return acc + sel.supplierUnitPrice * sel.quantity + sel.supplierShippingCost + sel.supplierTaxAmount;
                           }
-                          format={{
-                            style: "currency",
-                            currency: currencyCode,
-                          }}
-                          locales={locale}
-                        />
-                      )}
+                          return acc;
+                        }, 0);
+                        return total > 0 ? (
+                          <MotionNumber
+                            className="font-bold text-xl"
+                            value={total}
+                            format={{
+                              style: "currency",
+                              currency: currencyCode,
+                            }}
+                            locales={locale}
+                          />
+                        ) : null;
+                      })()}
                       <motion.div
                         animate={{
                           rotate: openItems.includes(line.id!) ? 90 : 0,
@@ -328,7 +328,7 @@ const LineItems = ({
                 line={line}
                 currencyCode={currencyCode}
                 locale={locale}
-                selectedLine={selectedLines[line.id] || deselectedLine}
+                selectedLines={selectedLines[line.id] || {}}
                 setSelectedLines={setSelectedLines}
                 quoteStatus={quoteStatus}
                 quoteLinePrices={quoteLinePrices}
@@ -345,7 +345,7 @@ const LinePricing = ({
   line,
   currencyCode,
   locale,
-  selectedLine,
+  selectedLines,
   setSelectedLines,
   quoteStatus,
   quoteLinePrices,
@@ -353,8 +353,8 @@ const LinePricing = ({
   line: SupplierQuoteLine;
   currencyCode: string;
   locale: string;
-  selectedLine: SelectedLine;
-  setSelectedLines: Dispatch<SetStateAction<Record<string, SelectedLine>>>;
+  selectedLines: Record<number, SelectedLine>;
+  setSelectedLines: Dispatch<SetStateAction<Record<string, Record<number, SelectedLine>>>>;
   quoteStatus: SupplierQuote["status"];
   quoteLinePrices: SupplierQuoteLinePrice[];
 }) => {
@@ -363,188 +363,302 @@ const LinePricing = ({
       ?.filter((price) => price.supplierQuoteLineId === line.id)
       .sort((a, b) => a.quantity - b.quantity) ?? [];
 
-  const [selectedValue, setSelectedValue] = useState<string | null>(
-    selectedLine?.quantity?.toString() ?? null
-  );
+  // Get quantities from line or use pricing options, always show at least one row
+  const quantities = Array.isArray(line.quantity) && line.quantity.length > 0
+    ? line.quantity
+    : pricingOptions.length > 0
+    ? pricingOptions.map((opt) => opt.quantity)
+    : [1]; // Default to showing at least one row with quantity 1
+
+  const isDisabled = [
+    "Ordered",
+    "Partial",
+    "Expired",
+    "Cancelled",
+    "Declined",
+  ].includes(quoteStatus || "");
 
   const formatter = new Intl.NumberFormat(locale, {
     style: "currency",
     currency: currencyCode,
   });
 
+
+  // Get pricing data for a specific quantity
+  const getPricingForQuantity = (qty: number) => {
+    return pricingOptions.find((opt) => opt.quantity === qty) ?? null;
+  };
+
+  // Store pricing for all quantities, not just selected
+  const [pricingByQuantity, setPricingByQuantity] = useState<
+    Record<number, {
+      supplierUnitPrice: number;
+      leadTime: number;
+      supplierShippingCost: number;
+      supplierTaxAmount: number;
+    }>
+  >(() => {
+    const initial: Record<number, {
+      supplierUnitPrice: number;
+      leadTime: number;
+      supplierShippingCost: number;
+      supplierTaxAmount: number;
+    }> = {};
+    quantities.forEach((qty) => {
+      const pricing = getPricingForQuantity(qty);
+      initial[qty] = {
+        supplierUnitPrice: pricing?.supplierUnitPrice ?? 0,
+        leadTime: pricing?.leadTime ?? 0,
+        supplierShippingCost: pricing?.supplierShippingCost ?? 0,
+        supplierTaxAmount: pricing?.supplierTaxAmount ?? 0,
+      };
+    });
+    return initial;
+  });
+
+  // Update pricing for a specific quantity
+  const updatePricing = (
+    quantity: number,
+    field: "supplierUnitPrice" | "leadTime" | "supplierShippingCost" | "supplierTaxAmount",
+    value: number
+  ) => {
+    const newValue = isNaN(value) ? 0 : value;
+
+    setPricingByQuantity((prev) => ({
+      ...prev,
+      [quantity]: {
+        ...prev[quantity],
+        [field]: newValue,
+      },
+    }));
+
+    // If this quantity is selected, also update the selected line
+    setSelectedLines((prev) => {
+      const lineSelections = prev[line.id!] || {};
+      const current = lineSelections[quantity];
+
+      if (current) {
+        return {
+          ...prev,
+          [line.id!]: {
+            ...lineSelections,
+            [quantity]: {
+              ...current,
+              [field]: newValue,
+            },
+          },
+        };
+      }
+
+      return prev;
+    });
+  };
+
+  const handleQuantityToggle = (quantity: number, checked: boolean) => {
+    if (checked) {
+      const storedPricing = pricingByQuantity[quantity];
+      const pricing = getPricingForQuantity(quantity);
+
+      setSelectedLines((prev) => ({
+        ...prev,
+        [line.id!]: {
+          ...(prev[line.id!] || {}),
+          [quantity]: {
+            quantity: quantity,
+            supplierUnitPrice: storedPricing?.supplierUnitPrice ?? pricing?.supplierUnitPrice ?? 0,
+            unitPrice: pricing?.unitPrice ?? 0,
+            leadTime: storedPricing?.leadTime ?? pricing?.leadTime ?? 0,
+            shippingCost: pricing?.shippingCost ?? 0,
+            supplierShippingCost: storedPricing?.supplierShippingCost ?? pricing?.supplierShippingCost ?? 0,
+            supplierTaxAmount: storedPricing?.supplierTaxAmount ?? pricing?.supplierTaxAmount ?? 0,
+          },
+        },
+      }));
+    } else {
+      setSelectedLines((prev) => {
+        const lineSelections = { ...(prev[line.id!] || {}) };
+        delete lineSelections[quantity];
+        return {
+          ...prev,
+          [line.id!]: lineSelections,
+        };
+      });
+    }
+  };
+
+
   return (
     <VStack spacing={4}>
-      <RadioGroup
-        className="w-full"
-        value={selectedValue ?? undefined}
-        disabled={[
-          "Ordered",
-          "Partial",
-          "Expired",
-          "Cancelled",
-          "Declined",
-        ].includes(quoteStatus || "")}
-        onValueChange={(value) => {
-          if (value === "0") {
-            setSelectedLines((prev) => ({
-              ...prev,
-              [line.id!]: deselectedLine,
-            }));
-            setSelectedValue("0");
-            return;
-          }
+      <Table>
+        <Thead>
+          <Tr className="whitespace-nowrap">
+            <Th className="w-[50px]" />
+            <Th className=" w-2 bg-muted/50">Quantity</Th>
+            <Th className="w-[150px]">
+              <HStack spacing={4}>
+                <span>Unit Price</span>
+                <EditableBadge />
+              </HStack>
+            </Th>
+            <Th className="w-[120px]">
+              <HStack spacing={4}>
+                <span>Lead Time</span>
+                <EditableBadge />
+              </HStack>
+            </Th>
+            <Th className="w-[150px]">
+              <HStack spacing={4}>
+                <span >Shipping Cost</span>
+                <EditableBadge />
+              </HStack>
+            </Th>
+            <Th className="w-[150px]">
+              <HStack spacing={4}>
+                <span>Tax</span>
+                <EditableBadge />
+              </HStack>
+            </Th>
+            <Th className="w-[100px] bg-muted/50">Total</Th>
+          </Tr>
+        </Thead>
+        <Tbody>
+          {quantities.map((qty, index) => {
+            const storedPricing = pricingByQuantity[qty];
+            const pricing = getPricingForQuantity(qty);
+            const selectedLine = selectedLines[qty];
+            const isSelected = !!selectedLine && selectedLine.quantity === qty;
+            const unitPrice = storedPricing?.supplierUnitPrice ?? pricing?.supplierUnitPrice ?? 0;
+            const leadTime = storedPricing?.leadTime ?? pricing?.leadTime ?? 0;
+            const shippingCost = storedPricing?.supplierShippingCost ?? pricing?.supplierShippingCost ?? 0;
+            const taxAmount = storedPricing?.supplierTaxAmount ?? pricing?.supplierTaxAmount ?? 0;
+            const total = unitPrice * qty + shippingCost + taxAmount;
 
-          const selectedOption = pricingOptions.find(
-            (opt) => opt.quantity.toString() === value
-          );
-
-          if (selectedOption) {
-            setSelectedLines((prev) => ({
-              ...prev,
-              [line.id!]: {
-                quantity: selectedOption.quantity,
-                supplierUnitPrice: selectedOption.supplierUnitPrice ?? 0,
-                unitPrice: selectedOption.unitPrice ?? 0,
-                leadTime: selectedOption.leadTime ?? 0,
-                shippingCost: selectedOption.shippingCost ?? 0,
-                supplierShippingCost: selectedOption.supplierShippingCost ?? 0,
-                supplierTaxAmount: selectedOption.supplierTaxAmount ?? 0,
-              },
-            }));
-            setSelectedValue(value);
-          }
-        }}
-      >
-        <Table>
-          <Thead>
-            <Tr>
-              <Th />
-              <Th className="w-[100px]">Quantity</Th>
-              <Th>Unit Price</Th>
-              <Th>Lead Time</Th>
-              <Th>Total</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {!Array.isArray(pricingOptions) || pricingOptions.length === 0 ? (
-              <Tr>
-                <Td colSpan={5} className="text-center py-8">
-                  No pricing options found
-                </Td>
-              </Tr>
-            ) : (
-              <>
-                {pricingOptions.map((option, index) => (
-                  <Tr key={index}>
-                    <Td>
-                      <RadioGroupItem
-                        value={option.quantity.toString()}
-                        id={`${line.id}:${option.quantity.toString()}`}
-                      />
-                      <label
-                        htmlFor={`${line.id}:${option.quantity.toString()}`}
-                        className="sr-only"
-                      >
-                        {option.quantity}
-                      </label>
-                    </Td>
-                    <Td>{option.quantity}</Td>
-                    <Td>{formatter.format(option.supplierUnitPrice ?? 0)}</Td>
-                    <Td>
-                      {new Intl.NumberFormat(locale, {
-                        style: "unit",
-                        unit: "day",
-                      }).format(option.leadTime ?? 0)}
-                    </Td>
-                    <Td>
-                      {formatter.format(
-                        (option.supplierUnitPrice ?? 0) * option.quantity
-                      )}
-                    </Td>
-                  </Tr>
-                ))}
-              </>
-            )}
-          </Tbody>
-        </Table>
-      </RadioGroup>
-
-      {selectedLine.quantity !== 0 && (
-        <div className="w-full">
-          <Table>
-            <Tbody>
-              <Tr key="extended-price" className="border-b border-border">
-                <Td>Extended Price</Td>
-                <Td className="text-right">
-                  <MotionNumber
-                    value={
-                      selectedLine.supplierUnitPrice * selectedLine.quantity
-                    }
-                    format={{ style: "currency", currency: currencyCode }}
-                    locales={locale}
+            return (
+              <Tr key={index}>
+                <Td className="w-[50px]">
+                  <Checkbox
+                    isChecked={isSelected}
+                    disabled={isDisabled}
+                    onCheckedChange={(checked) => {
+                      handleQuantityToggle(qty, !!checked);
+                    }}
+                    id={`${line.id}:${qty.toString()}`}
                   />
+                  <label
+                    htmlFor={`${line.id}:${qty.toString()}`}
+                    className="sr-only"
+                  >
+                    {qty}
+                  </label>
                 </Td>
-              </Tr>
-              {selectedLine.supplierShippingCost > 0 && (
-                <Tr key="shipping" className="border-b border-border">
-                  <Td>Shipping</Td>
-                  <Td className="text-right">
-                    <MotionNumber
-                      value={selectedLine.supplierShippingCost}
-                      format={{ style: "currency", currency: currencyCode }}
-                      locales={locale}
-                    />
+                {!isSelected ? (
+                  <Td colSpan={6} className="bg-muted/20 text-center text-muted-foreground">
+                    No item selected
                   </Td>
-                </Tr>
-              )}
-              {selectedLine.supplierTaxAmount > 0 && (
-                <Tr key="tax" className="border-b border-border">
-                  <Td>Tax</Td>
-                  <Td className="text-right">
-                    <MotionNumber
-                      value={selectedLine.supplierTaxAmount}
-                      format={{ style: "currency", currency: currencyCode }}
-                      locales={locale}
-                    />
-                  </Td>
-                </Tr>
-              )}
-              <Tr key="total" className="font-bold">
-                <Td>Total</Td>
-                <Td className="text-right">
-                  <MotionNumber
-                    value={
-                      selectedLine.supplierUnitPrice * selectedLine.quantity +
-                      selectedLine.supplierShippingCost +
-                      selectedLine.supplierTaxAmount
-                    }
-                    format={{ style: "currency", currency: currencyCode }}
-                    locales={locale}
-                  />
-                </Td>
-              </Tr>
-            </Tbody>
-          </Table>
-        </div>
-      )}
+                ) : (
+                  <>
+                    <Td className=" bg-muted/30">{qty}</Td>
+                    <Td className="">
+                        <NumberField
+                          value={unitPrice}
+                          formatOptions={{
+                            style: "currency",
+                            currency: currencyCode,
+                          }}
+                          isDisabled={isDisabled}
+                          minValue={0}
+                          onChange={(value) => {
+                            if (Number.isFinite(value) && value !== unitPrice) {
+                              updatePricing(qty, "supplierUnitPrice", value);
+                            }
+                          }}
+                        >
+                          <NumberInput
+                            className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                            size="sm"
+                            min={0}
+                          />
+                        </NumberField>
 
-      {selectedLine.quantity !== 0 && (
-        <HStack spacing={2} className="w-full justify-end items-center">
-          <Button
-            variant="secondary"
-            leftIcon={<LuCircleX />}
-            onClick={() => {
-              setSelectedValue("0");
-              setSelectedLines((prev) => ({
-                ...prev,
-                [line.id!]: deselectedLine,
-              }));
-            }}
-          >
-            Remove
-          </Button>
-        </HStack>
-      )}
+                    </Td>
+                    <Td className="w-[150px]">
+                        <NumberField
+                          value={leadTime}
+                          formatOptions={{
+                            style: "unit",
+                            unit: "day",
+                            unitDisplay: "long",
+                          }}
+                          minValue={0}
+
+                          onChange={(value) => {
+                            if (Number.isFinite(value) && value !== leadTime) {
+                              updatePricing(qty, "leadTime", value);
+                            }
+                          }}
+                        >
+                          <NumberInput
+                            className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                            size="sm"
+                            min={0}
+                          />
+                        </NumberField>
+
+                    </Td>
+                    <Td className="w-[150px]">
+                        <NumberField
+                          value={shippingCost}
+                          formatOptions={{
+                            style: "currency",
+                            currency: currencyCode,
+                          }}
+                          isDisabled={isDisabled}
+                          minValue={0}
+                          onChange={(value) => {
+                            if (Number.isFinite(value) && value !== shippingCost) {
+                              updatePricing(qty, "supplierShippingCost", value);
+                            }
+                          }}
+                        >
+                          <NumberInput
+                            className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                            size="sm"
+                            min={0}
+                          />
+                        </NumberField>
+                    </Td>
+                    <Td className="w-[120px]">
+                        <NumberField
+                          value={taxAmount}
+                          formatOptions={{
+                            style: "currency",
+                            currency: currencyCode,
+                          }}
+                          isDisabled={isDisabled}
+                          minValue={0}
+                          onChange={(value) => {
+                            if (Number.isFinite(value) && value !== taxAmount) {
+                              updatePricing(qty, "supplierTaxAmount", value);
+                            }
+                          }}
+                        >
+                          <NumberInput
+                            className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                            size="sm"
+                            min={0}
+                          />
+                        </NumberField>
+                    </Td>
+                    <Td className="w-[150px] bg-muted/30">
+                      {total > 0 ? formatter.format(total) : "—"}
+                    </Td>
+                  </>
+                )}
+              </Tr>
+            );
+          })}
+        </Tbody>
+      </Table>
     </VStack>
   );
 };
@@ -579,38 +693,44 @@ const Quote = ({
     }
   }, [fetcher.state, submitModal, declineModal]);
 
-  // Initialize selected lines from loaded prices
+  // Initialize selected lines from loaded prices - select all quantities by default
   const [selectedLines, setSelectedLines] = useState<
-    Record<string, SelectedLine>
+    Record<string, Record<number, SelectedLine>>
   >(() => {
     return (
-      quoteLines?.reduce<Record<string, SelectedLine>>(
+      quoteLines?.reduce<Record<string, Record<number, SelectedLine>>>(
         (acc, line: SupplierQuoteLine) => {
           if (!line.id) {
             return acc;
           }
 
-          // Find the first available price option for this line
-          const price = quoteLinePrices?.find(
-            (p: SupplierQuoteLinePrice) =>
-              p.supplierQuoteLineId === line.id &&
-              line.quantity?.includes(p.quantity)
-          );
+          // Get all quantities for this line
+          const quantities = Array.isArray(line.quantity) && line.quantity.length > 0
+            ? line.quantity
+            : quoteLinePrices
+                ?.filter((p: SupplierQuoteLinePrice) => p.supplierQuoteLineId === line.id)
+                .map((p) => p.quantity) ?? [1];
 
-          if (!price) {
-            acc[line.id] = deselectedLine;
-            return acc;
-          }
+          // Select all quantities by default
+          const lineSelections: Record<number, SelectedLine> = {};
+          quantities.forEach((qty) => {
+            const price = quoteLinePrices?.find(
+              (p: SupplierQuoteLinePrice) =>
+                p.supplierQuoteLineId === line.id && p.quantity === qty
+            );
 
-          acc[line.id] = {
-            quantity: price.quantity ?? 0,
-            supplierUnitPrice: price.supplierUnitPrice ?? 0,
-            unitPrice: price.unitPrice ?? 0,
-            leadTime: price.leadTime ?? 0,
-            shippingCost: price.shippingCost ?? 0,
-            supplierShippingCost: price.supplierShippingCost ?? 0,
-            supplierTaxAmount: price.supplierTaxAmount ?? 0,
-          };
+            lineSelections[qty] = {
+              quantity: qty,
+              supplierUnitPrice: price?.supplierUnitPrice ?? 0,
+              unitPrice: price?.unitPrice ?? 0,
+              leadTime: price?.leadTime ?? 0,
+              shippingCost: price?.shippingCost ?? 0,
+              supplierShippingCost: price?.supplierShippingCost ?? 0,
+              supplierTaxAmount: price?.supplierTaxAmount ?? 0,
+            };
+          });
+
+          acc[line.id] = lineSelections;
           return acc;
         },
         {}
@@ -618,15 +738,17 @@ const Quote = ({
     );
   });
 
-  // Calculate grand total for display (only selected lines)
-  const grandTotal = Object.values(selectedLines).reduce((acc, line) => {
-    if (line.quantity === 0) return acc;
-    return (
-      acc +
-      line.supplierUnitPrice * line.quantity +
-      line.supplierShippingCost +
-      line.supplierTaxAmount
-    );
+  // Calculate grand total for display (all selected quantities across all lines)
+  const grandTotal = Object.values(selectedLines).reduce((acc, lineSelections) => {
+    return acc + Object.values(lineSelections).reduce((lineAcc, line) => {
+      if (line.quantity === 0) return lineAcc;
+      return (
+        lineAcc +
+        line.supplierUnitPrice * line.quantity +
+        line.supplierShippingCost +
+        line.supplierTaxAmount
+      );
+    }, 0);
   }, 0);
 
   return (
