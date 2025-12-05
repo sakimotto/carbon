@@ -112,7 +112,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   if (
     quote.data.expirationDate &&
     new Date(quote.data.expirationDate) < new Date() &&
-    quote.data.status === "Sent"
+    quote.data.status === "Draft"
   ) {
     return json({
       state: QuoteState.Expired,
@@ -201,8 +201,8 @@ const Header = ({ company, quote }: { company: any; quote: any }) => (
       </div>
 
       <span className="text-base font-semibold text-blue-900 dark:text-blue-100">
-        Please fill the columns marked with the <EditableBadge /> icon to update
-        pricing
+        Please fill the columns marked with the <EditableBadge /> icon to
+        provide pricing
       </span>
     </VStack>
   </CardHeader>
@@ -274,31 +274,30 @@ const LineItems = ({
                     <HStack spacing={4}>
                       {(() => {
                         const lineSelections = selectedLines[line.id!] || {};
-                        const total = Object.values(lineSelections).reduce(
-                          (acc, sel) => {
-                            if (sel.quantity > 0) {
-                              return (
-                                acc +
-                                sel.supplierUnitPrice * sel.quantity +
-                                sel.supplierShippingCost +
-                                sel.supplierTaxAmount
-                              );
-                            }
-                            return acc;
-                          },
-                          0
-                        );
-                        return total > 0 ? (
-                          <MotionNumber
-                            className="font-bold text-xl"
-                            value={total}
-                            format={{
-                              style: "currency",
-                              currency: currencyCode,
-                            }}
-                            locales={locale}
-                          />
-                        ) : null;
+                        const selectedCount =
+                          Object.keys(lineSelections).length;
+                        // Only show sum if there's a single quantity selected
+                        if (selectedCount === 1) {
+                          const sel = Object.values(lineSelections)[0];
+                          if (sel && sel.quantity > 0) {
+                            const total =
+                              sel.supplierUnitPrice * sel.quantity +
+                              sel.supplierShippingCost +
+                              sel.supplierTaxAmount;
+                            return total > 0 ? (
+                              <MotionNumber
+                                className="font-bold text-xl"
+                                value={total}
+                                format={{
+                                  style: "currency",
+                                  currency: currencyCode,
+                                }}
+                                locales={locale}
+                              />
+                            ) : null;
+                          }
+                        }
+                        return null;
                       })()}
                       <motion.div
                         animate={{
@@ -503,7 +502,7 @@ const LinePricing = ({
               storedPricing?.supplierTaxAmount ??
               pricing?.supplierTaxAmount ??
               0,
-          },
+          } as SelectedLine,
         },
       }));
     } else {
@@ -591,112 +590,99 @@ const LinePricing = ({
                     {qty}
                   </label>
                 </Td>
-                {!isSelected ? (
-                  <Td
-                    colSpan={6}
-                    className="bg-muted/20 text-center text-muted-foreground"
+                <Td className=" bg-muted/30">{qty}</Td>
+                <Td className="">
+                  <NumberField
+                    value={unitPrice}
+                    formatOptions={{
+                      style: "currency",
+                      currency: currencyCode,
+                    }}
+                    isDisabled={isDisabled || !isSelected}
+                    minValue={0}
+                    onChange={(value) => {
+                      if (Number.isFinite(value) && value !== unitPrice) {
+                        updatePricing(qty, "supplierUnitPrice", value);
+                      }
+                    }}
                   >
-                    No item selected
-                  </Td>
-                ) : (
-                  <>
-                    <Td className=" bg-muted/30">{qty}</Td>
-                    <Td className="">
-                      <NumberField
-                        value={unitPrice}
-                        formatOptions={{
-                          style: "currency",
-                          currency: currencyCode,
-                        }}
-                        isDisabled={isDisabled}
-                        minValue={0}
-                        onChange={(value) => {
-                          if (Number.isFinite(value) && value !== unitPrice) {
-                            updatePricing(qty, "supplierUnitPrice", value);
-                          }
-                        }}
-                      >
-                        <NumberInput
-                          className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
-                          size="sm"
-                          min={0}
-                        />
-                      </NumberField>
-                    </Td>
-                    <Td className="w-[150px]">
-                      <NumberField
-                        value={leadTime}
-                        formatOptions={{
-                          style: "unit",
-                          unit: "day",
-                          unitDisplay: "long",
-                        }}
-                        minValue={0}
-                        onChange={(value) => {
-                          if (Number.isFinite(value) && value !== leadTime) {
-                            updatePricing(qty, "leadTime", value);
-                          }
-                        }}
-                      >
-                        <NumberInput
-                          className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
-                          size="sm"
-                          min={0}
-                        />
-                      </NumberField>
-                    </Td>
-                    <Td className="w-[150px]">
-                      <NumberField
-                        value={shippingCost}
-                        formatOptions={{
-                          style: "currency",
-                          currency: currencyCode,
-                        }}
-                        isDisabled={isDisabled}
-                        minValue={0}
-                        onChange={(value) => {
-                          if (
-                            Number.isFinite(value) &&
-                            value !== shippingCost
-                          ) {
-                            updatePricing(qty, "supplierShippingCost", value);
-                          }
-                        }}
-                      >
-                        <NumberInput
-                          className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
-                          size="sm"
-                          min={0}
-                        />
-                      </NumberField>
-                    </Td>
-                    <Td className="w-[120px]">
-                      <NumberField
-                        value={taxAmount}
-                        formatOptions={{
-                          style: "currency",
-                          currency: currencyCode,
-                        }}
-                        isDisabled={isDisabled}
-                        minValue={0}
-                        onChange={(value) => {
-                          if (Number.isFinite(value) && value !== taxAmount) {
-                            updatePricing(qty, "supplierTaxAmount", value);
-                          }
-                        }}
-                      >
-                        <NumberInput
-                          className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
-                          size="sm"
-                          min={0}
-                        />
-                      </NumberField>
-                    </Td>
-                    <Td className="w-[150px] bg-muted/30">
-                      {total > 0 ? formatter.format(total) : "—"}
-                    </Td>
-                  </>
-                )}
+                    <NumberInput
+                      className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                      size="sm"
+                      min={0}
+                    />
+                  </NumberField>
+                </Td>
+                <Td className="w-[150px]">
+                  <NumberField
+                    value={leadTime}
+                    formatOptions={{
+                      style: "unit",
+                      unit: "day",
+                      unitDisplay: "long",
+                    }}
+                    minValue={0}
+                    isDisabled={isDisabled || !isSelected}
+                    onChange={(value) => {
+                      if (Number.isFinite(value) && value !== leadTime) {
+                        updatePricing(qty, "leadTime", value);
+                      }
+                    }}
+                  >
+                    <NumberInput
+                      className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                      size="sm"
+                      min={0}
+                    />
+                  </NumberField>
+                </Td>
+                <Td className="w-[150px]">
+                  <NumberField
+                    value={shippingCost}
+                    formatOptions={{
+                      style: "currency",
+                      currency: currencyCode,
+                    }}
+                    isDisabled={isDisabled || !isSelected}
+                    minValue={0}
+                    onChange={(value) => {
+                      if (Number.isFinite(value) && value !== shippingCost) {
+                        updatePricing(qty, "supplierShippingCost", value);
+                      }
+                    }}
+                  >
+                    <NumberInput
+                      className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                      size="sm"
+                      min={0}
+                    />
+                  </NumberField>
+                </Td>
+                <Td className="w-[120px]">
+                  <NumberField
+                    value={taxAmount}
+                    formatOptions={{
+                      style: "currency",
+                      currency: currencyCode,
+                    }}
+                    isDisabled={isDisabled || !isSelected}
+                    minValue={0}
+                    onChange={(value) => {
+                      if (Number.isFinite(value) && value !== taxAmount) {
+                        updatePricing(qty, "supplierTaxAmount", value);
+                      }
+                    }}
+                  >
+                    <NumberInput
+                      className="border-0 -ml-3 shadow-none disabled:bg-transparent disabled:opacity-100"
+                      size="sm"
+                      min={0}
+                    />
+                  </NumberField>
+                </Td>
+                <Td className="w-[150px] bg-muted/30">
+                  {isSelected && total > 0 ? formatter.format(total) : "—"}
+                </Td>
               </Tr>
             );
           })}
@@ -716,7 +702,7 @@ const Quote = ({
     quoteLinePrices: SupplierQuoteLinePrice[];
   };
 }) => {
-  const { company, quote, quoteLines, quoteLinePrices } = data;
+  const { company, quote, quoteLinePrices } = data;
   const { locale } = useLocale();
   const { id } = useParams();
   if (!id) throw new Error("Could not find external quote id");
@@ -736,53 +722,11 @@ const Quote = ({
     }
   }, [fetcher.state, submitModal, declineModal]);
 
-  // Initialize selected lines from loaded prices - select all quantities by default
+  // Initialize selected lines - don't select by default
   const [selectedLines, setSelectedLines] = useState<
     Record<string, Record<number, SelectedLine>>
   >(() => {
-    return (
-      quoteLines?.reduce<Record<string, Record<number, SelectedLine>>>(
-        (acc, line: SupplierQuoteLine) => {
-          if (!line.id) {
-            return acc;
-          }
-
-          // Get all quantities for this line
-          const quantities =
-            Array.isArray(line.quantity) && line.quantity.length > 0
-              ? line.quantity
-              : quoteLinePrices
-                  ?.filter(
-                    (p: SupplierQuoteLinePrice) =>
-                      p.supplierQuoteLineId === line.id
-                  )
-                  .map((p) => p.quantity) ?? [1];
-
-          // Select all quantities by default
-          const lineSelections: Record<number, SelectedLine> = {};
-          quantities.forEach((qty) => {
-            const price = quoteLinePrices?.find(
-              (p: SupplierQuoteLinePrice) =>
-                p.supplierQuoteLineId === line.id && p.quantity === qty
-            );
-
-            lineSelections[qty] = {
-              quantity: qty,
-              supplierUnitPrice: price?.supplierUnitPrice ?? 0,
-              unitPrice: price?.unitPrice ?? 0,
-              leadTime: price?.leadTime ?? 0,
-              shippingCost: price?.shippingCost ?? 0,
-              supplierShippingCost: price?.supplierShippingCost ?? 0,
-              supplierTaxAmount: price?.supplierTaxAmount ?? 0,
-            };
-          });
-
-          acc[line.id] = lineSelections;
-          return acc;
-        },
-        {}
-      ) ?? {}
-    );
+    return {};
   });
 
   // Calculate grand total for display (all selected quantities across all lines)
@@ -815,22 +759,8 @@ const Quote = ({
       )}
       <Card className="w-full max-w-5xl mx-auto">
         <div className="w-full text-center">
-          {quote?.status !== "Sent" && quote?.status && (
-            <Status
-              color={
-                quote.status === "Expired" || quote.status === "Cancelled"
-                  ? "orange"
-                  : quote.status === "Declined"
-                  ? "red"
-                  : quote.status === "Ordered" ||
-                    quote.status === "Partial" ||
-                    quote.status === "Submitted"
-                  ? "green"
-                  : quote.status === "Active"
-                  ? "blue"
-                  : "gray"
-              }
-            >
+          {quote?.status && (quote?.status as string) !== "Draft" && (
+            <Status color={quote.status === "Active" ? "green" : "gray"}>
               {quote.status}
             </Status>
           )}
@@ -846,7 +776,7 @@ const Quote = ({
             quoteLinePrices={quoteLinePrices}
           />
 
-          <div className="mt-8 border-t pt-4">
+          {/* <div className="mt-8 border-t pt-4">
             <HStack className="justify-between text-xl font-bold w-full">
               <span>Estimated Total:</span>
               <MotionNumber
@@ -858,10 +788,10 @@ const Quote = ({
                 locales={locale}
               />
             </HStack>
-          </div>
+          </div> */}
 
           <div className="flex flex-col gap-2">
-            {quote?.status === "Sent" && (
+            {(quote?.status as string) === "Draft" && (
               <VStack className="w-full mt-8 gap-4">
                 <Button
                   onClick={submitModal.onOpen}
@@ -871,7 +801,7 @@ const Quote = ({
                   className="w-full text-lg"
                 >
                   Submit Quote
-                </Button>{" "}
+                </Button>
                 <Button
                   onClick={declineModal.onOpen}
                   size="lg"

@@ -8,15 +8,13 @@ type SupplierQuoteStatusProps = {
 const SupplierQuoteStatus = ({ status }: SupplierQuoteStatusProps) => {
   switch (status) {
     case "Active":
-    case "Partial":
-    case "Ordered":
       return <Status color="green">{status}</Status>;
-    case "Sent":
-    case "Submitted":
-      return <Status color="yellow">{status}</Status>;
-    case "Declined":
+    case "Draft":
       return <Status color="gray">{status}</Status>;
+    case "Declined":
+      return <Status color="orange">{status}</Status>;
     case "Expired":
+    case "Cancelled":
       return <Status color="red">{status}</Status>;
     default:
       return null;

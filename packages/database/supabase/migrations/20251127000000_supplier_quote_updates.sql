@@ -1,10 +1,7 @@
 -- Add new status values to supplierQuoteStatus enum
-ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Sent';
-ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Ordered';
-ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Partial';
+ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Draft';
 ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Declined';
 ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Cancelled';
-ALTER TYPE "supplierQuoteStatus" ADD VALUE IF NOT EXISTS 'Submitted';
 
 
 -- Add externalLinkId column to supplierQuote table

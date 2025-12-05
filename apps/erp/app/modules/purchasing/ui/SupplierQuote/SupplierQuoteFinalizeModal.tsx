@@ -39,6 +39,7 @@ type SupplierQuoteFinalizeModalProps = {
   lines: SupplierQuoteLine[];
   pricing: SupplierQuoteLinePrice[];
   fetcher: FetcherWithComponents<{}>;
+  action?: string;
 };
 
 const SupplierQuoteFinalizeModal = ({
@@ -46,6 +47,7 @@ const SupplierQuoteFinalizeModal = ({
   onClose,
   fetcher,
   pricing,
+  action,
 }: SupplierQuoteFinalizeModalProps) => {
   const { id } = useParams();
   if (!id) throw new Error("id not found");
@@ -121,7 +123,7 @@ const SupplierQuoteFinalizeModal = ({
         <ValidatedForm
           method="post"
           validator={supplierQuoteFinalizeValidator}
-          action={path.to.supplierQuoteFinalize(id)}
+          action={action ?? path.to.supplierQuoteFinalize(id)}
           onSubmit={onClose}
           defaultValues={{
             notification: notificationType as "Email" | "None",
@@ -130,9 +132,15 @@ const SupplierQuoteFinalizeModal = ({
           fetcher={fetcher}
         >
           <ModalHeader>
-            <ModalTitle>{`Finalize ${quote?.supplierQuoteId}`}</ModalTitle>
+            <ModalTitle>
+              {action === path.to.supplierQuoteSend(id)
+                ? `Send ${quote?.supplierQuoteId}`
+                : `Finalize ${quote?.supplierQuoteId}`}
+            </ModalTitle>
             <ModalDescription>
-              Are you sure you want to finalize the supplier quote?
+              {action === path.to.supplierQuoteSend(id)
+                ? "Send the supplier quote to the supplier via email."
+                : "Are you sure you want to finalize the supplier quote?"}
             </ModalDescription>
           </ModalHeader>
           <ModalBody>

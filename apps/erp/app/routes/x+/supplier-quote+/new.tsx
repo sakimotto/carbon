@@ -91,7 +91,7 @@ export default function SupplierQuoteNewRoute() {
     expirationDate: "",
     quotedDate: today(getLocalTimeZone()).toString(),
     supplierQuoteId: undefined,
-    status: "Active" as const,
+    status: "Draft" as const,
     currencyCode: company.baseCurrencyCode,
     exchangeRate: undefined,
     exchangeRateUpdatedAt: "",

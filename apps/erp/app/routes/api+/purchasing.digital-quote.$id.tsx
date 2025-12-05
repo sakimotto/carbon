@@ -7,9 +7,7 @@ import {
   externalSupplierQuoteValidator,
   selectedLineSchema,
 } from "~/modules/purchasing/purchasing.models";
-import {
-  getSupplierQuoteByExternalId,
-} from "~/modules/purchasing/purchasing.service";
+import { getSupplierQuoteByExternalId } from "~/modules/purchasing/purchasing.service";
 import { getCompanySettings } from "~/modules/settings";
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -113,7 +111,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
       try {
         parsedData = JSON.parse(selectedLinesRaw);
       } catch (e) {
-        return json({ success: false, message: "Invalid JSON in selected lines data" });
+        return json({
+          success: false,
+          message: "Invalid JSON in selected lines data",
+        });
       }
 
       // selectedLines is Record<string, Record<number, SelectedLine>>
@@ -143,7 +144,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
       for (const [lineId, lineSelections] of Object.entries(selectedLines)) {
         // lineSelections is Record<number, SelectedLine>
-        for (const [quantityStr, selectedLine] of Object.entries(lineSelections)) {
+        for (const [quantityStr, selectedLine] of Object.entries(
+          lineSelections
+        )) {
           const quantity = Number(quantityStr);
 
           // Only process if quantity > 0 (line is selected)
@@ -183,10 +186,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
             serviceRole
               .from("supplierQuoteLinePrice")
               .update({
-                supplierUnitPrice: selectedLine.supplierUnitPrice,
-                leadTime: selectedLine.leadTime,
-                supplierShippingCost: selectedLine.supplierShippingCost,
-                supplierTaxAmount: selectedLine.supplierTaxAmount,
+                supplierUnitPrice: selectedLine.supplierUnitPrice ?? 0,
+                leadTime: selectedLine.leadTime ?? 0,
+                supplierShippingCost: selectedLine.supplierShippingCost ?? 0,
+                supplierTaxAmount: selectedLine.supplierTaxAmount ?? 0,
                 updatedAt: new Date().toISOString(),
                 updatedBy: quote.data.createdBy,
               })
@@ -199,10 +202,10 @@ export async function action({ request, params }: ActionFunctionArgs) {
             supplierQuoteId: quote.data.id,
             supplierQuoteLineId: lineId,
             quantity: quantity,
-            supplierUnitPrice: selectedLine.supplierUnitPrice,
-            leadTime: selectedLine.leadTime,
-            supplierShippingCost: selectedLine.supplierShippingCost,
-            supplierTaxAmount: selectedLine.supplierTaxAmount,
+            supplierUnitPrice: selectedLine.supplierUnitPrice ?? 0,
+            leadTime: selectedLine.leadTime ?? 0,
+            supplierShippingCost: selectedLine.supplierShippingCost ?? 0,
+            supplierTaxAmount: selectedLine.supplierTaxAmount ?? 0,
             exchangeRate: quote.data.exchangeRate ?? 1,
             createdBy: quote.data.createdBy,
           });
@@ -219,11 +222,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
       const now = new Date().toISOString();
 
-      // Update quote status to Submitted
+      // Update quote status to Active (submit moves from Draft to Active)
       await serviceRole
         .from("supplierQuote")
         .update({
-          status: "Submitted",
+          status: "Active",
           updatedAt: now,
           externalNotes: {
             ...((quote.data.externalNotes as Record<string, unknown>) || {}),

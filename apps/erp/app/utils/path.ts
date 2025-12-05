@@ -1390,6 +1390,8 @@ export const path = {
       generatePath(`${x}/supplier-quote/${id}/${lineId}/details`),
     supplierQuoteFinalize: (id: string) =>
       generatePath(`${x}/supplier-quote/${id}/finalize`),
+    supplierQuoteSend: (id: string) =>
+      generatePath(`${x}/supplier-quote/${id}/send`),
     supplierQuoteStatus: (id: string) =>
       generatePath(`${x}/supplier-quote/${id}/status`),
     supplierRoot: `${x}/supplier`,

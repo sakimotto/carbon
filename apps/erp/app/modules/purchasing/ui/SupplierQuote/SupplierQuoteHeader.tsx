@@ -37,8 +37,6 @@ import {
   LuCheckCheck,
   LuCircleStop,
   LuLoaderCircle,
-  LuCircleCheck,
-  LuCircleX,
 } from "react-icons/lu";
 import { usePanels } from "~/components/Layout";
 import ConfirmDelete from "~/components/Modals/ConfirmDelete";
@@ -78,8 +76,10 @@ const SupplierQuoteHeader = () => {
   const deleteModal = useDisclosure();
   const shareModal = useDisclosure();
   const finalizeModal = useDisclosure();
+  const sendModal = useDisclosure();
 
   const finalizeFetcher = useFetcher<{}>();
+  const sendFetcher = useFetcher<{}>();
   const statusFetcher = useFetcher<{}>();
 
   const hasLines = routeData?.lines && routeData.lines.length > 0;
@@ -132,133 +132,78 @@ const SupplierQuoteHeader = () => {
             )}
           </HStack>
           <HStack>
-            {routeData?.quote?.status === "Sent" &&
-            (routeData?.quote as any)?.externalLinkId ? (
-              <Button
-                onClick={shareModal.onOpen}
-                leftIcon={<LuShare />}
-                variant="secondary"
-              >
-                Share
-              </Button>
-            ) : (
-              (routeData?.quote as any)?.externalLinkId && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      leftIcon={<LuEye />}
-                      variant="secondary"
-                      rightIcon={<LuChevronDown />}
+            {(routeData?.quote as any)?.externalLinkId && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    leftIcon={<LuEye />}
+                    variant="secondary"
+                    rightIcon={<LuChevronDown />}
+                  >
+                    Preview
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem asChild>
+                    <a
+                      target="_blank"
+                      href={path.to.externalSupplierQuote(
+                        (routeData?.quote as any).externalLinkId
+                      )}
+                      rel="noreferrer"
                     >
-                      Preview
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem asChild>
-                      <a
-                        target="_blank"
-                        href={path.to.externalSupplierQuote(
-                          (routeData?.quote as any).externalLinkId
-                        )}
-                        rel="noreferrer"
-                      >
-                        <DropdownMenuIcon icon={<LuExternalLink />} />
-                        Digital Quote
-                      </a>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )
+                      <DropdownMenuIcon icon={<LuExternalLink />} />
+                      Digital Quote
+                    </a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
 
-            <Button
-              onClick={finalizeModal.onOpen}
-              isLoading={finalizeFetcher.state !== "idle"}
-              isDisabled={
-                routeData?.quote?.status !== "Active" ||
-                finalizeFetcher.state !== "idle" ||
-                !permissions.can("update", "purchasing") ||
-                !hasLines
-              }
-              variant={
-                routeData?.quote?.status === "Active" ? "primary" : "secondary"
-              }
-              leftIcon={<LuCheckCheck />}
-            >
-              Finalize
-            </Button>
-
-            <statusFetcher.Form
-              id="submit-form"
-              method="post"
-              action={path.to.supplierQuoteStatus(id)}
-            >
-              <input type="hidden" name="status" value="Submitted" />
+            {routeData?.quote?.status === "Draft" && (
               <Button
+                onClick={sendModal.onOpen}
+                isLoading={sendFetcher.state !== "idle"}
                 isDisabled={
-                  routeData?.quote?.status !== "Sent" ||
-                  statusFetcher.state !== "idle" ||
-                  !permissions.can("update", "purchasing")
+                  sendFetcher.state !== "idle" ||
+                  !permissions.can("update", "purchasing") ||
+                  !hasLines
                 }
-                isLoading={
-                  statusFetcher.state !== "idle" &&
-                  statusFetcher.formData?.get("status") === "Submitted"
-                }
-                variant={
-                  routeData?.quote?.status === "Sent" ? "primary" : "secondary"
-                }
-                leftIcon={<LuCircleCheck />}
-                type="submit"
+                variant="primary"
+                leftIcon={<LuShare />}
               >
-                Submit
+                Send
               </Button>
-            </statusFetcher.Form>
+            )}
 
-            <statusFetcher.Form
-              id="decline-form"
-              method="post"
-              action={path.to.supplierQuoteStatus(id)}
-            >
-              <input type="hidden" name="status" value="Declined" />
+            {routeData?.quote?.status === "Draft" && (
               <Button
+                onClick={finalizeModal.onOpen}
+                isLoading={finalizeFetcher.state !== "idle"}
                 isDisabled={
-                  routeData?.quote?.status !== "Sent" ||
-                  statusFetcher.state !== "idle" ||
-                  !permissions.can("update", "purchasing")
+                  finalizeFetcher.state !== "idle" ||
+                  !permissions.can("update", "purchasing") ||
+                  !hasLines
                 }
-                isLoading={
-                  statusFetcher.state !== "idle" &&
-                  statusFetcher.formData?.get("status") === "Declined"
-                }
-                variant={
-                  routeData?.quote?.status === "Sent"
-                    ? "destructive"
-                    : "secondary"
-                }
-                leftIcon={<LuCircleX />}
-                type="submit"
+                variant="secondary"
+                leftIcon={<LuCheckCheck />}
               >
-                Decline
+                Finalize
               </Button>
-            </statusFetcher.Form>
+            )}
 
-            <Button
-              isDisabled={
-                routeData?.quote?.status !== "Submitted" ||
-                !permissions.can("update", "purchasing")
-              }
-              variant={
-                routeData?.quote?.status === "Submitted"
-                  ? "primary"
-                  : "secondary"
-              }
-              leftIcon={<LuShoppingCart />}
-              onClick={convertToOrderModal.onOpen}
-            >
-              Order
-            </Button>
+            {routeData?.quote?.status === "Active" && (
+              <Button
+                isDisabled={!permissions.can("update", "purchasing")}
+                variant="primary"
+                leftIcon={<LuShoppingCart />}
+                onClick={convertToOrderModal.onOpen}
+              >
+                Order
+              </Button>
+            )}
 
-            {routeData?.quote?.status === "Active" ? (
+            {routeData?.quote?.status === "Active" && (
               <statusFetcher.Form
                 method="post"
                 action={path.to.supplierQuoteStatus(id)}
@@ -280,30 +225,32 @@ const SupplierQuoteHeader = () => {
                   Cancel
                 </Button>
               </statusFetcher.Form>
-            ) : (
-              <statusFetcher.Form
-                method="post"
-                action={path.to.supplierQuoteStatus(id)}
-              >
-                <input type="hidden" name="status" value="Active" />
-                <Button
-                  isDisabled={
-                    statusFetcher.state !== "idle" ||
-                    !permissions.can("update", "purchasing") ||
-                    routeData?.quote?.status === "Ordered"
-                  }
-                  isLoading={
-                    statusFetcher.state !== "idle" &&
-                    statusFetcher.formData?.get("status") === "Active"
-                  }
-                  leftIcon={<LuLoaderCircle />}
-                  type="submit"
-                  variant="secondary"
-                >
-                  Reopen
-                </Button>
-              </statusFetcher.Form>
             )}
+
+            {routeData?.quote?.status !== "Draft" &&
+              routeData?.quote?.status !== "Active" && (
+                <statusFetcher.Form
+                  method="post"
+                  action={path.to.supplierQuoteStatus(id)}
+                >
+                  <input type="hidden" name="status" value="Draft" />
+                  <Button
+                    isDisabled={
+                      statusFetcher.state !== "idle" ||
+                      !permissions.can("update", "purchasing")
+                    }
+                    isLoading={
+                      statusFetcher.state !== "idle" &&
+                      statusFetcher.formData?.get("status") === "Draft"
+                    }
+                    leftIcon={<LuLoaderCircle />}
+                    type="submit"
+                    variant="secondary"
+                  >
+                    Reopen
+                  </Button>
+                </statusFetcher.Form>
+              )}
 
             <IconButton
               aria-label="Toggle Properties"
@@ -343,6 +290,16 @@ const SupplierQuoteHeader = () => {
           pricing={routeData?.prices ?? []}
           onClose={finalizeModal.onClose}
           fetcher={finalizeFetcher}
+        />
+      )}
+      {sendModal.isOpen && (
+        <SupplierQuoteFinalizeModal
+          quote={routeData?.quote}
+          lines={routeData?.lines ?? []}
+          pricing={routeData?.prices ?? []}
+          onClose={sendModal.onClose}
+          fetcher={sendFetcher}
+          action={path.to.supplierQuoteSend(id)}
         />
       )}
       <ShareQuoteModal

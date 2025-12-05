@@ -323,11 +323,8 @@ export const supplierStatusValidator = z.object({
 });
 
 export const supplierQuoteStatusType = [
+  "Draft",
   "Active",
-  "Sent",
-  "Submitted",
-  "Partial",
-  "Ordered",
   "Expired",
   "Declined",
   "Cancelled",

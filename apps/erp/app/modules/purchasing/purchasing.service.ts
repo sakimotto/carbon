@@ -77,7 +77,28 @@ export async function finalizeSupplierQuote(
   const quoteUpdate = await client
     .from("supplierQuote")
     .update({
-      status: "Sent",
+      status: "Active",
+      updatedAt: today(getLocalTimeZone()).toString(),
+      updatedBy: userId,
+    })
+    .eq("id", supplierQuoteId);
+
+  if (quoteUpdate.error) {
+    return quoteUpdate;
+  }
+
+  return { data: null, error: null };
+}
+
+export async function sendSupplierQuote(
+  client: SupabaseClient<Database>,
+  supplierQuoteId: string,
+  userId: string
+) {
+  // Send keeps status as Draft, just updates timestamp
+  const quoteUpdate = await client
+    .from("supplierQuote")
+    .update({
       updatedAt: today(getLocalTimeZone()).toString(),
       updatedBy: userId,
     })
@@ -1481,10 +1502,11 @@ export async function upsertSupplierQuote(
       .insert([
         {
           ...supplierQuote,
+          status: supplierQuote.status ?? "Draft",
           supplierInteractionId: supplierInteraction.data?.id,
         },
       ])
-      .select("id, supplierQuoteId")
+      .select("id, supplierQuoteId, externalLinkId")
       .single();
 
     if (insert.error) {
@@ -1494,19 +1516,22 @@ export async function upsertSupplierQuote(
     const supplierQuoteId = insert.data?.id;
     if (!supplierQuoteId) return insert;
 
-    const externalLink = await upsertExternalLink(client, {
-      documentType: "SupplierQuote",
-      documentId: supplierQuoteId,
-      supplierId: supplierQuote.supplierId,
-      expiresAt: supplierQuote.expirationDate,
-      companyId: supplierQuote.companyId,
-    });
+    // Only create external link if one doesn't exist
+    if (!insert.data.externalLinkId) {
+      const externalLink = await upsertExternalLink(client, {
+        documentType: "SupplierQuote",
+        documentId: supplierQuoteId,
+        supplierId: supplierQuote.supplierId,
+        expiresAt: supplierQuote.expirationDate,
+        companyId: supplierQuote.companyId,
+      });
 
-    if (externalLink.data) {
-      await client
-        .from("supplierQuote")
-        .update({ externalLinkId: externalLink.data.id })
-        .eq("id", supplierQuoteId);
+      if (externalLink.data) {
+        await client
+          .from("supplierQuote")
+          .update({ externalLinkId: externalLink.data.id })
+          .eq("id", supplierQuoteId);
+      }
     }
 
     return insert;
@@ -1548,7 +1573,7 @@ export async function upsertSupplierQuote(
           supplierQuote.expirationDate &&
           today(getLocalTimeZone()).toString() > supplierQuote.expirationDate
             ? "Expired"
-            : supplierQuote.status ?? existingStatus ?? "Active",
+            : supplierQuote.status ?? existingStatus ?? "Draft",
         updatedAt: today(getLocalTimeZone()).toString(),
       })
       .eq("id", supplierQuote.id);
