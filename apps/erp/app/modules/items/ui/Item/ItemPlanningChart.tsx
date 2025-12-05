@@ -107,7 +107,11 @@ export const ItemPlanningChart = ({
   });
 
   const chartData = useMemo(() => {
-    if (!forecastFetcher.data?.demand || !forecastFetcher.data?.periods)
+    if (
+      !forecastFetcher.data?.demand ||
+      !forecastFetcher.data?.periods ||
+      forecastFetcher.data.periods.length === 0
+    )
       return [];
 
     const periods = forecastFetcher.data.periods;
@@ -145,6 +149,7 @@ export const ItemPlanningChart = ({
 
       // If no period found or order date is before first period, use first period
       if (!periodId || !order.dueDate) {
+        if (periods.length === 0) return;
         periodId = periods[0].id;
       }
 
@@ -322,9 +327,10 @@ export const ItemPlanningChart = ({
   }, [forecastFetcher.data, searchTerm, plannedOrders, conversionFactor]);
 
   if (
-    forecastFetcher.data?.demand.length === 0 &&
-    forecastFetcher.data?.supply.length === 0 &&
-    (forecastFetcher.data?.demandForecast?.length ?? 0) === 0
+    (forecastFetcher.data?.periods?.length ?? 0) === 0 ||
+    (forecastFetcher.data?.demand.length === 0 &&
+      forecastFetcher.data?.supply.length === 0 &&
+      (forecastFetcher.data?.demandForecast?.length ?? 0) === 0)
   ) {
     return (
       <Card>

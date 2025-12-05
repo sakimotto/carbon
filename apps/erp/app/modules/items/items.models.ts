@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from "zod/v3";
 import { zfd } from "zod-form-data";
 import {
   methodItemType,
@@ -398,6 +398,18 @@ export const itemPlanningValidator = z
     {
       message: "Maximum inventory quantity must be greater than reorder point",
       path: ["maximumInventoryQuantity"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.reorderingPolicy === "Fixed Reorder Quantity") {
+        return data.reorderQuantity && data.reorderQuantity > 0;
+      }
+      return true;
+    },
+    {
+      message: "Reorder quantity must be greater than 0",
+      path: ["reorderQuantity"],
     }
   );
 
