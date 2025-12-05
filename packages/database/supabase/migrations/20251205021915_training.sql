@@ -90,8 +90,6 @@ FOR DELETE USING (
 CREATE TABLE "trainingAssignment" (
   "id" SERIAL PRIMARY KEY,
   "trainingId" TEXT NOT NULL,
-  "employeeId" TEXT,
-  "departmentId" TEXT,
   "groupIds" TEXT[],
   "companyId" TEXT NOT NULL,
   "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
@@ -100,7 +98,6 @@ CREATE TABLE "trainingAssignment" (
   "updatedBy" TEXT,
 
   CONSTRAINT "trainingAssignment_trainingId_fkey" FOREIGN KEY ("trainingId") REFERENCES "training"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-  CONSTRAINT "trainingAssignment_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT "trainingAssignment_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "company"("id") ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT "trainingAssignment_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "user"("id") ON UPDATE CASCADE,
   CONSTRAINT "trainingAssignment_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "user"("id") ON UPDATE CASCADE,
@@ -233,3 +230,53 @@ FOR DELETE USING (
     )::text[]
   )
 );
+
+CREATE OR REPLACE FUNCTION get_training_assignments_by_user(user_id text)
+RETURNS TABLE (
+  "trainingAssignmentId" uuid,
+  "name" TEXT,
+  "description" TEXT,
+  "version" NUMERIC,
+  "status" "trainingStatus",
+  "frequency" "trainingFrequency",
+  "type" "trainingType",
+  "content" JSON,
+  "estimatedDuration" TEXT,
+  "tags" TEXT[],
+  "assignee" TEXT,
+  "companyId" TEXT,
+  "createdAt" TIMESTAMP WITH TIME ZONE,
+  "createdBy" TEXT,
+  "updatedAt" TIMESTAMP WITH TIME ZONE,
+  "updatedBy" TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    ta.id as "trainingAssignmentId",
+    t.name,
+    t.description,
+    t.version,
+    t.status,
+    t.frequency,
+    t.type,
+    t.content,
+    t.estimatedDuration,
+    t.tags,
+    t.assignee,
+    ta."companyId",
+    ta."createdAt",
+    ta."createdBy",
+    ta."updatedAt",
+    ta."updatedBy"
+  FROM "trainingAssignment" ta
+  JOIN "training" t ON ta."trainingId" = t.id
+  WHERE ta."groupId" = ANY(
+    SELECT group_id FROM groups_for_user(user_id)
+  );
+END;
+$$;
+
