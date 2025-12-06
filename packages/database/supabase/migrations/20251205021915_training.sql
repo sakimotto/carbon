@@ -20,6 +20,7 @@ CREATE TABLE "training" (
   "name" TEXT NOT NULL,
   "description" TEXT,
   "version" NUMERIC NOT NULL DEFAULT 0,
+  "processId" TEXT,
   "status" "trainingStatus" NOT NULL DEFAULT 'Draft',
   "frequency" "trainingFrequency" NOT NULL DEFAULT 'Once',
   "type" "trainingType" NOT NULL DEFAULT 'Mandatory',
@@ -36,6 +37,7 @@ CREATE TABLE "training" (
   CONSTRAINT "training_pkey" PRIMARY KEY ("id"),
   CONSTRAINT "training_version_check" CHECK ("version" >= 0),
   CONSTRAINT "training_version_unique" UNIQUE ("name", "companyId", "version"),
+  CONSTRAINT "training_processId_fkey" FOREIGN KEY ("processId") REFERENCES "process"("id") ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT "training_assignee_fkey" FOREIGN KEY ("assignee") REFERENCES "user"("id") ON UPDATE CASCADE,
   CONSTRAINT "training_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "company"("id") ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT "training_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "user"("id") ON UPDATE CASCADE,
@@ -43,6 +45,7 @@ CREATE TABLE "training" (
 );
 
 CREATE INDEX "training_companyId_idx" ON "training" ("companyId");
+CREATE INDEX "training_processId_idx" ON "training" ("processId");
 
 ALTER TABLE "training" ENABLE ROW LEVEL SECURITY;
 

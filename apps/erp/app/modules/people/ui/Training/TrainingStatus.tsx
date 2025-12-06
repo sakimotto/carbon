@@ -1,4 +1,4 @@
-import { Badge } from "@carbon/react";
+import { Status } from "@carbon/react";
 import type { trainingStatus } from "~/modules/people";
 
 type TrainingStatusProps = {
@@ -8,11 +8,11 @@ type TrainingStatusProps = {
 export default function TrainingStatus({ status }: TrainingStatusProps) {
   switch (status) {
     case "Draft":
-      return <Badge variant="secondary">Draft</Badge>;
+      return <Status color="gray">Draft</Status>;
     case "Active":
-      return <Badge variant="green">Active</Badge>;
+      return <Status color="green">Active</Status>;
     case "Archived":
-      return <Badge variant="outline">Archived</Badge>;
+      return <Status color="red">Archived</Status>;
     default:
       return null;
   }

@@ -200,3 +200,22 @@ export const trainingQuestionValidator = z
       path: ["correctNumber"],
     }
   );
+
+export const trainingAssignmentValidator = z.object({
+  id: zfd.numeric(z.number().optional()),
+  trainingId: z.string().min(1, { message: "Training is required" }),
+  groupIds: z.array(z.string()).min(1, { message: "At least one group is required" }),
+});
+
+export const trainingCompletionValidator = z.object({
+  trainingAssignmentId: zfd.numeric(),
+  employeeId: z.string().min(1, { message: "Employee is required" }),
+  period: zfd.text(z.string().optional()),
+});
+
+export const trainingAssignmentStatusOptions = [
+  "Completed",
+  "Pending",
+  "Overdue",
+  "Not Required",
+] as const;

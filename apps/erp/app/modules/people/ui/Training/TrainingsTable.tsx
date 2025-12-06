@@ -11,12 +11,12 @@ import { memo, useCallback, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import {
   LuBookOpen,
-  LuCalendar,
   LuClock,
   LuPencil,
   LuRepeat,
   LuTag,
   LuShapes,
+  LuStar,
   LuTrash,
   LuUser,
 } from "react-icons/lu";
@@ -60,14 +60,29 @@ const TrainingsTable = memo(({ data, count, tags }: TrainingsTableProps) => {
         header: "Status",
         cell: ({ row }) => <TrainingStatus status={row.original.status} />,
         meta: {
-          icon: <LuCalendar />,
+          filter: {
+            type: "static",
+            options: [
+              { value: "Draft", label: <TrainingStatus status="Draft" /> },
+              { value: "Active", label: <TrainingStatus status="Active" /> },
+              {
+                value: "Archived",
+                label: <TrainingStatus status="Archived" />,
+              },
+            ],
+          },
+          icon: <LuStar />,
         },
       },
       {
         accessorKey: "type",
         header: "Type",
         cell: ({ row }) => (
-          <Badge variant={row.original.type === "Mandatory" ? "red" : "blue"}>
+          <Badge
+            variant={
+              row.original.type === "Mandatory" ? "default" : "secondary"
+            }
+          >
             {row.original.type}
           </Badge>
         ),
@@ -103,7 +118,17 @@ const TrainingsTable = memo(({ data, count, tags }: TrainingsTableProps) => {
       {
         accessorKey: "estimatedDuration",
         header: "Duration",
-        cell: ({ row }) => row.original.estimatedDuration || "-",
+        cell: ({ row }) =>
+          row.original.estimatedDuration ? (
+            <div className="flex items-center gap-1">
+              <LuClock />{" "}
+              <span className="text-xs text-muted-foreground">
+                {row.original.estimatedDuration}
+              </span>
+            </div>
+          ) : (
+            "-"
+          ),
         meta: {
           icon: <LuClock />,
         },

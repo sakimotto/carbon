@@ -3675,6 +3675,84 @@ export default {
         tags: ["scrapReason"],
       },
     },
+    "/trainings": {
+      get: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.trainings.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.name",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.description",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.version",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.status",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.type",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.frequency",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.assignee",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.estimatedDuration",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.tags",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainings.versions",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/order",
+          },
+          {
+            $ref: "#/parameters/range",
+          },
+          {
+            $ref: "#/parameters/rangeUnit",
+          },
+          {
+            $ref: "#/parameters/offset",
+          },
+          {
+            $ref: "#/parameters/limit",
+          },
+          {
+            $ref: "#/parameters/preferCount",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+            schema: {
+              items: {
+                $ref: "#/definitions/trainings",
+              },
+              type: "array",
+            },
+          },
+          "206": {
+            description: "Partial Content",
+          },
+        },
+        tags: ["trainings"],
+      },
+    },
     "/companyUsage": {
       get: {
         parameters: [
@@ -15703,6 +15781,9 @@ export default {
             $ref: "#/parameters/rowFilter.trainingCompletion.updatedBy",
           },
           {
+            $ref: "#/parameters/rowFilter.trainingCompletion.period",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -15792,6 +15873,9 @@ export default {
             $ref: "#/parameters/rowFilter.trainingCompletion.updatedBy",
           },
           {
+            $ref: "#/parameters/rowFilter.trainingCompletion.period",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -15833,6 +15917,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.trainingCompletion.updatedBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingCompletion.period",
           },
           {
             $ref: "#/parameters/body.trainingCompletion",
@@ -48417,6 +48504,90 @@ export default {
         tags: ["nonConformanceJobOperation"],
       },
     },
+    "/trainingAssignmentStatus": {
+      get: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.trainingAssignmentId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.trainingId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.trainingName",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.frequency",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.type",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.employeeId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.employeeName",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.avatarUrl",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.employeeStartDate",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.currentPeriod",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.completionId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.completedAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingAssignmentStatus.status",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/order",
+          },
+          {
+            $ref: "#/parameters/range",
+          },
+          {
+            $ref: "#/parameters/rangeUnit",
+          },
+          {
+            $ref: "#/parameters/offset",
+          },
+          {
+            $ref: "#/parameters/limit",
+          },
+          {
+            $ref: "#/parameters/preferCount",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+            schema: {
+              items: {
+                $ref: "#/definitions/trainingAssignmentStatus",
+              },
+              type: "array",
+            },
+          },
+          "206": {
+            description: "Partial Content",
+          },
+        },
+        tags: ["trainingAssignmentStatus"],
+      },
+    },
     "/salesInvoiceShipment": {
       get: {
         parameters: [
@@ -53332,6 +53503,9 @@ export default {
             $ref: "#/parameters/rowFilter.training.version",
           },
           {
+            $ref: "#/parameters/rowFilter.training.processId",
+          },
+          {
             $ref: "#/parameters/rowFilter.training.status",
           },
           {
@@ -53439,6 +53613,9 @@ export default {
             $ref: "#/parameters/rowFilter.training.version",
           },
           {
+            $ref: "#/parameters/rowFilter.training.processId",
+          },
+          {
             $ref: "#/parameters/rowFilter.training.status",
           },
           {
@@ -53498,6 +53675,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.training.version",
+          },
+          {
+            $ref: "#/parameters/rowFilter.training.processId",
           },
           {
             $ref: "#/parameters/rowFilter.training.status",
@@ -53845,6 +54025,249 @@ export default {
           },
         },
         tags: ["gauge"],
+      },
+    },
+    "/trainingQuestion": {
+      get: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.trainingId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.question",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.type",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.sortOrder",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.required",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.options",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctAnswers",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctBoolean",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.matchingPairs",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctNumber",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.tolerance",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.createdAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.createdBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.updatedAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.updatedBy",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/order",
+          },
+          {
+            $ref: "#/parameters/range",
+          },
+          {
+            $ref: "#/parameters/rangeUnit",
+          },
+          {
+            $ref: "#/parameters/offset",
+          },
+          {
+            $ref: "#/parameters/limit",
+          },
+          {
+            $ref: "#/parameters/preferCount",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+            schema: {
+              items: {
+                $ref: "#/definitions/trainingQuestion",
+              },
+              type: "array",
+            },
+          },
+          "206": {
+            description: "Partial Content",
+          },
+        },
+        tags: ["trainingQuestion"],
+      },
+      post: {
+        parameters: [
+          {
+            $ref: "#/parameters/body.trainingQuestion",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/preferPost",
+          },
+        ],
+        responses: {
+          "201": {
+            description: "Created",
+          },
+        },
+        tags: ["trainingQuestion"],
+      },
+      delete: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.trainingId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.question",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.type",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.sortOrder",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.required",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.options",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctAnswers",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctBoolean",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.matchingPairs",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctNumber",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.tolerance",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.createdAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.createdBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.updatedAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.updatedBy",
+          },
+          {
+            $ref: "#/parameters/preferReturn",
+          },
+        ],
+        responses: {
+          "204": {
+            description: "No Content",
+          },
+        },
+        tags: ["trainingQuestion"],
+      },
+      patch: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.trainingId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.question",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.type",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.sortOrder",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.required",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.options",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctAnswers",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctBoolean",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.matchingPairs",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.correctNumber",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.tolerance",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.createdAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.createdBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.updatedAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.trainingQuestion.updatedBy",
+          },
+          {
+            $ref: "#/parameters/body.trainingQuestion",
+          },
+          {
+            $ref: "#/parameters/preferReturn",
+          },
+        ],
+        responses: {
+          "204": {
+            description: "No Content",
+          },
+        },
+        tags: ["trainingQuestion"],
       },
     },
     "/demandProjection": {
@@ -57250,6 +57673,63 @@ export default {
         tags: ["(rpc) get_item_shelf_requirements_by_location_and_item"],
       },
     },
+    "/rpc/get_current_training_period": {
+      get: {
+        parameters: [
+          {
+            format: '"trainingFrequency"',
+            in: "query",
+            name: "frequency",
+            required: true,
+            type: "string",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_current_training_period"],
+      },
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                frequency: {
+                  format: '"trainingFrequency"',
+                  type: "string",
+                },
+              },
+              required: ["frequency"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_current_training_period"],
+      },
+    },
     "/rpc/has_company_permission": {
       post: {
         parameters: [
@@ -57913,6 +58393,63 @@ export default {
           },
         },
         tags: ["(rpc) get_jobs_by_date_range"],
+      },
+    },
+    "/rpc/get_period_end_date": {
+      get: {
+        parameters: [
+          {
+            format: "text",
+            in: "query",
+            name: "period",
+            required: true,
+            type: "string",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_period_end_date"],
+      },
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                period: {
+                  format: "text",
+                  type: "string",
+                },
+              },
+              required: ["period"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_period_end_date"],
       },
     },
     "/rpc/get_companies_with_permission": {
@@ -58636,6 +59173,74 @@ export default {
         tags: ["(rpc) get_sales_order_lines_by_customer_id"],
       },
     },
+    "/rpc/employee_requires_period": {
+      get: {
+        parameters: [
+          {
+            format: "date",
+            in: "query",
+            name: "employee_start_date",
+            required: true,
+            type: "string",
+          },
+          {
+            format: "text",
+            in: "query",
+            name: "period",
+            required: true,
+            type: "string",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) employee_requires_period"],
+      },
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                employee_start_date: {
+                  format: "date",
+                  type: "string",
+                },
+                period: {
+                  format: "text",
+                  type: "string",
+                },
+              },
+              required: ["employee_start_date", "period"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) employee_requires_period"],
+      },
+    },
     "/rpc/get_my_permission": {
       post: {
         parameters: [
@@ -59055,6 +59660,63 @@ export default {
           },
         },
         tags: ["(rpc) groups_for_user"],
+      },
+    },
+    "/rpc/get_period_start_date": {
+      get: {
+        parameters: [
+          {
+            format: "text",
+            in: "query",
+            name: "period",
+            required: true,
+            type: "string",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_period_start_date"],
+      },
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                period: {
+                  format: "text",
+                  type: "string",
+                },
+              },
+              required: ["period"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_period_start_date"],
       },
     },
     "/rpc/create_rfq_from_model_v1": {
@@ -59969,6 +60631,41 @@ export default {
           },
         },
         tags: ["(rpc) is_last_job_operation"],
+      },
+    },
+    "/rpc/get_training_assignment_summary": {
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                company_id: {
+                  format: "text",
+                  type: "string",
+                },
+              },
+              required: ["company_id"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_training_assignment_summary"],
       },
     },
     "/rpc/get_next_sequence": {
@@ -62423,6 +63120,69 @@ export default {
           type: "string",
         },
         customFields: {
+          format: "jsonb",
+        },
+      },
+      type: "object",
+    },
+    trainings: {
+      properties: {
+        id: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "text",
+          type: "string",
+        },
+        name: {
+          format: "text",
+          type: "string",
+        },
+        description: {
+          format: "text",
+          type: "string",
+        },
+        version: {
+          format: "numeric",
+          type: "number",
+        },
+        status: {
+          enum: ["Draft", "Active", "Archived"],
+          format: 'public."trainingStatus"',
+          type: "string",
+        },
+        type: {
+          enum: ["Mandatory", "Optional"],
+          format: 'public."trainingType"',
+          type: "string",
+        },
+        frequency: {
+          enum: ["Once", "Quarterly", "Annual"],
+          format: 'public."trainingFrequency"',
+          type: "string",
+        },
+        assignee: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        estimatedDuration: {
+          format: "text",
+          type: "string",
+        },
+        tags: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        companyId: {
+          description:
+            "Note:\nThis is a Foreign Key to `company.id`.<fk table='company' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        versions: {
           format: "jsonb",
         },
       },
@@ -68423,6 +69183,10 @@ export default {
         updatedBy: {
           description:
             "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        period: {
           format: "text",
           type: "string",
         },
@@ -83785,6 +84549,76 @@ export default {
       },
       type: "object",
     },
+    trainingAssignmentStatus: {
+      properties: {
+        trainingAssignmentId: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "integer",
+          type: "integer",
+        },
+        trainingId: {
+          description:
+            "Note:\nThis is a Foreign Key to `training.id`.<fk table='training' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        trainingName: {
+          format: "text",
+          type: "string",
+        },
+        frequency: {
+          enum: ["Once", "Quarterly", "Annual"],
+          format: 'public."trainingFrequency"',
+          type: "string",
+        },
+        type: {
+          enum: ["Mandatory", "Optional"],
+          format: 'public."trainingType"',
+          type: "string",
+        },
+        employeeId: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "text",
+          type: "string",
+        },
+        employeeName: {
+          format: "text",
+          type: "string",
+        },
+        avatarUrl: {
+          format: "text",
+          type: "string",
+        },
+        employeeStartDate: {
+          format: "date",
+          type: "string",
+        },
+        companyId: {
+          description:
+            "Note:\nThis is a Foreign Key to `company.id`.<fk table='company' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        currentPeriod: {
+          format: "text",
+          type: "string",
+        },
+        completionId: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "integer",
+          type: "integer",
+        },
+        completedAt: {
+          format: "timestamp with time zone",
+          type: "string",
+        },
+        status: {
+          format: "text",
+          type: "string",
+        },
+      },
+      type: "object",
+    },
     salesInvoiceShipment: {
       required: [
         "id",
@@ -86287,6 +87121,12 @@ export default {
           format: "numeric",
           type: "number",
         },
+        processId: {
+          description:
+            "Note:\nThis is a Foreign Key to `process.id`.<fk table='process' column='id'/>",
+          format: "text",
+          type: "string",
+        },
         status: {
           default: "Draft",
           enum: ["Draft", "Active", "Archived"],
@@ -86485,6 +87325,114 @@ export default {
           default: "Pending",
           enum: ["Pending", "In-Calibration", "Out-of-Calibration"],
           format: 'public."gaugeCalibrationStatus"',
+          type: "string",
+        },
+      },
+      type: "object",
+    },
+    trainingQuestion: {
+      required: [
+        "id",
+        "trainingId",
+        "question",
+        "type",
+        "sortOrder",
+        "companyId",
+        "createdAt",
+        "createdBy",
+      ],
+      properties: {
+        id: {
+          default: "public.id('tq'::text)",
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "text",
+          type: "string",
+        },
+        trainingId: {
+          description:
+            "Note:\nThis is a Foreign Key to `training.id`.<fk table='training' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        question: {
+          format: "text",
+          type: "string",
+        },
+        type: {
+          enum: [
+            "MultipleChoice",
+            "TrueFalse",
+            "MultipleAnswers",
+            "MatchingPairs",
+            "Numerical",
+          ],
+          format: 'public."trainingQuestionType"',
+          type: "string",
+        },
+        sortOrder: {
+          default: 1,
+          format: "double precision",
+          type: "number",
+        },
+        required: {
+          default: true,
+          format: "boolean",
+          type: "boolean",
+        },
+        options: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        correctAnswers: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        correctBoolean: {
+          format: "boolean",
+          type: "boolean",
+        },
+        matchingPairs: {
+          format: "json",
+        },
+        correctNumber: {
+          format: "numeric",
+          type: "number",
+        },
+        tolerance: {
+          format: "numeric",
+          type: "number",
+        },
+        companyId: {
+          description:
+            "Note:\nThis is a Foreign Key to `company.id`.<fk table='company' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        createdAt: {
+          default: "now()",
+          format: "timestamp with time zone",
+          type: "string",
+        },
+        createdBy: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        updatedAt: {
+          format: "timestamp with time zone",
+          type: "string",
+        },
+        updatedBy: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
           type: "string",
         },
       },
@@ -89716,6 +90664,87 @@ export default {
     },
     "rowFilter.scrapReason.customFields": {
       name: "customFields",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "body.trainings": {
+      name: "trainings",
+      description: "trainings",
+      required: false,
+      in: "body",
+      schema: {
+        $ref: "#/definitions/trainings",
+      },
+    },
+    "rowFilter.trainings.id": {
+      name: "id",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.name": {
+      name: "name",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.description": {
+      name: "description",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.version": {
+      name: "version",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.status": {
+      name: "status",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.type": {
+      name: "type",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.frequency": {
+      name: "frequency",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.assignee": {
+      name: "assignee",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.estimatedDuration": {
+      name: "estimatedDuration",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.tags": {
+      name: "tags",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.companyId": {
+      name: "companyId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainings.versions": {
+      name: "versions",
       required: false,
       in: "query",
       type: "string",
@@ -96439,6 +97468,12 @@ export default {
     },
     "rowFilter.trainingCompletion.updatedBy": {
       name: "updatedBy",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingCompletion.period": {
+      name: "period",
       required: false,
       in: "query",
       type: "string",
@@ -113810,6 +114845,99 @@ export default {
       in: "query",
       type: "string",
     },
+    "body.trainingAssignmentStatus": {
+      name: "trainingAssignmentStatus",
+      description: "trainingAssignmentStatus",
+      required: false,
+      in: "body",
+      schema: {
+        $ref: "#/definitions/trainingAssignmentStatus",
+      },
+    },
+    "rowFilter.trainingAssignmentStatus.trainingAssignmentId": {
+      name: "trainingAssignmentId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.trainingId": {
+      name: "trainingId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.trainingName": {
+      name: "trainingName",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.frequency": {
+      name: "frequency",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.type": {
+      name: "type",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.employeeId": {
+      name: "employeeId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.employeeName": {
+      name: "employeeName",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.avatarUrl": {
+      name: "avatarUrl",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.employeeStartDate": {
+      name: "employeeStartDate",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.companyId": {
+      name: "companyId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.currentPeriod": {
+      name: "currentPeriod",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.completionId": {
+      name: "completionId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.completedAt": {
+      name: "completedAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingAssignmentStatus.status": {
+      name: "status",
+      required: false,
+      in: "query",
+      type: "string",
+    },
     "body.salesInvoiceShipment": {
       name: "salesInvoiceShipment",
       description: "salesInvoiceShipment",
@@ -116615,6 +117743,12 @@ export default {
       in: "query",
       type: "string",
     },
+    "rowFilter.training.processId": {
+      name: "processId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
     "rowFilter.training.status": {
       name: "status",
       required: false,
@@ -116830,6 +117964,117 @@ export default {
     },
     "rowFilter.gauge.lastCalibrationStatus": {
       name: "lastCalibrationStatus",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "body.trainingQuestion": {
+      name: "trainingQuestion",
+      description: "trainingQuestion",
+      required: false,
+      in: "body",
+      schema: {
+        $ref: "#/definitions/trainingQuestion",
+      },
+    },
+    "rowFilter.trainingQuestion.id": {
+      name: "id",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.trainingId": {
+      name: "trainingId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.question": {
+      name: "question",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.type": {
+      name: "type",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.sortOrder": {
+      name: "sortOrder",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.required": {
+      name: "required",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.options": {
+      name: "options",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.correctAnswers": {
+      name: "correctAnswers",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.correctBoolean": {
+      name: "correctBoolean",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.matchingPairs": {
+      name: "matchingPairs",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.correctNumber": {
+      name: "correctNumber",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.tolerance": {
+      name: "tolerance",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.companyId": {
+      name: "companyId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.createdAt": {
+      name: "createdAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.createdBy": {
+      name: "createdBy",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.updatedAt": {
+      name: "updatedAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.trainingQuestion.updatedBy": {
+      name: "updatedBy",
       required: false,
       in: "query",
       type: "string",

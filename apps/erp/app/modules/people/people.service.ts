@@ -476,6 +476,43 @@ export async function getTrainingsList(
     .order("name", { ascending: true });
 }
 
+export async function getTrainingAssignmentStatus(
+  client: SupabaseClient<Database>,
+  companyId: string,
+  args?: {
+    trainingId?: string;
+    status?: "Completed" | "Pending" | "Overdue" | "Not Required";
+    search?: string;
+  } & GenericQueryFilters
+) {
+  let query = client
+    .from("trainingAssignmentStatus")
+    .select("*", { count: "exact" })
+    .eq("companyId", companyId);
+
+  if (args?.trainingId) query = query.eq("trainingId", args.trainingId);
+  if (args?.status) query = query.eq("status", args.status);
+  if (args?.search)
+    query = query.or(
+      `trainingName.ilike.%${args.search}%,employeeName.ilike.%${args.search}%`
+    );
+  if (args)
+    query = setGenericQueryFilters(query, args, [
+      { column: "employeeName", ascending: true },
+    ]);
+
+  return query;
+}
+
+export async function getTrainingAssignmentSummary(
+  client: SupabaseClient<Database>,
+  companyId: string
+) {
+  return client.rpc("get_training_assignment_summary", {
+    company_id: companyId,
+  });
+}
+
 export async function insertAttribute(
   client: SupabaseClient<Database>,
   attribute: {
@@ -733,4 +770,94 @@ export async function upsertTrainingQuestion(
     .insert([trainingQuestion])
     .select("id")
     .single();
+}
+
+export async function upsertTrainingAssignment(
+  client: SupabaseClient<Database>,
+  assignment: {
+    id?: number;
+    trainingId: string;
+    groupIds: string[];
+    companyId: string;
+    createdBy?: string;
+    updatedBy?: string;
+  }
+) {
+  if (assignment.id) {
+    return client
+      .from("trainingAssignment")
+      .update({
+        groupIds: assignment.groupIds,
+        updatedBy: assignment.updatedBy,
+      })
+      .eq("id", assignment.id)
+      .select("id")
+      .single();
+  }
+  return client
+    .from("trainingAssignment")
+    .insert({
+      trainingId: assignment.trainingId,
+      groupIds: assignment.groupIds,
+      companyId: assignment.companyId,
+      createdBy: assignment.createdBy!,
+    })
+    .select("id")
+    .single();
+}
+
+export async function insertTrainingCompletion(
+  client: SupabaseClient<Database>,
+  completion: {
+    trainingAssignmentId: number;
+    employeeId: string;
+    period: string | null;
+    companyId: string;
+    completedBy: string;
+    createdBy: string;
+  }
+) {
+  return client
+    .from("trainingCompletion")
+    .insert({
+      ...completion,
+      completedAt: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+}
+
+export async function getTrainingAssignment(
+  client: SupabaseClient<Database>,
+  assignmentId: number
+) {
+  return client
+    .from("trainingAssignment")
+    .select("*, training(id, name, frequency, type, status)")
+    .eq("id", assignmentId)
+    .single();
+}
+
+export async function getTrainingAssignments(
+  client: SupabaseClient<Database>,
+  companyId: string,
+  trainingId?: string
+) {
+  let query = client
+    .from("trainingAssignment")
+    .select("*, training(id, name, frequency)")
+    .eq("companyId", companyId);
+
+  if (trainingId) {
+    query = query.eq("trainingId", trainingId);
+  }
+
+  return query;
+}
+
+export async function deleteTrainingAssignment(
+  client: SupabaseClient<Database>,
+  assignmentId: number
+) {
+  return client.from("trainingAssignment").delete().eq("id", assignmentId);
 }

@@ -381,6 +381,7 @@ export const path = {
     bulkUpdateShipmentLine: `${x}/shipment/lines/update`,
     bulkUpdateStockTransferLine: `${x}/stock-transfer/lines/update`,
     bulkUpdateSupplierQuote: `${x}/supplier-quote/update`,
+    bulkUpdateTraining: `${x}/training/update`,
     calibrations: `${x}/quality/calibrations`,
     chartOfAccount: (id: string) =>
       generatePath(`${x}/accounting/charts/${id}`),
@@ -680,11 +681,16 @@ export const path = {
       generatePath(`${x}/purchasing/supplier-statuses/delete/${id}`),
     deleteSupplierType: (id: string) =>
       generatePath(`${x}/purchasing/supplier-types/delete/${id}`),
+    deleteTraining: (id: string) => generatePath(`${x}/training/delete/${id}`),
+    deleteTrainingQuestion: (id: string, questionId: string) =>
+      generatePath(`${x}/training/${id}/questions/delete/${questionId}`),
     deleteUom: (id: string) => generatePath(`${x}/items/uom/delete/${id}`),
     deleteUserAttribute: (id: string) =>
       generatePath(`${x}/account/${id}/delete/attribute`),
     deleteWebhook: (id: string) =>
       generatePath(`${x}/settings/webhooks/delete/${id}`),
+    deleteWarehouseTransfer: (id: string) =>
+      generatePath(`${x}/warehouse-transfer/${id}/delete`),
     deleteWorkCenter: (id: string) =>
       generatePath(`${x}/resources/work-centers/delete/${id}`),
     demandProjection: (itemId: string, locationId: string) =>
@@ -822,6 +828,7 @@ export const path = {
     logos: `${x}/settings/logos`,
     makeMethodGet: `${x}/items/methods/get`,
     makeMethodSave: `${x}/items/methods/save`,
+    markTrainingComplete: `${x}/people/assignments/complete`,
     material: (id: string) => generatePath(`${x}/material/${id}`),
     materialCosting: (id: string) =>
       generatePath(`${x}/material/${id}/view/costing`),
@@ -1030,6 +1037,9 @@ export const path = {
     newTool: `${x}/tool/new`,
     newToolSupplier: (id: string) =>
       generatePath(`${x}/tool/${id}/view/purchasing/new`),
+    newTraining: `${x}/people/training/new`,
+    newTrainingQuestion: (id: string) =>
+      generatePath(`${x}/training/${id}/questions/new`),
     newUom: `${x}/items/uom/new`,
     newWarehouseTransfer: `${x}/warehouse-transfer/new`,
     newWarehouseTransferLine: (transferId: string) =>
@@ -1165,17 +1175,18 @@ export const path = {
 
     training: (id: string) => generatePath(`${x}/training/${id}`),
     trainings: `${x}/people/training`,
-    newTraining: `${x}/people/training/new`,
-    newTrainingQuestion: (id: string) =>
-      generatePath(`${x}/training/${id}/questions/new`),
     trainingQuestion: (id: string, questionId: string) =>
       generatePath(`${x}/training/${id}/questions/${questionId}`),
-    deleteTraining: (id: string) => generatePath(`${x}/training/delete/${id}`),
-    deleteTrainingQuestion: (id: string, questionId: string) =>
-      generatePath(`${x}/training/${id}/questions/delete/${questionId}`),
     trainingQuestionOrder: (id: string) =>
       generatePath(`${x}/training/${id}/questions/order`),
-    bulkUpdateTraining: `${x}/training/update`,
+    trainingAssignments: `${x}/people/assignments`,
+    trainingAssignmentDetail: (trainingId: string) =>
+      generatePath(`${x}/people/assignments/${trainingId}`),
+    newTrainingAssignment: `${x}/people/assignments/new`,
+    trainingAssignment: (assignmentId: string | number) =>
+      generatePath(`${x}/people/assignments/assignment/${assignmentId}`),
+    deleteTrainingAssignment: (assignmentId: string | number) =>
+      generatePath(`${x}/people/assignments/assignment/${assignmentId}/delete`),
 
     quote: (id: string) => generatePath(`${x}/quote/${id}`),
     quoteAssembly: (quoteId: string, lineId: string, assemblyId: string) =>
@@ -1366,8 +1377,6 @@ export const path = {
       generatePath(`${x}/warehouse-transfer/${transferId}/lines`),
     warehouseTransferLine: (transferId: string, lineId: string) =>
       generatePath(`${x}/warehouse-transfer/${transferId}/details/${lineId}`),
-    deleteWarehouseTransfer: (id: string) =>
-      generatePath(`${x}/warehouse-transfer/${id}/delete`),
     shippingMethods: `${x}/inventory/shipping-methods`,
     supplier: (id: string) => generatePath(`${x}/supplier/${id}`),
     suppliers: `${x}/purchasing/suppliers`,

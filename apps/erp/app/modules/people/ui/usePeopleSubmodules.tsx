@@ -1,6 +1,7 @@
 import {
   LuCalendarClock,
   LuCalendarHeart,
+  LuClipboardCheck,
   LuGraduationCap,
   LuListChecks,
   LuNetwork,
@@ -20,11 +21,21 @@ const peopleRoutes: RouteGroup[] = [
         icon: <LuUsers />,
         table: "employee",
       },
+    ],
+  },
+  {
+    name: "Compliance",
+    routes: [
       {
         name: "Training",
         to: path.to.trainings,
         icon: <LuGraduationCap />,
         table: "training",
+      },
+      {
+        name: "Assignments",
+        to: path.to.trainingAssignments,
+        icon: <LuClipboardCheck />,
       },
     ],
   },

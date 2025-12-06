@@ -14,7 +14,7 @@ import { useCallback, useEffect } from "react";
 import { LuCopy, LuKeySquare, LuLink } from "react-icons/lu";
 import { z } from "zod/v3";
 import Assignee, { useOptimisticAssignment } from "~/components/Assignee";
-import { Tags } from "~/components/Form";
+import { InputControlled, Tags } from "~/components/Form";
 import { usePermissions, useRouteData } from "~/hooks";
 import { useTags } from "~/hooks/useTags";
 import {
@@ -207,14 +207,16 @@ const TrainingProperties = () => {
             label="Type"
             name="type"
             inline={(value) => (
-              <Badge variant={value === "Mandatory" ? "red" : "blue"}>
+              <Badge variant={value === "Mandatory" ? "default" : "secondary"}>
                 {value}
               </Badge>
             )}
             options={trainingType.map((t) => ({
               value: t,
               label: (
-                <Badge variant={t === "Mandatory" ? "red" : "blue"}>{t}</Badge>
+                <Badge variant={t === "Mandatory" ? "default" : "secondary"}>
+                  {t}
+                </Badge>
               ),
             }))}
             value={routeData?.training?.type ?? ""}
@@ -247,6 +249,32 @@ const TrainingProperties = () => {
             onChange={(value) => {
               onUpdate("frequency", value?.value ?? null);
             }}
+          />
+        </span>
+      </ValidatedForm>
+
+      <ValidatedForm
+        defaultValues={{
+          estimatedDuration:
+            routeData?.training?.estimatedDuration ?? undefined,
+        }}
+        validator={z.object({
+          estimatedDuration: z.string(),
+        })}
+        className="w-full -mt-2"
+      >
+        <span className="text-xs text-muted-foreground">
+          <InputControlled
+            label="Estimated Duration"
+            name="estimatedDuration"
+            inline
+            placeholder="45m"
+            size="sm"
+            value={routeData?.training?.estimatedDuration ?? ""}
+            onBlur={(e) => {
+              onUpdate("estimatedDuration", e.target.value ?? null);
+            }}
+            className="text-muted-foreground"
           />
         </span>
       </ValidatedForm>

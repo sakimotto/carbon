@@ -9,9 +9,11 @@ import type {
   getPeople,
   getShifts,
   getTraining,
+  getTrainingAssignment,
   getTrainingQuestions,
   getTrainings,
 } from "./people.service";
+import type { trainingAssignmentStatusOptions, trainingFrequency } from "./people.models";
 
 export type Attribute = NonNullable<
   Awaited<ReturnType<typeof getAttribute>>["data"]
@@ -73,3 +75,36 @@ export type TrainingListItem = NonNullable<
 export type TrainingQuestion = NonNullable<
   Awaited<ReturnType<typeof getTrainingQuestions>>["data"]
 >[number];
+
+export type TrainingAssignmentStatusItem = {
+  trainingAssignmentId: number;
+  trainingId: string;
+  trainingName: string;
+  frequency: (typeof trainingFrequency)[number];
+  type: "Mandatory" | "Optional";
+  employeeId: string;
+  employeeName: string | null;
+  avatarUrl: string | null;
+  employeeStartDate: string | null;
+  companyId: string;
+  currentPeriod: string | null;
+  completionId: number | null;
+  completedAt: string | null;
+  status: (typeof trainingAssignmentStatusOptions)[number];
+};
+
+export type TrainingAssignmentSummaryItem = {
+  trainingId: string;
+  trainingName: string;
+  frequency: (typeof trainingFrequency)[number];
+  currentPeriod: string | null;
+  totalAssigned: number;
+  completed: number;
+  pending: number;
+  overdue: number;
+  completionPercent: number;
+};
+
+export type TrainingAssignment = NonNullable<
+  Awaited<ReturnType<typeof getTrainingAssignment>>["data"]
+>;
