@@ -14,7 +14,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     role: "employee",
   });
 
-
   const formData = await request.formData();
   const validation = await validator(riskRegisterValidator).validate(formData);
 
@@ -22,8 +21,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return validationError(validation.error);
   }
 
+  const { id: _, ...data } = validation.data;
+
   const result = await upsertRisk(client, {
-    ...validation.data,
+    ...data,
     companyId,
     createdByUserId: userId,
   });
