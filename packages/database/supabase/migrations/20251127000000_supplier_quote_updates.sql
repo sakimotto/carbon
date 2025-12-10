@@ -38,42 +38,59 @@ FROM
   ) ql ON ql."supplierQuoteId" = q.id;
 
 
--- View
+-- Policies
+-- Consolidate all policies into single policies for SELECT, INSERT, UPDATE, DELETE
+
+-- Drop existing granular policies
 DROP POLICY IF EXISTS "Employees with purchasing_view can view purchasing-related external links" ON "externalLink";
-CREATE POLICY "Employees with purchasing_view can view purchasing-related external links" ON "externalLink"
+DROP POLICY IF EXISTS "Employees with purchasing_create can insert purchasing-related external links" ON "externalLink";
+DROP POLICY IF EXISTS "Employees with purchasing_update can update purchasing-related external links" ON "externalLink";
+DROP POLICY IF EXISTS "Employees with purchasing_delete can delete purchasing-related external links" ON "externalLink";
+
+-- Drop consolidated policies if they exist (re-run safety)
+DROP POLICY IF EXISTS "SELECT" ON "externalLink";
+DROP POLICY IF EXISTS "INSERT" ON "externalLink";
+DROP POLICY IF EXISTS "UPDATE" ON "externalLink";
+DROP POLICY IF EXISTS "DELETE" ON "externalLink";
+
+CREATE POLICY "Authenticated users can view external links" ON "externalLink"
   FOR SELECT
   USING (
-    "documentType" = 'SupplierQuote' AND
-    has_role('employee', "companyId") AND
-    has_company_permission('purchasing_view', "companyId")
+    "companyId" = ANY (
+      (
+        SELECT
+          get_companies_with_employee_role()
+      )::text[]
+    )
   );
 
--- Insert
-DROP POLICY IF EXISTS "Employees with purchasing_create can insert purchasing-related external links" ON "externalLink";
 CREATE POLICY "Employees with purchasing_create can insert purchasing-related external links" ON "externalLink"
-  FOR INSERT
-  WITH CHECK (
-    "documentType" = 'SupplierQuote' AND
-    has_role('employee', "companyId") AND
-    has_company_permission('purchasing_create', "companyId")
+  FOR INSERT WITH CHECK (
+    "documentType" = 'SupplierQuote' AND "companyId" = ANY (
+      (
+        SELECT
+          get_companies_with_employee_permission('purchasing_create')
+      )::text[]
+    )
   );
 
--- Update
-DROP POLICY IF EXISTS "Employees with purchasing_update can update purchasing-related external links" ON "externalLink";
 CREATE POLICY "Employees with purchasing_update can update purchasing-related external links" ON "externalLink"
-  FOR UPDATE
-  USING (
-    "documentType" = 'SupplierQuote' AND
-    has_role('employee', "companyId") AND
-    has_company_permission('purchasing_update', "companyId")
+  FOR UPDATE USING (
+    "documentType" = 'SupplierQuote' AND "companyId" = ANY (
+      (
+        SELECT
+          get_companies_with_employee_permission('purchasing_update')
+      )::text[]
+    )
   );
 
--- Delete
-DROP POLICY IF EXISTS "Employees with purchasing_delete can delete purchasing-related external links" ON "externalLink";
 CREATE POLICY "Employees with purchasing_delete can delete purchasing-related external links" ON "externalLink"
-  FOR DELETE
-  USING (
-    "documentType" = 'SupplierQuote' AND
-    has_role('employee', "companyId") AND
-    has_company_permission('purchasing_delete', "companyId")
-  );
+  FOR DELETE USING
+    (
+      "documentType" = 'SupplierQuote' AND "companyId" = ANY (
+        (
+          SELECT
+            get_companies_with_employee_permission('purchasing_delete')
+        )::text[]
+      )
+    )
