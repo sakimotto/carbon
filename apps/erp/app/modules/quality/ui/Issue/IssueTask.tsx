@@ -49,6 +49,8 @@ import { useProcesses } from "~/components/Form/Process";
 import { IssueTaskStatusIcon } from "~/components/Icons";
 import SupplierAvatar from "~/components/SupplierAvatar";
 import { usePermissions, useRouteData, useUser } from "~/hooks";
+import { useIntegrations } from "~/hooks/useIntegrations";
+import { useRealtime } from "~/hooks/useRealtime";
 import type {
   Issue,
   IssueActionTask,
@@ -59,6 +61,7 @@ import type {
 import { nonConformanceTaskStatus } from "~/modules/quality";
 import { useSuppliers } from "~/stores";
 import { getPrivateUrl, path } from "~/utils/path";
+import { LinearIssueDialog } from "./Linear/IssueDialog";
 
 export function TaskProgress({
   tasks,
@@ -257,20 +260,33 @@ export function TaskItem({
   showDragHandle?: boolean;
   dragControls?: DragControls;
 }) {
+  useRealtime("nonConformanceActionTask", `id=eq.${task.id}`);
+
+  const integrations = useIntegrations();
   const permissions = usePermissions();
   const disclosure = useDisclosure({
     defaultIsOpen: true,
   });
+
   const { currentStatus, onOperationStatusChange } = useTaskStatus({
     task,
     type,
     disabled: isDisabled,
   });
-  const statusAction = statusActions[currentStatus];
+  const statusAction =
+    statusActions[currentStatus as keyof typeof statusActions];
+
+  // Check if this action task has a linked Linear issue
+  const hasLinearLink =
+    type === "action" &&
+    !!(task as IssueActionTask & { externalId?: { linear?: unknown } })
+      .externalId?.linear;
+
   const { content, setContent, onUpdateContent, onUploadImage } = useTaskNotes({
     initialContent: (task.notes ?? {}) as JSONContent,
     taskId: task.id!,
     type,
+    hasLinearLink,
   });
 
   const { id } = useParams();
@@ -304,6 +320,9 @@ export function TaskItem({
               <LuGripVertical size={16} />
             </button>
           )}
+
+          {integrations.has("linear") && <LinearIssueDialog task={task} />}
+
           <IconButton
             icon={<LuChevronRight />}
             variant="ghost"
@@ -353,6 +372,7 @@ export function TaskItem({
           )}
         </div>
       )}
+
       <div className="bg-muted/30 border-t px-4 py-2 flex justify-between w-full">
         <HStack>
           <IssueTaskStatus
@@ -410,10 +430,12 @@ function useTaskNotes({
   initialContent,
   taskId,
   type,
+  hasLinearLink = false,
 }: {
   initialContent: JSONContent;
   taskId: string;
   type: "investigation" | "action" | "approval" | "review";
+  hasLinearLink?: boolean;
 }) {
   const {
     id: userId,
@@ -445,13 +467,32 @@ function useTaskNotes({
 
   const onUpdateContent = useDebounce(
     async (content: JSONContent) => {
+      // Update notes in Carbon database
       await carbon
+        // @ts-expect-error -
         ?.from(table)
         .update({
           notes: content,
           updatedBy: userId,
         })
         .eq("id", taskId!);
+
+      // Sync to Linear if this is an action task with a linked Linear issue
+      if (type === "action" && hasLinearLink) {
+        try {
+          await fetch(path.to.api.linearSyncNotes, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              actionId: taskId,
+              notes: JSON.stringify(content),
+            }),
+          });
+        } catch (e) {
+          // Silently fail Linear sync - not critical
+          console.error("Failed to sync notes to Linear:", e);
+        }
+      }
     },
     2500,
     true

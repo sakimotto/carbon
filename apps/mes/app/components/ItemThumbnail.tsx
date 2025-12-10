@@ -1,9 +1,14 @@
 import { cva } from "class-variance-authority";
 import { getPrivateUrl } from "~/utils/path";
+import { cn } from "@carbon/react";
+import { MethodItemTypeIcon } from "./Icons";
+import { LuSquareStack } from "react-icons/lu";
 
 interface ItemThumbnailProps {
   thumbnailPath?: string | null;
   size?: "sm" | "md" | "lg" | "xl";
+  type?: "Part" | "Material" | "Tool" | "Service" | "Consumable" | "Fixture";
+  onClick?: () => void;
 }
 
 const itemVariants = cva(
@@ -50,14 +55,45 @@ const itemVariants = cva(
   }
 );
 
-const ItemThumbnail = ({ thumbnailPath, size = "md" }: ItemThumbnailProps) => {
+const iconVariants = cva("text-[#AAAAAA] dark:text-[#444]", {
+  variants: {
+    size: {
+      sm: "w-5 h-5",
+      md: "w-6 h-6",
+      lg: "w-7 h-7",
+      xl: "w-11 h-11",
+    },
+  },
+  defaultVariants: {
+    size: "md",
+  },
+});
+
+const ItemThumbnail = ({
+  thumbnailPath,
+  type,
+  size = "md",
+  onClick,
+}: ItemThumbnailProps) => {
   return thumbnailPath ? (
     <img
       alt="thumbnail"
-      className={itemVariants({ size, withPadding: false })}
+      className={cn(
+        itemVariants({ size, withPadding: false }),
+        thumbnailPath && "cursor-pointer"
+      )}
       src={getPrivateUrl(thumbnailPath)}
+      onClick={onClick}
     />
-  ) : null;
+  ) : (
+    <div className={cn(itemVariants({ size }))}>
+      {type ? (
+        <MethodItemTypeIcon className={iconVariants({ size })} type={type} />
+      ) : (
+        <LuSquareStack className={iconVariants({ size })} />
+      )}
+    </div>
+  );
 };
 
 export default ItemThumbnail;

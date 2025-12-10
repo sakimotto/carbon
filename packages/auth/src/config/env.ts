@@ -35,6 +35,7 @@ declare global {
       STRIPE_SECRET_KEY: string;
       STRIPE_WEBHOOK_SECRET: string;
       STRIPE_BYPASS_COMPANY_IDS: string;
+      STRIPE_BYPASS_USER_IDS: string;
       SUPABASE_ANON_KEY: string;
       SUPABASE_URL: string;
       SUPABASE_SERVICE_ROLE_KEY: string;
@@ -151,6 +152,9 @@ export const STRIPE_WEBHOOK_SECRET = getEnv("STRIPE_WEBHOOK_SECRET", {
   isRequired: false,
 });
 export const STRIPE_BYPASS_COMPANY_IDS = getEnv("STRIPE_BYPASS_COMPANY_IDS", {
+  isRequired: false,
+});
+export const STRIPE_BYPASS_USER_IDS = getEnv("STRIPE_BYPASS_USER_IDS", {
   isRequired: false,
 });
 export const UPSTASH_REDIS_REST_URL = getEnv("UPSTASH_REDIS_REST_URL", {

@@ -185,7 +185,7 @@ const AggregateSelector = ({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex justify-start items-center gap-2 cursor-pointer">
-          {currentFunction?.icon}
+          <span className="text-muted-foreground">{currentFunction?.icon}</span>
           <span className="font-medium">{formattedValue}</span>
         </div>
       </DropdownMenuTrigger>

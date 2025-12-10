@@ -89,7 +89,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     defaults,
   ] = await Promise.all([
     getCompanies(client, userId),
-    getStripeCustomerByCompanyId(companyId),
+    getStripeCustomerByCompanyId(companyId, userId),
     getCustomFieldsSchemas(client, { companyId }),
     getCompanyIntegrations(client, companyId),
     getCompanySettings(client, companyId),

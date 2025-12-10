@@ -1,6 +1,5 @@
 import { getCarbonServiceRole } from "@carbon/auth";
 import { requirePermissions } from "@carbon/auth/auth.server";
-import { supportedModelTypes } from "@carbon/utils";
 import { type LoaderFunctionArgs } from "@vercel/remix";
 
 const supportedFileTypes: Record<string, string> = {
@@ -44,14 +43,11 @@ export let loader = async ({ request, params }: LoaderFunctionArgs) => {
   path = decodeURIComponent(path);
 
   const fileType = path.split(".").pop()?.toLowerCase();
+  if (!fileType) {
+    return new Response(null, { status: 400 });
+  }
 
-  if (
-    !fileType ||
-    (!(fileType in supportedFileTypes) &&
-      !supportedModelTypes.includes(fileType))
-  )
-    throw new Error(`File type ${fileType} not supported`);
-  const contentType = supportedFileTypes[fileType];
+  const contentType = supportedFileTypes[fileType ?? ""];
 
   if (!path.includes(companyId)) {
     return new Response(null, { status: 403 });
@@ -79,8 +75,12 @@ export let loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 
   const headers = new Headers({
-    "Content-Type": contentType,
     "Cache-Control": "private, max-age=31536000, immutable",
   });
+
+  if (contentType) {
+    headers.set("Content-Type", contentType);
+  }
+
   return new Response(fileData, { status: 200, headers });
 };

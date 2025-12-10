@@ -13,7 +13,11 @@ import {
   ModalHeader,
   ModalTitle,
   Switch,
+  Table,
+  Td,
+  Tbody,
   toast,
+  Tr,
   useDisclosure,
   VStack,
   type JSONContent,
@@ -23,7 +27,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useUser } from "~/hooks";
 import { stepRecordValidator } from "~/services/models";
 import type { JobOperationStep } from "~/services/types";
-import { path } from "~/utils/path";
+import { getPrivateUrl, path } from "~/utils/path";
 
 import { useCarbon } from "@carbon/auth";
 import {
@@ -36,7 +40,7 @@ import {
   Submit,
   ValidatedForm,
 } from "@carbon/form";
-import { formatDateTime } from "@carbon/utils";
+import { formatDateTime, parseMentionsFromDocument } from "@carbon/utils";
 import {
   LuChevronDown,
   LuChevronRight,
@@ -46,10 +50,11 @@ import {
   LuTrash,
 } from "react-icons/lu";
 import { ProcedureStepTypeIcon } from "~/components/Icons";
-import { usePeople } from "~/stores";
+import { useItems, usePeople } from "~/stores";
 import FileDropzone from "../../FileDropzone";
 
 import { useNumberFormatter } from "@react-aria/i18n";
+import ItemThumbnail from "~/components/ItemThumbnail";
 
 export function StepsListItem({
   activeStep,
@@ -74,6 +79,9 @@ export function StepsListItem({
     step;
 
   const hasDescription = description && Object.keys(description).length > 0;
+  const mentionIds = hasDescription
+    ? parseMentionsFromDocument(description as JSONContent)
+    : [];
   const disclosure = useDisclosure({
     defaultIsOpen: !!hasDescription,
   });
@@ -218,7 +226,50 @@ export function StepsListItem({
           }}
         />
       )}
+      {mentionIds.length > 0 && <ItemsSummaryTable itemsIds={mentionIds} />}
     </div>
+  );
+}
+
+function ItemsSummaryTable({ itemsIds }: { itemsIds: string[] }) {
+  const [allItems] = useItems();
+  const items = useMemo(() => {
+    return itemsIds.map((id) => allItems.find((item) => item.id === id));
+  }, [itemsIds, allItems]);
+  return (
+    <Table>
+      <Tbody>
+        {items.map(
+          (item) =>
+            item && (
+              <Tr className="bg-muted/50 hover:bg-muted/80" key={item.id}>
+                <Td className="flex-shrink-0 py-3 w-[60px]">
+                  <ItemThumbnail
+                    size="lg"
+                    thumbnailPath={item?.thumbnailPath ?? undefined}
+                    onClick={() => {
+                      if (item?.thumbnailPath) {
+                        window.open(
+                          getPrivateUrl(item.thumbnailPath),
+                          "_blank"
+                        );
+                      }
+                    }}
+                  />
+                </Td>
+                <Td className="flex-grow">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-base font-medium">{item.name}</span>
+                    <span className="text-sm font-mono text-muted-foreground">
+                      {item.readableIdWithRevision ?? item.id}
+                    </span>
+                  </div>
+                </Td>
+              </Tr>
+            )
+        )}
+      </Tbody>
+    </Table>
   );
 }
 

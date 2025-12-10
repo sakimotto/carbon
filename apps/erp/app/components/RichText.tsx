@@ -76,7 +76,7 @@ const RichText = ({ documentId, notes }: RichTextProps) => {
               <RichTextForm name="note" className="min-h-[160px]" />
             </div>
             <div className="flex justify-end w-full">
-              <Submit>Add Note</Submit>
+              <Submit withBlocker={false}>Add Note</Submit>
             </div>
           </VStack>
         </ValidatedForm>

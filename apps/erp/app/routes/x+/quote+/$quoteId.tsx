@@ -61,21 +61,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     throw redirect(path.to.quotes);
   }
 
-  const [customer, shipment, payment, lines, prices, opportunity, methods] =
-    await Promise.all([
-      getCustomer(client, quote.data?.customerId ?? ""),
-      getQuoteShipment(client, quoteId),
-      getQuotePayment(client, quoteId),
-      getQuoteLines(client, quoteId),
-      getQuoteLinePricesByQuoteId(client, quoteId),
-      getOpportunity(client, quote.data?.opportunityId),
-      getQuoteMethodTrees(client, quoteId),
-      getOpportunityDocuments(
-        client,
-        companyId,
-        quote.data?.opportunityId ?? ""
-      ),
-    ]);
+  const [
+    customer,
+    shipment,
+    payment,
+    lines,
+    prices,
+    opportunity,
+    methods,
+    opportunityDocuments,
+  ] = await Promise.all([
+    getCustomer(client, quote.data?.customerId ?? ""),
+    getQuoteShipment(client, quoteId),
+    getQuotePayment(client, quoteId),
+    getQuoteLines(client, quoteId),
+    getQuoteLinePricesByQuoteId(client, quoteId),
+    getOpportunity(client, quote.data?.opportunityId),
+    getQuoteMethodTrees(client, quoteId),
+    getOpportunityDocuments(client, companyId, quote.data?.opportunityId ?? ""),
+  ]);
 
   if (!opportunity.data) throw new Error("Failed to get opportunity record");
 
@@ -128,11 +132,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     customer: customer.data,
     lines: lines.data ?? [],
     methods: methods.data ?? [],
-    files: getOpportunityDocuments(
-      client,
-      companyId,
-      quote.data?.opportunityId ?? ""
-    ),
+    files: opportunityDocuments,
     prices: prices.data ?? [],
     shipment: shipment.data,
     payment: payment.data,

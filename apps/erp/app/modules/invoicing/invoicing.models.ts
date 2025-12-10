@@ -1,4 +1,4 @@
-import { z } from 'zod/v3';
+import { z } from "zod/v3";
 import { zfd } from "zod-form-data";
 import { methodItemType, methodType } from "../shared";
 
@@ -15,7 +15,7 @@ export const purchaseInvoiceLineType = [
 
 export const purchaseInvoiceStatusType = [
   "Draft",
-  "Return",
+  // "Return",
   "Pending",
   "Partially Paid",
   "Submitted",
@@ -38,7 +38,7 @@ export const salesInvoiceLineType = [
 
 export const salesInvoiceStatusType = [
   "Draft",
-  "Return",
+  // "Return",
   "Pending",
   "Partially Paid",
   "Submitted",

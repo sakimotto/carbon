@@ -3,6 +3,7 @@ import { cloneElement, forwardRef, isValidElement } from "react";
 
 import type { ButtonProps } from "./Button";
 import { Button } from "./Button";
+import { cn } from "./utils/cn";
 
 export interface IconButtonProps
   extends Omit<ButtonProps, "leftIcon" | "rightIcon"> {
@@ -30,7 +31,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       ? cloneElement(element as any, {
           "aria-hidden": true,
           focusable: false,
-          className: iconSizes[size],
+          className: cn(iconSizes[size], icon.props?.className),
         })
       : null;
 

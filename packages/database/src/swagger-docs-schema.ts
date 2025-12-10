@@ -6097,6 +6097,9 @@ export default {
             $ref: "#/parameters/rowFilter.nonConformanceActionTask.supplierId",
           },
           {
+            $ref: "#/parameters/rowFilter.nonConformanceActionTask.externalId",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -6204,6 +6207,9 @@ export default {
             $ref: "#/parameters/rowFilter.nonConformanceActionTask.supplierId",
           },
           {
+            $ref: "#/parameters/rowFilter.nonConformanceActionTask.externalId",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -6263,6 +6269,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.nonConformanceActionTask.supplierId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.nonConformanceActionTask.externalId",
           },
           {
             $ref: "#/parameters/body.nonConformanceActionTask",
@@ -62955,6 +62964,9 @@ export default {
           format: "text",
           type: "string",
         },
+        externalId: {
+          format: "json",
+        },
       },
       type: "object",
     },
@@ -90144,6 +90156,12 @@ export default {
     },
     "rowFilter.nonConformanceActionTask.supplierId": {
       name: "supplierId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.nonConformanceActionTask.externalId": {
+      name: "externalId",
       required: false,
       in: "query",
       type: "string",

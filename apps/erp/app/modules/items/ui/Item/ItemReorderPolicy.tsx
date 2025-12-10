@@ -1,7 +1,7 @@
 import type { Database } from "@carbon/database";
 import { Status } from "@carbon/react";
 import { getLocalTimeZone, parseDate, today } from "@internationalized/date";
-import { z } from 'zod/v3';
+import { z } from "zod/v3";
 import type {
   ProductionOrder,
   ProductionPlanningItem,
@@ -264,15 +264,19 @@ function calculateOrders({ itemPlanning, periods }: BaseOrderParams): {
             days: leadTime,
           });
 
+          // If reorder quantity is 0, order the same quantity as the reorder point
+          const orderQuantity =
+            reorderQuantity > 0 ? reorderQuantity : reorderPoint;
+
           orders.push({
             startDate: startDate.toString(),
             dueDate: dueDate.toString(),
-            quantity: reorderQuantity,
+            quantity: orderQuantity,
             periodId: period.id,
             isASAP: startDate.compare(todaysDate) < 0,
           });
           day++;
-          orderedQuantity += reorderQuantity;
+          orderedQuantity += orderQuantity;
           remainingQuantityNeeded =
             reorderPoint - (projectedQuantity + orderedQuantity);
         }
@@ -302,8 +306,11 @@ function calculateOrders({ itemPlanning, periods }: BaseOrderParams): {
           const requiredQuantity =
             maximumInventoryQuantity - (projectedQuantity + orderedQuantity);
 
-          // Adjust quantity based on order constraints
-          let orderQuantity = Math.max(minimumOrderQuantity, requiredQuantity);
+          // If reorder quantity is 0, use reorder point as the base order quantity
+          let orderQuantity =
+            reorderQuantity > 0
+              ? Math.max(minimumOrderQuantity, requiredQuantity)
+              : reorderPoint;
 
           // Ensure orderQuantity is positive to prevent infinite loop
           if (orderQuantity <= 0) {

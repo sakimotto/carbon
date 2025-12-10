@@ -150,6 +150,7 @@ export default function JobMakeMethodRoute() {
         <JobBillOfProcess
           key={`bop:${methodId}`}
           jobMakeMethodId={methodId}
+          materials={materials}
           // @ts-ignore
           operations={operations}
           locationId={routeData?.job?.locationId ?? ""}

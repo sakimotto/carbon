@@ -139,6 +139,7 @@ type JobOperationProps = {
   nonConformanceActions: Promise<
     {
       id: string;
+      nonConformanceId: string;
       actionTypeName: string;
       assignee: string;
       notes: JSONContent;
@@ -300,7 +301,7 @@ export const JobOperation = ({
             companyId,
             createdBy: userId,
             operationId,
-            name: action.actionTypeName,
+            name: `${action.actionTypeName} - ${action.nonConformanceId}`,
             type: "Inspection" as const,
             sortOrder: ++maxSortOrder,
             nonConformanceActionId: actionId,
@@ -655,7 +656,16 @@ export const JobOperation = ({
                         <Separator />
                         <div className="flex flex-col items-start justify-between w-full">
                           <div className="flex flex-col gap-4 p-4 lg:p-6 w-full">
-                            <Heading size="h3">{action.actionTypeName}</Heading>
+                            <div className="flex flex-col gap-0.5">
+                              <Heading size="h3">
+                                {action.actionTypeName}
+                              </Heading>
+                              <div>
+                                <Badge variant="outline">
+                                  {action.nonConformanceId}
+                                </Badge>
+                              </div>
+                            </div>
                             <div
                               className="prose dark:prose-invert prose-sm max-w-none"
                               dangerouslySetInnerHTML={{

@@ -75,7 +75,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
         companyId,
         userId,
       }),
-      getStripeCustomerByCompanyId(companyId),
+      getStripeCustomerByCompanyId(companyId, userId),
       getLocationsByCompany(client, companyId),
       getActiveJobCount(client, {
         employeeId: userId,

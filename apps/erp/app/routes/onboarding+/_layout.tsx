@@ -13,11 +13,11 @@ import { onboardingSequence, path } from "~/utils/path";
 export const shouldRevalidate: ShouldRevalidateFunction = () => true;
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const { client, companyId } = await requirePermissions(request, {});
+  const { client, companyId, userId } = await requirePermissions(request, {});
 
   const [company, stripeCustomer, locations] = await Promise.all([
     getCompany(client, companyId),
-    getStripeCustomerByCompanyId(companyId),
+    getStripeCustomerByCompanyId(companyId, userId),
     getLocationsList(client, companyId),
   ]);
 

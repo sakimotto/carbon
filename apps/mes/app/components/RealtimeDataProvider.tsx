@@ -46,7 +46,7 @@ const RealtimeDataProvider = ({ children }: { children: React.ReactNode }) => {
       fetchAllFromTable(
         carbon,
         "item",
-        "id, readableIdWithRevision, name, type, replenishmentSystem, itemTrackingType, active",
+        "id, readableIdWithRevision, name, type, replenishmentSystem, itemTrackingType, active, thumbnailPath, modelUpload:modelUploadId(thumbnailPath)",
         (query) =>
           query
             .eq("companyId", companyId)
@@ -70,8 +70,23 @@ const RealtimeDataProvider = ({ children }: { children: React.ReactNode }) => {
 
     hydratedFromServer = true;
 
-    // @ts-ignore
-    setItems(items.data ?? []);
+    type ItemWithModelUpload = Item & {
+      modelUpload?: { thumbnailPath: string | null } | null;
+    };
+    const itemData = (items.data ?? []) as unknown as ItemWithModelUpload[];
+    setItems(
+      itemData.map((item) => ({
+        id: item.id,
+        name: item.name,
+        readableIdWithRevision: item.readableIdWithRevision,
+        type: item.type,
+        replenishmentSystem: item.replenishmentSystem,
+        itemTrackingType: item.itemTrackingType,
+        active: item.active,
+        thumbnailPath:
+          item.thumbnailPath ?? item.modelUpload?.thumbnailPath ?? null,
+      }))
+    );
     setPeople(
       // @ts-ignore
       people.data?.filter((p) => !p.email?.includes("@carbon.ms")) ?? []
@@ -82,13 +97,11 @@ const RealtimeDataProvider = ({ children }: { children: React.ReactNode }) => {
     if (!companyId) return;
     hydrate();
 
-    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId, accessToken]);
 
   useEffect(() => {
     if (!channelRef.current && carbon && accessToken && realtimeAuthSet) {
-      
       channelRef.current = carbon
         .channel("realtime:core")
         .on(
@@ -116,11 +129,11 @@ const RealtimeDataProvider = ({ children }: { children: React.ReactNode }) => {
                       id: inserted.id,
                       name: inserted.name,
                       readableIdWithRevision: inserted.readableIdWithRevision,
-                      description: inserted.description,
                       replenishmentSystem: inserted.replenishmentSystem,
                       itemTrackingType: inserted.itemTrackingType,
                       type: inserted.type,
                       active: inserted.active,
+                      thumbnailPath: inserted.thumbnailPath,
                     },
                   ].sort((a, b) =>
                     a.readableIdWithRevision.localeCompare(
@@ -145,6 +158,7 @@ const RealtimeDataProvider = ({ children }: { children: React.ReactNode }) => {
                           replenishmentSystem: updated.replenishmentSystem,
                           type: updated.type,
                           active: updated.active,
+                          thumbnailPath: updated.thumbnailPath,
                         };
                       }
                       return i;

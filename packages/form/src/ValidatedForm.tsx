@@ -14,7 +14,7 @@ import React, {
   useState,
 } from "react";
 import * as R from "remeda";
-import type { z } from 'zod/v3';
+import type { z } from "zod/v3";
 import { useIsSubmitting, useIsValid } from "./hooks";
 import type { MultiValueMap } from "./internal/MultiValueMap";
 import { useMultiValueMap } from "./internal/MultiValueMap";
@@ -75,6 +75,12 @@ export type FormProps<DataType, Subaction extends string | undefined> = {
     data: DataForSubaction<DataType, Subaction>,
     event: React.FormEvent<HTMLFormElement>
   ) => void | Promise<void>;
+
+  /**
+   * A callback that fires after the promise returned by fetcher completes.
+   * As the default useFetcher doesn't support promises - we have a custom useAsyncFetcher hook.
+   */
+  onAfterSubmit?: () => void | Promise<void>;
   /**
    * Allows you to provide a `fetcher` from Remix's `useFetcher` hook.
    * The form will use the fetcher for loading states, action data, etc
@@ -205,13 +211,16 @@ const useFormId = (providedId?: string): string | symbol => {
 const FormResetter = ({
   resetAfterSubmit,
   formRef,
+  onComplete,
 }: {
   resetAfterSubmit: boolean;
   formRef: RefObject<HTMLFormElement>;
+  onComplete?: () => void;
 }) => {
   const isSubmitting = useIsSubmitting();
   const isValid = useIsValid();
   useSubmitComplete(isSubmitting, () => {
+    typeof onComplete === "function" && onComplete();
     if (isValid && resetAfterSubmit) {
       formRef.current?.reset();
     }
@@ -255,6 +264,7 @@ export function ValidatedForm<
 >({
   validator,
   onSubmit,
+  onAfterSubmit,
   children,
   fetcher,
   action,
@@ -420,8 +430,13 @@ export function ValidatedForm<
       // but we already have the form in `formRef.current` so we can just use that.
       // If we use `event.currentTarget` here, it will break because `currentTarget`
       // will have changed since the start of the submission.
-      if (fetcher) fetcher.submit(formData, opts);
-      else submit(formData, opts);
+      let value: any = fetcher
+        ? fetcher.submit(formData, opts)
+        : submit(formData, opts);
+
+      if (value instanceof Promise) {
+        await value;
+      }
     }
   };
 
@@ -451,7 +466,11 @@ export function ValidatedForm<
     >
       <InternalFormContext.Provider value={contextValue}>
         <>
-          <FormResetter formRef={formRef} resetAfterSubmit={resetAfterSubmit} />
+          <FormResetter
+            formRef={formRef}
+            resetAfterSubmit={resetAfterSubmit}
+            onComplete={onAfterSubmit}
+          />
           {subaction && (
             <input type="hidden" value={subaction} name="subaction" />
           )}

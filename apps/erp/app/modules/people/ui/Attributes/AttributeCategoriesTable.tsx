@@ -1,6 +1,7 @@
 import {
   Badge,
   Button,
+  HStack,
   MenuIcon,
   MenuItem,
   useDisclosure,
@@ -14,7 +15,6 @@ import { LuPencil, LuTrash, LuListChecks } from "react-icons/lu";
 import { Hyperlink, New, Table } from "~/components";
 import { ConfirmDelete } from "~/components/Modals";
 import { usePermissions, useUrlParams } from "~/hooks";
-
 import { path } from "~/utils/path";
 import type { AttributeCategory } from "../../types";
 
@@ -62,21 +62,28 @@ const AttributeCategoriesTable = memo(
         {
           header: "Attributes",
           cell: ({ row }) => (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                navigate(
-                  `${path.to.attributeCategoryList(
-                    row.original.id
-                  )}?${params?.toString()}`
-                );
-              }}
-            >
-              {Array.isArray(row.original.userAttribute)
-                ? row.original.userAttribute?.length ?? 0
-                : 0}{" "}
-              Attributes
-            </Button>
+            <HStack className="text-xs text-muted-foreground">
+              <LuListChecks />
+              <span>
+                {Array.isArray(row.original.userAttribute)
+                  ? row.original.userAttribute?.length ?? 0
+                  : 0}{" "}
+                Attributes
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  navigate(
+                    `${path.to.attributeCategoryList(
+                      row.original.id
+                    )}?${params?.toString()}`
+                  );
+                }}
+              >
+                Edit
+              </Button>
+            </HStack>
           ),
         },
         {

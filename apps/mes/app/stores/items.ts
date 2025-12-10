@@ -10,6 +10,7 @@ export type Item = ListItem & {
   itemTrackingType: Database["public"]["Enums"]["itemTrackingType"];
   replenishmentSystem: Database["public"]["Enums"]["itemReplenishmentSystem"];
   active: boolean;
+  thumbnailPath: string | null;
 };
 
 const $itemsStore = atom<Item[]>([]);

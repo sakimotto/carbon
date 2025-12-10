@@ -393,6 +393,7 @@ export async function getNonConformanceActions(
     id: string;
     actionTypeName: string;
     assignee: string;
+    nonConformanceId: string;
     notes: JSONContent;
   }[];
 }

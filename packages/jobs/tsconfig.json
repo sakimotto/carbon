@@ -5,6 +5,11 @@
     "rootDir": "./trigger",
     "allowImportingTsExtensions": true
   },
+  "references": [
+    {
+      "path": "../ee/tsconfig.json"
+    }
+  ],
   "exclude": ["node_modules"],
   "extends": "@carbon/tsconfig/base.json",
   "include": ["trigger"]

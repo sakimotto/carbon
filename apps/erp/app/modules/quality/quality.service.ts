@@ -370,6 +370,17 @@ export async function getIssueWorkflow(
     .single();
 }
 
+export async function getIssueAction(
+  client: SupabaseClient<Database>,
+  id: string
+) {
+  return client
+    .from("nonConformanceActionTask")
+    .select("id, ...nonConformance(nonConformanceId)")
+    .eq("id", id)
+    .single();
+}
+
 export async function getIssueActionTasks(
   client: SupabaseClient<Database>,
   id: string,
@@ -1007,14 +1018,14 @@ export async function updateIssueTaskStatus(
   args: {
     id: string;
     status: "Pending" | "Completed" | "Skipped" | "In Progress";
-    type: "action" | "approval" | "review";
+    type: "investigation" | "action" | "approval" | "review";
     userId?: string;
     assignee?: string | null;
   }
 ) {
   const { id, status, type, userId, assignee } = args;
   const table =
-    type === "action"
+    type === "action" || type === "investigation"
       ? "nonConformanceActionTask"
       : type === "review"
       ? "nonConformanceReviewer"
@@ -1023,18 +1034,14 @@ export async function updateIssueTaskStatus(
   const finalAssignee = assignee || userId;
 
   // Set completedDate to today when status is "Completed"
-  const updateData: {
-    status: string;
-    updatedBy?: string;
-    assignee?: string | null;
-    completedDate?: string;
-  } = {
+  const updateData = {
     status,
     updatedBy: userId,
     assignee: finalAssignee,
   };
 
   if (status === "Completed") {
+    // @ts-expect-error
     updateData.completedDate = new Date().toISOString().split("T")[0];
   }
 

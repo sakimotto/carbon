@@ -103,7 +103,7 @@ const GroupedContentSidebar = ({
                         className={cn(
                           "justify-start flex-grow truncate",
                           !isActive &&
-                            "hover:bg-active hover:text-active-foreground"
+                            "hover:bg-active hover:text-active-foreground hover:scale-100 focus-visible:scale-100"
                         )}
                       >
                         <Link

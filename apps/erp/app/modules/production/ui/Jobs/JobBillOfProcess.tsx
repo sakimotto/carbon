@@ -1205,6 +1205,7 @@ function StepsForm({
             }}
             onSubmit={() => {
               setType("Value");
+              setDescription({});
             }}
             className="w-full"
           >
@@ -1377,8 +1378,13 @@ function StepsListItem({
   const submitted = useRef(false);
   const fetcher = useFetcher<typeof editJobOperationStepAction>();
   const [description, setDescription] = useState<JSONContent>(() => {
+    if (!attribute.description) return {};
+    // Handle both object and string formats
+    if (typeof attribute.description === "object") {
+      return attribute.description as JSONContent;
+    }
     try {
-      return attribute.description ? JSON.parse(attribute.description) : {};
+      return JSON.parse(attribute.description);
     } catch (e) {
       return {};
     }

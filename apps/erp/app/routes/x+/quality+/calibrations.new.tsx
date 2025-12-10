@@ -9,7 +9,7 @@ import type { FileObject } from "@supabase/storage-js";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@vercel/remix";
 import { json, redirect } from "@vercel/remix";
 import { nanoid } from "nanoid";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import {
   gaugeCalibrationRecordValidator,
   getQualityFiles,
@@ -27,14 +27,19 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   const id = url.searchParams.get("id");
+  const gaugeId = url.searchParams.get("gaugeId");
 
   if (id) {
     return json({
+      id,
+      gaugeId,
       files: await getQualityFiles(client, id, companyId),
     });
   }
 
   return json({
+    id: nanoid(),
+    gaugeId,
     files: [] as FileObject[],
   });
 }
@@ -89,21 +94,21 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function GaugeCalibrationRecordNewRoute() {
   const navigate = useNavigate();
-  const { files } = useLoaderData<typeof loader>();
-  const id = useMemo(() => nanoid(), []);
+  const { files, id, gaugeId } = useLoaderData<typeof loader>();
   const [params, setParams] = useUrlParams();
 
   useEffect(() => {
     if (params.get("id") !== id) {
       setParams({
         id,
+        ...(gaugeId ? { gaugeId } : {}),
       });
     }
-  }, [id, params, setParams]);
+  }, [id, gaugeId, params, setParams]);
 
   const initialValues = {
     id,
-    gaugeId: "",
+    gaugeId: gaugeId ?? "",
     dateCalibrated: today(getLocalTimeZone()).toString(),
     requiresAction: false,
     requiresAdjustment: false,

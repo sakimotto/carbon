@@ -3,6 +3,7 @@ import { requirePermissions } from "@carbon/auth/auth.server";
 import { SalesOrderEmail } from "@carbon/documents/email";
 import { validator } from "@carbon/form";
 import type { sendEmailResendTask } from "@carbon/jobs/trigger/send-email-resend";
+import { getSalesOrderStatus } from "@carbon/utils";
 import { getLocalTimeZone, today } from "@internationalized/date";
 import { renderAsync } from "@react-email/components";
 import { tasks } from "@trigger.dev/sdk";
@@ -265,10 +266,13 @@ export async function action(args: ActionFunctionArgs) {
         });
     }
 
+    const orderLines = await getSalesOrderLines(serviceRole, orderId);
+    const { status } = getSalesOrderStatus(orderLines.data || []);
+
     const confirm = await client
       .from("salesOrder")
       .update({
-        status: "To Ship and Invoice",
+        status,
         orderDate:
           salesOrder.data.orderDate ?? today(getLocalTimeZone()).toString(),
         updatedAt: today(getLocalTimeZone()).toString(),

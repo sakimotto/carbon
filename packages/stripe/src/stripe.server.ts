@@ -3,6 +3,7 @@ import {
   getAppUrl,
   getCarbonServiceRole,
   STRIPE_BYPASS_COMPANY_IDS,
+  STRIPE_BYPASS_USER_IDS,
   STRIPE_SECRET_KEY,
 } from "@carbon/auth";
 import type { Database } from "@carbon/database";
@@ -11,7 +12,7 @@ import { Edition, Plan } from "@carbon/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tasks } from "@trigger.dev/sdk";
 import { Stripe } from "stripe";
-import { z } from 'zod/v3';
+import { z } from "zod/v3";
 
 export const stripe = STRIPE_SECRET_KEY
   ? new Stripe(STRIPE_SECRET_KEY, {
@@ -120,7 +121,10 @@ function getPlanByPriceId(client: SupabaseClient<Database>, priceId: string) {
   return client.from("plan").select("*").eq("stripePriceId", priceId).single();
 }
 
-export async function getStripeCustomerByCompanyId(companyId: string) {
+export async function getStripeCustomerByCompanyId(
+  companyId: string,
+  userId: string
+) {
   if (CarbonEdition !== Edition.Cloud) {
     return null;
   }
@@ -130,7 +134,10 @@ export async function getStripeCustomerByCompanyId(companyId: string) {
     const bypassList = STRIPE_BYPASS_COMPANY_IDS.split(",").map((id: string) =>
       id.trim()
     );
-    if (bypassList.includes(companyId)) {
+    if (
+      bypassList.includes(companyId) ||
+      STRIPE_BYPASS_USER_IDS?.includes(userId)
+    ) {
       // Return a mock customer object that satisfies the expected interface
       return {
         subscriptionId: "bypass-subscription",

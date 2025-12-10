@@ -2765,9 +2765,18 @@ serve(async (req: Request) => {
                     await trx
                       .insertInto("methodOperationStep")
                       .values(
-                        jobOperationStep.map(({ id: _id, ...attribute }) => ({
-                          ...attribute,
+                        jobOperationStep.map((step) => ({
                           operationId,
+                          name: step.name,
+                          type: step.type,
+                          description: step.description,
+                          required: step.required,
+                          sortOrder: step.sortOrder,
+                          unitOfMeasureCode: step.unitOfMeasureCode,
+                          minValue: step.minValue,
+                          maxValue: step.maxValue,
+                          listValues: step.listValues,
+                          fileTypes: step.fileTypes,
                           companyId,
                           createdBy: userId,
                         }))

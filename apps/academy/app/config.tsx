@@ -1486,6 +1486,15 @@ export const modules: Config = [
                 duration: 160,
               },
               {
+                id: "linear-integration",
+                loomUrl:
+                  "https://www.loom.com/share/714bda8164a64ad28ce7cb6f02b3260a?sid=85542655-886a-4053-9c2f-79426e62232b",
+                name: "Linear Integration",
+                description: "Learn how to sync issues from Linear to Carbon.",
+                duration: 143,
+              },
+
+              {
                 id: "slack-integration",
                 loomUrl:
                   "https://www.loom.com/share/253cdac4af074328922e558b4fa8e784?sid=13adf6f0-71f3-4bc4-9ce0-07e2e7fb2d7f",

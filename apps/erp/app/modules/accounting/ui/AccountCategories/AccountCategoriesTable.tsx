@@ -1,10 +1,16 @@
-import { Button, MenuIcon, MenuItem, useDisclosure } from "@carbon/react";
+import {
+  Button,
+  HStack,
+  MenuIcon,
+  MenuItem,
+  useDisclosure,
+} from "@carbon/react";
 import { Link, useNavigate } from "@remix-run/react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { memo, useCallback, useMemo, useState } from "react";
+import { LuListChecks, LuPencil, LuTrash } from "react-icons/lu";
 import { BiAddToQueue } from "react-icons/bi";
 import { BsListUl } from "react-icons/bs";
-import { LuPencil, LuTrash } from "react-icons/lu";
 import { Hyperlink, New, Table } from "~/components";
 import { Enumerable } from "~/components/Enumerable";
 import { ConfirmDelete } from "~/components/Modals";
@@ -86,16 +92,20 @@ const AccountCategoriesTable = memo(
         {
           header: "Subcategories",
           cell: ({ row }) => (
-            <Button variant="secondary" asChild>
-              <Link
-                to={`${path.to.accountingCategoryList(
-                  row.original.id!
-                )}?${params?.toString()}`}
-                prefetch="intent"
-              >
-                {row.original.subCategoriesCount ?? 0} Subcategories
-              </Link>
-            </Button>
+            <HStack className="text-xs text-muted-foreground">
+              <LuListChecks />
+              <span>{row.original.subCategoriesCount ?? 0} Subcategories</span>
+              <Button variant="secondary" size="sm" asChild>
+                <Link
+                  to={`${path.to.accountingCategoryList(
+                    row.original.id!
+                  )}?${params?.toString()}`}
+                  prefetch="intent"
+                >
+                  Edit
+                </Link>
+              </Button>
+            </HStack>
           ),
         },
       ];
