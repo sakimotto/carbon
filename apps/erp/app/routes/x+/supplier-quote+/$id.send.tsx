@@ -109,22 +109,27 @@ export async function action(args: ActionFunctionArgs) {
 
         const requestUrl = new URL(request.url);
         const baseUrl = `${requestUrl.protocol}//${requestUrl.host}`;
-        const externalQuoteUrl = `${baseUrl}${path.to.externalSupplierQuote(
+        const externalQuoteUrl: string = `${baseUrl}${path.to.externalSupplierQuote(
           externalLink.data?.id ?? ""
         )}`;
 
         const emailSubject = `Supplier Quote ${supplierQuote.data.supplierQuoteId} from ${company.data.name}`;
 
-        //         Hey there,
-        // \n\nHere is the link to the supplier quote form. We’d appreciate it if you could provide your quote for the listed items. Please go ahead and fill out the form.
-        const emailMessage = `Hey there,\n\nHere is the link to the supplier quote ${supplierQuote.data.supplierQuoteId}. We’d appreciate it if you could provide your quote for the listed items. Please go ahead and fill out the form.`;
+        const emailBody = `Hey ${supplierContact.data.contact.firstName},\n\nPlease provide pricing and lead time(s) for the linked quote:`;
+        const emailSignature = `Thanks,\n${user.data.firstName} ${user.data.lastName}\n${company.data.name}`;
 
         await tasks.trigger<typeof sendEmailResendTask>("send-email-resend", {
           to: [user.data.email, supplierContact.data.contact.email],
           from: user.data.email,
           subject: emailSubject,
-          html: `${emailMessage}<br><br><a href="${externalQuoteUrl}">${externalQuoteUrl}</a>`,
-          text: `${emailMessage}\n\n${externalQuoteUrl}`,
+          html: `${emailBody.replace(
+            /\n/g,
+            "<br>"
+          )}<br><a href="${externalQuoteUrl}">${externalQuoteUrl}</a><br><br>${emailSignature.replace(
+            /\n/g,
+            "<br>"
+          )}`,
+          text: `${emailBody}\n\n${externalQuoteUrl}\n\n${emailSignature}`,
           companyId,
         });
       } catch (err) {

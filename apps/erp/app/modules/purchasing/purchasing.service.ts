@@ -69,48 +69,6 @@ export async function convertSupplierQuoteToOrder(
   });
 }
 
-export async function finalizeSupplierQuote(
-  client: SupabaseClient<Database>,
-  supplierQuoteId: string,
-  userId: string
-) {
-  const quoteUpdate = await client
-    .from("supplierQuote")
-    .update({
-      status: "Active",
-      updatedAt: today(getLocalTimeZone()).toString(),
-      updatedBy: userId,
-    })
-    .eq("id", supplierQuoteId);
-
-  if (quoteUpdate.error) {
-    return quoteUpdate;
-  }
-
-  return quoteUpdate;
-}
-
-export async function sendSupplierQuote(
-  client: SupabaseClient<Database>,
-  supplierQuoteId: string,
-  userId: string
-) {
-  // Send keeps status as Draft, just updates timestamp
-  const quoteUpdate = await client
-    .from("supplierQuote")
-    .update({
-      updatedAt: today(getLocalTimeZone()).toString(),
-      updatedBy: userId,
-    })
-    .eq("id", supplierQuoteId);
-
-  if (quoteUpdate.error) {
-    return quoteUpdate;
-  }
-
-  return quoteUpdate;
-}
-
 export async function deletePurchaseOrder(
   client: SupabaseClient<Database>,
   purchaseOrderId: string
@@ -224,6 +182,27 @@ export async function getPurchaseOrder(
     .select("*")
     .eq("id", purchaseOrderId)
     .single();
+}
+
+export async function finalizeSupplierQuote(
+  client: SupabaseClient<Database>,
+  supplierQuoteId: string,
+  userId: string
+) {
+  const quoteUpdate = await client
+    .from("supplierQuote")
+    .update({
+      status: "Active",
+      updatedAt: today(getLocalTimeZone()).toString(),
+      updatedBy: userId,
+    })
+    .eq("id", supplierQuoteId);
+
+  if (quoteUpdate.error) {
+    return quoteUpdate;
+  }
+
+  return { data: null, error: null };
 }
 
 export async function getPurchaseOrders(
@@ -965,6 +944,27 @@ export async function finalizePurchaseOrder(
     .eq("id", purchaseOrderId);
 }
 
+export async function sendSupplierQuote(
+  client: SupabaseClient<Database>,
+  supplierQuoteId: string,
+  userId: string
+) {
+  // Send keeps status as Draft, just updates timestamp
+  const quoteUpdate = await client
+    .from("supplierQuote")
+    .update({
+      updatedAt: today(getLocalTimeZone()).toString(),
+      updatedBy: userId,
+    })
+    .eq("id", supplierQuoteId);
+
+  if (quoteUpdate.error) {
+    return quoteUpdate;
+  }
+
+  return { data: null, error: null };
+}
+
 export async function updatePurchaseOrder(
   client: SupabaseClient<Database>,
   purchaseOrder: {
@@ -1527,10 +1527,14 @@ export async function upsertSupplierQuote(
       });
 
       if (externalLink.data) {
-        await client
+        const update = await client
           .from("supplierQuote")
           .update({ externalLinkId: externalLink.data.id })
           .eq("id", supplierQuoteId);
+
+        if (update.error) {
+          return update;
+        }
       }
     }
 

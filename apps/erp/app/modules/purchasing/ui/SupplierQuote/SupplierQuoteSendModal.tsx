@@ -1,6 +1,10 @@
 import { ValidatedForm } from "@carbon/form";
 import {
   Button,
+  Copy,
+  Input,
+  InputGroup,
+  InputRightElement,
   Modal,
   ModalBody,
   ModalContent,
@@ -22,12 +26,14 @@ type SupplierQuoteSendModalProps = {
   onClose: () => void;
   quote?: SupplierQuote;
   fetcher: FetcherWithComponents<{}>;
+  externalLinkId?: string;
 };
 
 const SupplierQuoteSendModal = ({
   quote,
   onClose,
   fetcher,
+  externalLinkId,
 }: SupplierQuoteSendModalProps) => {
   const integrations = useIntegrations();
   const canEmail = integrations.has("resend");
@@ -35,6 +41,48 @@ const SupplierQuoteSendModal = ({
   const [notificationType, setNotificationType] = useState(
     canEmail ? "Email" : "None"
   );
+
+  const digitalQuoteUrl =
+    externalLinkId && typeof window !== "undefined"
+      ? `${window.location.origin}${path.to.externalSupplierQuote(
+          externalLinkId
+        )}`
+      : "";
+
+  if (!canEmail) {
+    return (
+      <Modal
+        open
+        onOpenChange={(open) => {
+          if (!open) {
+            onClose();
+          }
+        }}
+      >
+        <ModalContent>
+          <ModalHeader>
+            <ModalTitle>Send {quote?.supplierQuoteId}</ModalTitle>
+            <ModalDescription>
+              Copy this link to share the quote with a supplier
+            </ModalDescription>
+          </ModalHeader>
+          <ModalBody>
+            <InputGroup>
+              <Input value={digitalQuoteUrl} isReadOnly />
+              <InputRightElement>
+                <Copy text={digitalQuoteUrl} />
+              </InputRightElement>
+            </InputGroup>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="secondary" onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -49,7 +97,7 @@ const SupplierQuoteSendModal = ({
         <ValidatedForm
           method="post"
           validator={supplierQuoteFinalizeValidator}
-          action={path.to.supplierQuoteSend(quote?.id)}
+          action={path.to.supplierQuoteSend(quote?.id || "")}
           onSubmit={onClose}
           defaultValues={{
             notification: notificationType as "Email" | "None",

@@ -59,6 +59,16 @@ export const purchaseOrderStatusType = [
   "Closed",
 ] as const;
 
+export const externalSupplierQuoteValidator = z.object({
+  digitalSupplierQuoteSubmittedBy: zfd.text(
+    z.string().min(1, { message: "Name is required" })
+  ),
+  digitalSupplierQuoteSubmittedByEmail: zfd.text(
+    z.string().email({ message: "Email is invalid" })
+  ),
+  note: zfd.text(z.string().optional()),
+});
+
 export const plannedOrderValidator = z.object({
   startDate: zfd.text(z.string().nullable()),
   dueDate: zfd.text(z.string().nullable()),
@@ -93,16 +103,6 @@ export const purchaseOrderValidator = z.object({
   currencyCode: zfd.text(z.string().optional()),
   exchangeRate: zfd.numeric(z.number().optional()),
   exchangeRateUpdatedAt: zfd.text(z.string().optional()),
-});
-
-export const externalSupplierQuoteValidator = z.object({
-  digitalSupplierQuoteSubmittedBy: zfd.text(
-    z.string().min(1, { message: "Name is required" })
-  ),
-  digitalSupplierQuoteSubmittedByEmail: zfd.text(
-    z.string().email({ message: "Email is invalid" })
-  ),
-  note: zfd.text(z.string().optional()),
 });
 
 export const supplierQuoteFinalizeValidator = z

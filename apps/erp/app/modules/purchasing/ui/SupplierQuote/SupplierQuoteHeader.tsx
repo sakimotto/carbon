@@ -90,11 +90,14 @@ const SupplierQuoteHeader = () => {
   const statusFetcher = useFetcher<{}>();
 
   const hasLines = routeData?.lines && routeData.lines.length > 0;
-  const quoteStatus = routeData?.quote?.status ?? "";
+  const quoteStatus: string = routeData?.quote?.status ?? "";
   const editableStatuses = ["Draft", "Active", "Declined"];
   const isEditableStatus = editableStatuses.includes(quoteStatus);
 
   const canShare = routeData?.quote.externalLinkId && isEditableStatus;
+  const canPreview =
+    routeData?.quote.externalLinkId &&
+    ["Draft", "Declined"].includes(quoteStatus);
 
   const canSend =
     isEditableStatus && permissions.can("update", "purchasing") && hasLines;
@@ -158,7 +161,7 @@ const SupplierQuoteHeader = () => {
                 Share
               </Button>
             )}
-            {canShare && (
+            {canPreview && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -191,6 +194,7 @@ const SupplierQuoteHeader = () => {
                 onClick={sendModal.onOpen}
                 isLoading={sendFetcher.state !== "idle"}
                 isDisabled={
+                  quoteStatus == "Active" ||
                   sendFetcher.state !== "idle" ||
                   !permissions.can("update", "purchasing") ||
                   !hasLines
@@ -322,11 +326,12 @@ const SupplierQuoteHeader = () => {
           quote={routeData?.quote}
           onClose={sendModal.onClose}
           fetcher={sendFetcher}
+          externalLinkId={routeData?.quote?.externalLinkId ?? ""}
         />
       )}
       <ShareQuoteModal
         id={id}
-        externalLinkId={(routeData?.quote as any)?.externalLinkId}
+        externalLinkId={routeData?.quote?.externalLinkId || ""}
         onClose={shareModal.onClose}
         isOpen={shareModal.isOpen}
       />
