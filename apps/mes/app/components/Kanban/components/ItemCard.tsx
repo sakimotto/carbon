@@ -19,7 +19,6 @@ import {
   formatDurationMilliseconds,
   formatRelativeTime
 } from "@carbon/utils";
-import { Link } from "@remix-run/react";
 import { cva } from "class-variance-authority";
 import { FaTasks } from "react-icons/fa";
 import {
@@ -33,6 +32,7 @@ import {
   LuTrash
 } from "react-icons/lu";
 import { RiProgress8Line } from "react-icons/ri";
+import { Link } from "react-router";
 import { AlmostDoneIcon } from "~/assets/icons/AlmostDoneIcon";
 import { InProgressStatusIcon } from "~/assets/icons/InProgressStatusIcon";
 import { TodoStatusIcon } from "~/assets/icons/TodoStatusIcon";

@@ -25,7 +25,6 @@ import {
 } from "@carbon/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Link } from "@remix-run/react";
 import { cva } from "class-variance-authority";
 import { FaTasks } from "react-icons/fa";
 import {
@@ -45,6 +44,7 @@ import {
   LuUsers
 } from "react-icons/lu";
 import { RiProgress8Line } from "react-icons/ri";
+import { Link } from "react-router";
 import { z } from "zod/v3";
 import { Assignee, CustomerAvatar, EmployeeAvatarGroup } from "~/components";
 import { Tags } from "~/components/Form";
