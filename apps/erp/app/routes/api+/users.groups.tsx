@@ -17,9 +17,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const query = client.from("groups").select("*").eq("companyId", companyId);
 
-  if (type === "employee") query.eq("isEmployeeTypeGroup", true);
-  if (type === "customer") query.eq("isCustomerOrgGroup", true);
-  if (type === "supplier") query.eq("isSupplierOrgGroup", true);
+  if (type === "employee") {
+    query.eq("isCustomerOrgGroup", false);
+    query.eq("isSupplierOrgGroup", false);
+  } else if (type === "customer") {
+    query.eq("isCustomerTypeGroup", true);
+  } else if (type === "supplier") {
+    query.eq("isSupplierTypeGroup", true);
+  }
 
   const groups = await query;
 
