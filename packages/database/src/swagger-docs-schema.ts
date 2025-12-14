@@ -16689,6 +16689,177 @@ export default {
         tags: ["jobOperationTool"],
       },
     },
+    "/suggestion": {
+      get: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.suggestion.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.suggestion",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.emoji",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.path",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.attachmentPath",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.tags",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.userId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.createdAt",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/order",
+          },
+          {
+            $ref: "#/parameters/range",
+          },
+          {
+            $ref: "#/parameters/rangeUnit",
+          },
+          {
+            $ref: "#/parameters/offset",
+          },
+          {
+            $ref: "#/parameters/limit",
+          },
+          {
+            $ref: "#/parameters/preferCount",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+            schema: {
+              items: {
+                $ref: "#/definitions/suggestion",
+              },
+              type: "array",
+            },
+          },
+          "206": {
+            description: "Partial Content",
+          },
+        },
+        tags: ["suggestion"],
+      },
+      post: {
+        parameters: [
+          {
+            $ref: "#/parameters/body.suggestion",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/preferPost",
+          },
+        ],
+        responses: {
+          "201": {
+            description: "Created",
+          },
+        },
+        tags: ["suggestion"],
+      },
+      delete: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.suggestion.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.suggestion",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.emoji",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.path",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.attachmentPath",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.tags",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.userId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.createdAt",
+          },
+          {
+            $ref: "#/parameters/preferReturn",
+          },
+        ],
+        responses: {
+          "204": {
+            description: "No Content",
+          },
+        },
+        tags: ["suggestion"],
+      },
+      patch: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.suggestion.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.suggestion",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.emoji",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.path",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.attachmentPath",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.tags",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.userId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestion.createdAt",
+          },
+          {
+            $ref: "#/parameters/body.suggestion",
+          },
+          {
+            $ref: "#/parameters/preferReturn",
+          },
+        ],
+        responses: {
+          "204": {
+            description: "No Content",
+          },
+        },
+        tags: ["suggestion"],
+      },
+    },
     "/demandActual": {
       get: {
         parameters: [
@@ -34537,6 +34708,9 @@ export default {
             $ref: "#/parameters/rowFilter.userAttributeValue.updatedBy",
           },
           {
+            $ref: "#/parameters/rowFilter.userAttributeValue.valueFile",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -34632,6 +34806,9 @@ export default {
             $ref: "#/parameters/rowFilter.userAttributeValue.updatedBy",
           },
           {
+            $ref: "#/parameters/rowFilter.userAttributeValue.valueFile",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -34679,6 +34856,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.userAttributeValue.updatedBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.userAttributeValue.valueFile",
           },
           {
             $ref: "#/parameters/body.userAttributeValue",
@@ -40837,6 +41017,9 @@ export default {
             $ref: "#/parameters/rowFilter.attributeDataType.isSupplier",
           },
           {
+            $ref: "#/parameters/rowFilter.attributeDataType.isFile",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -40926,6 +41109,9 @@ export default {
             $ref: "#/parameters/rowFilter.attributeDataType.isSupplier",
           },
           {
+            $ref: "#/parameters/rowFilter.attributeDataType.isFile",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -40967,6 +41153,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.attributeDataType.isSupplier",
+          },
+          {
+            $ref: "#/parameters/rowFilter.attributeDataType.isFile",
           },
           {
             $ref: "#/parameters/body.attributeDataType",
@@ -44233,6 +44422,9 @@ export default {
             $ref: "#/parameters/rowFilter.company.createdAt",
           },
           {
+            $ref: "#/parameters/rowFilter.company.suggestionNotificationGroup",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -44361,6 +44553,9 @@ export default {
             $ref: "#/parameters/rowFilter.company.createdAt",
           },
           {
+            $ref: "#/parameters/rowFilter.company.suggestionNotificationGroup",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -44441,6 +44636,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.company.createdAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.company.suggestionNotificationGroup",
           },
           {
             $ref: "#/parameters/body.company",
@@ -55123,6 +55321,81 @@ export default {
           },
         },
         tags: ["opportunity"],
+      },
+    },
+    "/suggestions": {
+      get: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.suggestions.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.suggestion",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.emoji",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.path",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.attachmentPath",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.tags",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.userId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.createdAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.employeeName",
+          },
+          {
+            $ref: "#/parameters/rowFilter.suggestions.employeeAvatarUrl",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/order",
+          },
+          {
+            $ref: "#/parameters/range",
+          },
+          {
+            $ref: "#/parameters/rangeUnit",
+          },
+          {
+            $ref: "#/parameters/offset",
+          },
+          {
+            $ref: "#/parameters/limit",
+          },
+          {
+            $ref: "#/parameters/preferCount",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+            schema: {
+              items: {
+                $ref: "#/definitions/suggestions",
+              },
+              type: "array",
+            },
+          },
+          "206": {
+            description: "Partial Content",
+          },
+        },
+        tags: ["suggestions"],
       },
     },
     "/customField": {
@@ -69489,6 +69762,59 @@ export default {
       },
       type: "object",
     },
+    suggestion: {
+      required: ["id", "suggestion", "emoji", "path", "companyId", "createdAt"],
+      properties: {
+        id: {
+          default: "public.id()",
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "text",
+          type: "string",
+        },
+        suggestion: {
+          format: "text",
+          type: "string",
+        },
+        emoji: {
+          default: "💡",
+          format: "text",
+          type: "string",
+        },
+        path: {
+          format: "text",
+          type: "string",
+        },
+        attachmentPath: {
+          format: "text",
+          type: "string",
+        },
+        tags: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        userId: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        companyId: {
+          description:
+            "Note:\nThis is a Foreign Key to `company.id`.<fk table='company' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        createdAt: {
+          default: "now()",
+          format: "timestamp with time zone",
+          type: "string",
+        },
+      },
+      type: "object",
+    },
     demandActual: {
       required: [
         "itemId",
@@ -77659,6 +77985,10 @@ export default {
           format: "text",
           type: "string",
         },
+        valueFile: {
+          format: "text",
+          type: "string",
+        },
       },
       type: "object",
     },
@@ -80752,6 +81082,7 @@ export default {
         "isUser",
         "isCustomer",
         "isSupplier",
+        "isFile",
       ],
       properties: {
         id: {
@@ -80799,6 +81130,11 @@ export default {
           type: "boolean",
         },
         isSupplier: {
+          default: false,
+          format: "boolean",
+          type: "boolean",
+        },
+        isFile: {
           default: false,
           format: "boolean",
           type: "boolean",
@@ -82417,7 +82753,13 @@ export default {
       type: "object",
     },
     company: {
-      required: ["id", "name", "baseCurrencyCode", "createdAt"],
+      required: [
+        "id",
+        "name",
+        "baseCurrencyCode",
+        "createdAt",
+        "suggestionNotificationGroup",
+      ],
       properties: {
         id: {
           default: "public.id()",
@@ -82516,6 +82858,13 @@ export default {
           default: "now()",
           format: "timestamp with time zone",
           type: "string",
+        },
+        suggestionNotificationGroup: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
         },
       },
       type: "object",
@@ -87675,6 +88024,63 @@ export default {
         customerId: {
           description:
             "Note:\nThis is a Foreign Key to `customer.id`.<fk table='customer' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+      },
+      type: "object",
+    },
+    suggestions: {
+      properties: {
+        id: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "text",
+          type: "string",
+        },
+        suggestion: {
+          format: "text",
+          type: "string",
+        },
+        emoji: {
+          format: "text",
+          type: "string",
+        },
+        path: {
+          format: "text",
+          type: "string",
+        },
+        attachmentPath: {
+          format: "text",
+          type: "string",
+        },
+        tags: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        userId: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        companyId: {
+          description:
+            "Note:\nThis is a Foreign Key to `company.id`.<fk table='company' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        createdAt: {
+          format: "timestamp with time zone",
+          type: "string",
+        },
+        employeeName: {
+          format: "text",
+          type: "string",
+        },
+        employeeAvatarUrl: {
           format: "text",
           type: "string",
         },
@@ -97738,6 +98144,69 @@ export default {
       in: "query",
       type: "string",
     },
+    "body.suggestion": {
+      name: "suggestion",
+      description: "suggestion",
+      required: false,
+      in: "body",
+      schema: {
+        $ref: "#/definitions/suggestion",
+      },
+    },
+    "rowFilter.suggestion.id": {
+      name: "id",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.suggestion": {
+      name: "suggestion",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.emoji": {
+      name: "emoji",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.path": {
+      name: "path",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.attachmentPath": {
+      name: "attachmentPath",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.tags": {
+      name: "tags",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.userId": {
+      name: "userId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.companyId": {
+      name: "companyId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestion.createdAt": {
+      name: "createdAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
     "body.demandActual": {
       name: "demandActual",
       description: "demandActual",
@@ -106969,6 +107438,12 @@ export default {
       in: "query",
       type: "string",
     },
+    "rowFilter.userAttributeValue.valueFile": {
+      name: "valueFile",
+      required: false,
+      in: "query",
+      type: "string",
+    },
     "body.fiscalYearSettings": {
       name: "fiscalYearSettings",
       description: "fiscalYearSettings",
@@ -110635,6 +111110,12 @@ export default {
       in: "query",
       type: "string",
     },
+    "rowFilter.attributeDataType.isFile": {
+      name: "isFile",
+      required: false,
+      in: "query",
+      type: "string",
+    },
     "body.qualityDocuments": {
       name: "qualityDocuments",
       description: "qualityDocuments",
@@ -112509,6 +112990,12 @@ export default {
     },
     "rowFilter.company.createdAt": {
       name: "createdAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.company.suggestionNotificationGroup": {
+      name: "suggestionNotificationGroup",
       required: false,
       in: "query",
       type: "string",
@@ -118263,6 +118750,81 @@ export default {
     },
     "rowFilter.opportunity.customerId": {
       name: "customerId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "body.suggestions": {
+      name: "suggestions",
+      description: "suggestions",
+      required: false,
+      in: "body",
+      schema: {
+        $ref: "#/definitions/suggestions",
+      },
+    },
+    "rowFilter.suggestions.id": {
+      name: "id",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.suggestion": {
+      name: "suggestion",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.emoji": {
+      name: "emoji",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.path": {
+      name: "path",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.attachmentPath": {
+      name: "attachmentPath",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.tags": {
+      name: "tags",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.userId": {
+      name: "userId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.companyId": {
+      name: "companyId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.createdAt": {
+      name: "createdAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.employeeName": {
+      name: "employeeName",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.suggestions.employeeAvatarUrl": {
+      name: "employeeAvatarUrl",
       required: false,
       in: "query",
       type: "string",

@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
   IconButton
 } from "@carbon/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useFetchers, useParams, useSubmit } from "react-router";
 import { z } from "zod/v3";
 import { Tags } from "~/components/Form";
@@ -19,6 +19,8 @@ import { useTags } from "~/hooks/useTags";
 import { path } from "~/utils/path";
 import { jobOperationStatus } from "../../production.models";
 import type { Job, JobOperation } from "../../types";
+
+const releasedJobStatuses = ["Ready", "In Progress", "Paused"] as const;
 
 function useOptimisticJobStatus(operationId: string) {
   const fetchers = useFetchers();
@@ -50,6 +52,18 @@ export function JobOperationStatus({
   const submit = useSubmit();
   const permissions = usePermissions();
   const optimisticStatus = useOptimisticJobStatus(operation.id!);
+
+  // Only allow "Done" status if job has been released (scheduled)
+  const isJobReleased = releasedJobStatuses.includes(
+    routeData?.job?.status as (typeof releasedJobStatuses)[number]
+  );
+  const availableStatuses = useMemo(
+    () =>
+      isJobReleased
+        ? jobOperationStatus
+        : jobOperationStatus.filter((s) => s !== "Done"),
+    [isJobReleased]
+  );
 
   const isDisabled = !permissions.can("update", "production");
 
@@ -98,7 +112,7 @@ export function JobOperationStatus({
               )
             }
           >
-            {jobOperationStatus.map((status) => (
+            {availableStatuses.map((status) => (
               <DropdownMenuRadioItem key={status} value={status}>
                 <DropdownMenuIcon
                   icon={<OperationStatusIcon status={status} />}
