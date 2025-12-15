@@ -35,10 +35,12 @@ const supportedFileTypes: Record<string, string> = {
 export let loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { companyId } = await requirePermissions(request, {});
   const { bucket } = params;
-  const path = params["*"];
+  let path = params["*"];
 
   if (!bucket) throw new Error("Bucket not found");
   if (!path) throw new Error("Path not found");
+
+  path = decodeURIComponent(path);
 
   const fileType = path.split(".").pop()?.toLowerCase();
 
