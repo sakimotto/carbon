@@ -1,6 +1,5 @@
 import { requirePermissions } from "@carbon/auth/auth.server";
 import { generateProductLabelZPL } from "@carbon/documents/zpl";
-import type { TrackedEntityAttributes } from "@carbon/utils";
 import { labelSizes } from "@carbon/utils";
 import { type LoaderFunctionArgs, redirect } from "react-router";
 import { getCompanySettings } from "~/services/inventory.service";
@@ -55,10 +54,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ?.map((tracking) => ({
       itemId: tracking.sourceDocumentReadableId ?? "",
       revision: "0",
-      number:
-        (tracking.attributes as TrackedEntityAttributes)?.["Serial Number"] ??
-        (tracking.attributes as TrackedEntityAttributes)?.["Batch Number"] ??
-        "",
+      number: tracking.readableId ?? "",
       trackedEntityId: tracking.id,
       quantity: tracking.quantity,
       trackingType: tracking.quantity > 1 ? "Batch" : "Serial"

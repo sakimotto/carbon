@@ -1,6 +1,5 @@
 import { requirePermissions } from "@carbon/auth/auth.server";
 import { generateProductLabelZPL } from "@carbon/documents/zpl";
-import type { TrackedEntityAttributes } from "@carbon/utils";
 import { labelSizes } from "@carbon/utils";
 import { type LoaderFunctionArgs, redirect } from "react-router";
 import { getCompanySettings } from "~/services/inventory.service";
@@ -53,10 +52,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     {
       itemId: item.data.readableId,
       revision: item.data.revision ?? "0",
-      number:
-        (trackedEntity.data?.attributes as TrackedEntityAttributes)?.[
-          "Batch Number"
-        ] ?? "",
+      number: trackedEntity.data?.readableId ?? "",
       trackedEntityId: id,
       quantity: trackedEntity.data?.quantity ?? 1,
       trackingType: "Batch"

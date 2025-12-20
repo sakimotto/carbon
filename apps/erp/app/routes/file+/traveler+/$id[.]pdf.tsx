@@ -79,8 +79,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       console.error(trackedEntity.error);
       throw new Error("Failed to load tracked entity");
     }
-    // @ts-ignore
-    batchNumber = trackedEntity.data?.attributes["Batch Number"] as string;
+    batchNumber = trackedEntity.data?.readableId ?? undefined;
   }
 
   // Get job notes if they exist

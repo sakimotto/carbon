@@ -783,7 +783,7 @@ export async function getTrackedEntities(
 
   if (args.search) {
     query = query.or(
-      `id.ilike.%${args.search}%,sourceDocumentReadableId.ilike.%${args.search}%`
+      `id.ilike.%${args.search}%,sourceDocumentReadableId.ilike.%${args.search}%,readableId.ilike.%${args.search}%`
     );
   }
 

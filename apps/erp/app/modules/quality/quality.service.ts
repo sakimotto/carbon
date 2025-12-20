@@ -552,7 +552,11 @@ export async function getIssueAssociations(
       .select(
         `
         id,
-        trackedEntityId
+        trackedEntityId,
+        trackedEntity:trackedEntity (
+          id,
+          readableId
+        )
       `
       )
       .eq("nonConformanceId", nonConformanceId)
@@ -651,7 +655,8 @@ export async function getIssueAssociations(
         type: "trackedEntities",
         documentId: item.trackedEntityId ?? "",
         documentLineId: "",
-        documentReadableId: item.trackedEntityId ?? ""
+        documentReadableId:
+          item.trackedEntity?.readableId ?? item.trackedEntityId ?? ""
       })) || [],
     customers:
       customers.data?.map((c) => ({

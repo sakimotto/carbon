@@ -69,11 +69,9 @@ export function SerialIssueModal({
           return {
             label: serialNumber.id ?? "",
             value: serialNumber.id,
-            helper: attributes["Serial Number"]
-              ? `Serial ${attributes["Serial Number"]}`
-              : attributes["Batch Number"]
-                ? `Batch ${attributes["Batch Number"]}`
-                : undefined
+            helper: serialNumber.readableId
+              ? `Serial ${serialNumber.readableId}`
+              : undefined
           };
         }) ?? []
     );
@@ -466,9 +464,7 @@ export function SerialIssueModal({
               <TabsContent value="unconsume">
                 <div className="flex flex-col gap-4">
                   {trackedInputs.map((input) => {
-                    const attributes =
-                      input.attributes as TrackedEntityAttributes;
-                    const serialNumber = attributes["Serial Number"];
+                    const serialNumber = input.readableId;
 
                     return (
                       <div

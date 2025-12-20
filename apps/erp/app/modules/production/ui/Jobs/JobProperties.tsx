@@ -222,9 +222,7 @@ const JobProperties = () => {
               return (
                 <>
                   {trackedEntities.map((entity, index) => {
-                    const trackingNumber: string =
-                      // @ts-ignore
-                      entity?.attributes?.["Batch Number"]?.toString() ?? "";
+                    const trackingNumber: string = entity?.readableId ?? "";
 
                     const label =
                       trackingType === "Serial" && trackedEntities.length > 1

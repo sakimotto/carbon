@@ -832,7 +832,7 @@ function NewReceiptLineAssociation({ items }: { items?: string[] }) {
 function NewTrackedEntityAssociation({ items }: { items?: string[] }) {
   const { carbon } = useCarbon();
   const [trackedEntities, setTrackedEntities] = useState<
-    { label: string; value: string }[]
+    { label: string; value: string; helper?: string }[]
   >([]);
   const [trackedEntitiesAreLoading, setTrackedEntitiesAreLoading] =
     useState(true);
@@ -849,7 +849,7 @@ function NewTrackedEntityAssociation({ items }: { items?: string[] }) {
 
     const { data, error } = await carbon
       .from("trackedEntity")
-      .select("id")
+      .select("id, readableId, sourceDocumentReadableId")
       .eq("sourceDocument", "Item")
       .in("sourceDocumentId", items!);
 
@@ -859,8 +859,9 @@ function NewTrackedEntityAssociation({ items }: { items?: string[] }) {
 
     setTrackedEntities(
       data?.map((entity) => ({
-        label: entity.id,
-        value: entity.id
+        label: entity.readableId ?? entity.id,
+        value: entity.id,
+        helper: entity.id
       })) ?? []
     );
     setTrackedEntitiesAreLoading(false);

@@ -23,7 +23,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
       .from("trackedEntity")
       .select("*")
       .eq("attributes ->> Receipt", receiptId)
-      .eq("attributes ->> Batch Number", batchNumber)
+      .eq("readableId", batchNumber)
       .eq("companyId", companyId)
       .maybeSingle();
 
@@ -67,7 +67,7 @@ export async function action({ request, context }: ActionFunctionArgs) {
         .from("trackedEntity")
         .select("*")
         .eq("sourceDocumentId", itemId)
-        .eq("attributes->> Serial Number", serialNumber)
+        .eq("readableId", serialNumber)
         .eq("companyId", companyId)
         .maybeSingle();
 
@@ -79,13 +79,27 @@ export async function action({ request, context }: ActionFunctionArgs) {
     }
 
     // If the serial number exists but for a different receipt line or index, return an error
+    // Only check entities that are serial tracking (have Receipt Line Index attribute)
     if (existingEntityWithIndex) {
       const attributes =
         existingEntityWithIndex.attributes as TrackedEntityAttributes;
-      if (
-        attributes["Receipt Line"] !== receiptLineId ||
-        attributes["Receipt Line Index"] !== index
-      ) {
+      const hasReceiptLineIndex = "Receipt Line Index" in attributes;
+      const receiptLineMatches = attributes["Receipt Line"] === receiptLineId;
+      const indexMatches = attributes["Receipt Line Index"] === index;
+
+      console.log("Serial number check:", {
+        serialNumber,
+        existingEntityId: existingEntityWithIndex.id,
+        hasReceiptLineIndex,
+        existingReceiptLine: attributes["Receipt Line"],
+        currentReceiptLine: receiptLineId,
+        receiptLineMatches,
+        existingIndex: attributes["Receipt Line Index"],
+        currentIndex: index,
+        indexMatches
+      });
+
+      if (hasReceiptLineIndex && (!receiptLineMatches || !indexMatches)) {
         return data(
           {
             error:

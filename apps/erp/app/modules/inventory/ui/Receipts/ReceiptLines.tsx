@@ -134,10 +134,7 @@ const ReceiptLines = () => {
               return attributes["Receipt Line Index"] === index;
             });
 
-            const attributes = serialNumberEntity?.attributes as
-              | TrackedEntityAttributes
-              | undefined;
-            const serialNumber = attributes?.["Serial Number"] || "";
+            const serialNumber = serialNumberEntity?.readableId || "";
 
             return {
               index,
@@ -173,10 +170,7 @@ const ReceiptLines = () => {
                 return attributes["Receipt Line Index"] === index;
               });
 
-              const attributes = serialNumberEntity?.attributes as
-                | TrackedEntityAttributes
-                | undefined;
-              const serialNumber = attributes?.["Serial Number"] || "";
+              const serialNumber = serialNumberEntity?.readableId || "";
 
               return {
                 index,
@@ -576,12 +570,11 @@ function BatchForm({
     if (tracking) {
       const attributes = tracking.attributes as TrackedEntityAttributes;
       return {
-        number: attributes["Batch Number"] || "",
+        number: tracking.readableId || "",
         properties: Object.entries(attributes)
           .filter(
             ([key]) =>
               ![
-                "Batch Number",
                 "Shipment Line",
                 "Shipment",
                 "Shipment Line Index",
@@ -603,8 +596,7 @@ function BatchForm({
 
     let batchMatch = null;
     if (isNew && tracking) {
-      const attributes = tracking.attributes as TrackedEntityAttributes;
-      batchMatch = attributes["Batch Number"];
+      batchMatch = tracking.readableId;
     }
 
     let valuesToSubmit = newValues;
@@ -614,7 +606,7 @@ function BatchForm({
       valuesToSubmit = {
         ...newValues,
         properties: Object.entries(attributes)
-          .filter(([key]) => !["Batch Number", "Receipt Line"].includes(key))
+          .filter(([key]) => !["Receipt Line"].includes(key))
           .reduce((acc, [key, value]) => ({ ...acc, [key]: value || "" }), {})
       };
 

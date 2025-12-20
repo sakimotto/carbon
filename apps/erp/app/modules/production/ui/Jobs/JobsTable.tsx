@@ -105,11 +105,10 @@ function useReadableTrackedEntities(data: Job[], companyId: string) {
               curr.attributes !== null &&
               typeof curr.attributes === "object" &&
               "Job Make Method" in curr.attributes &&
-              "Batch Number" in curr.attributes
+              curr.readableId
             ) {
-              // @ts-ignore
-              acc[curr.attributes["Job Make Method"]] =
-                curr.attributes["Batch Number"];
+              acc[curr.attributes["Job Make Method"] as string] =
+                curr.readableId;
             }
             return acc;
           },
@@ -224,7 +223,8 @@ const JobsTable = memo(({ data, count, tags }: JobsTableProps) => {
         cell: ({ row }) =>
           row.original.jobMakeMethodId &&
           trackedEntities[row.original.jobMakeMethodId] ? (
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="items-center gap-1">
+              <LuQrCode />
               {trackedEntities[row.original.jobMakeMethodId]}
             </Badge>
           ) : null,

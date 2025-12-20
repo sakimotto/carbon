@@ -1,6 +1,5 @@
 import { requirePermissions } from "@carbon/auth/auth.server";
 import { ProductLabelPDF } from "@carbon/documents/pdf";
-import type { TrackedEntityAttributes } from "@carbon/utils";
 import { labelSizes } from "@carbon/utils";
 import { renderToStream } from "@react-pdf/renderer";
 import { type LoaderFunctionArgs, redirect } from "react-router";
@@ -56,10 +55,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ?.map((tracking) => ({
       itemId: tracking.sourceDocumentReadableId ?? "",
       revision: "0",
-      number:
-        (tracking.attributes as TrackedEntityAttributes)?.["Serial Number"] ??
-        (tracking.attributes as TrackedEntityAttributes)?.["Batch Number"] ??
-        "",
+      number: tracking.readableId ?? "",
       trackedEntityId: tracking.id,
       quantity: tracking.quantity,
       trackingType: tracking.quantity > 1 ? "Batch" : "Serial"

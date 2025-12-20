@@ -443,6 +443,15 @@ export function TraceabilitySidebar({
           </VStack>
         )}
 
+        {selectedNodeType === "entity" && entity?.readableId && (
+          <VStack spacing={0}>
+            <span className="text-xs text-muted-foreground">
+              Serial/Batch #
+            </span>
+            <span className="text-sm">{entity.readableId}</span>
+          </VStack>
+        )}
+
         {Object.entries(selectedNodeAttributes)
           .sort((a, b) => a[0].localeCompare(b[0]))
           .map(([key, value]) => {

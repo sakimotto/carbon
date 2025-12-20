@@ -89,14 +89,10 @@ export function BatchIssueModal({
           return {
             label: batchNumber.sourceDocumentReadableId ?? "",
             value: batchNumber.id,
-            helper: attributes["Batch Number"]
+            helper: batchNumber.readableId
               ? `${batchNumber.id.slice(0, 10)} - ${
                   batchNumber.quantity
-                } Available ${
-                  attributes["Batch Number"]
-                    ? `of Batch ${attributes["Batch Number"]}`
-                    : undefined
-                }`
+                } Available of Batch ${batchNumber.readableId}`
               : `${batchNumber.id.slice(0, 10)} - ${
                   batchNumber.quantity
                 } Available`,
@@ -111,11 +107,7 @@ export function BatchIssueModal({
       label: input.id,
       value: input.id,
       helper: `${input.quantity} ${
-        (input.attributes as TrackedEntityAttributes)?.["Batch Number"]
-          ? `of Batch ${
-              (input.attributes as TrackedEntityAttributes)?.["Batch Number"]
-            }`
-          : ""
+        input.readableId ? `of Batch ${input.readableId}` : ""
       }`
     }));
   }, [trackedInputs]);

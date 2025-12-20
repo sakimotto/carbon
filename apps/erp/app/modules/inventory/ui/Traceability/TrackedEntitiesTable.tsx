@@ -1,4 +1,4 @@
-import { MenuIcon, MenuItem } from "@carbon/react";
+import { Badge, MenuIcon, MenuItem } from "@carbon/react";
 import { useNumberFormatter } from "@react-aria/i18n";
 import type { ColumnDef } from "@tanstack/react-table";
 import { memo, useCallback, useMemo } from "react";
@@ -7,7 +7,8 @@ import {
   LuCheck,
   LuFile,
   LuHash,
-  LuNetwork
+  LuNetwork,
+  LuQrCode
 } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { Hyperlink, Table } from "~/components";
@@ -59,6 +60,20 @@ const TrackedEntitiesTable = memo(
                 value: i.id
               }))
             }
+          }
+        },
+        {
+          accessorKey: "readableId",
+          header: "Serial/Batch #",
+          cell: ({ row }) =>
+            row.original.readableId ? (
+              <Badge variant="secondary" className="items-center gap-1">
+                <LuQrCode />
+                {row.original.readableId}
+              </Badge>
+            ) : null,
+          meta: {
+            icon: <LuHash />
           }
         },
         {

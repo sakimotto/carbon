@@ -95,7 +95,7 @@ const ReceiptPostModal = ({ onClose }: { onClose: () => void }) => {
         const attributes = trackedEntity?.attributes as
           | TrackedEntityAttributes
           | undefined;
-        if (!attributes?.["Batch Number"]) {
+        if (!trackedEntity?.readableId) {
           errors.push({
             itemReadableId: getItemReadableId(items, line.itemId) ?? null,
             receivedQuantity: line.receivedQuantity ?? 0,
@@ -113,7 +113,7 @@ const ReceiptPostModal = ({ onClose }: { onClose: () => void }) => {
 
         const quantityWithSerial = trackedEntities?.reduce((acc, tracking) => {
           const attributes = tracking.attributes as TrackedEntityAttributes;
-          const serialNumber = attributes["Serial Number"];
+          const serialNumber = tracking.readableId;
 
           return acc + (serialNumber ? 1 : 0);
         }, 0);

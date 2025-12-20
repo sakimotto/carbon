@@ -1587,30 +1587,13 @@ export async function updateJobBatchNumber(
   trackedEntityId: string,
   value: string
 ) {
-  const currentAttributes = await client
-    .from("trackedEntity")
-    .select("id, attributes")
-    .eq("id", trackedEntityId)
-    .single();
-
-  if (currentAttributes.error) {
-    return currentAttributes;
-  }
-
-  if (typeof currentAttributes.data?.attributes !== "object") {
-    return { error: new Error("Attributes is not an object") };
-  }
-
   return client
     .from("trackedEntity")
     .update({
-      attributes: {
-        ...currentAttributes.data?.attributes,
-        "Batch Number": value
-      }
+      readableId: value
     })
-    .eq("id", currentAttributes.data.id)
-    .select("id, attributes");
+    .eq("id", trackedEntityId)
+    .select("id, readableId");
 }
 
 export async function updateJobStatus(
