@@ -286,7 +286,7 @@ function LineItems({
 
   const toggleOpen = (id: string) => {
     setOpenItems((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter?.((item) => item !== id) : [...prev, id]
     );
   };
 
@@ -298,7 +298,7 @@ function LineItems({
         const isMade = line.methodType === "Make";
 
         const { jobLabel, jobVariant, jobs } = getSalesOrderJobStatus(
-          salesOrder?.jobs as SalesOrderJob[],
+          salesOrder?.jobs as SalesOrderJob[] | undefined,
           line as any
         );
 

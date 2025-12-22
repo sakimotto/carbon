@@ -170,7 +170,7 @@ const SalesOrdersTable = memo(({ data, count }: SalesOrdersTableProps) => {
           const everyMadeLineHasSufficientJobs = lines.every((line) => {
             if (line.methodType !== "Make") return true;
             const relevantJobs =
-              jobs.filter((job) => job.salesOrderLineId === line.id) ?? [];
+              jobs.filter?.((job) => job.salesOrderLineId === line.id) ?? [];
             const totalJobQuantity = relevantJobs.reduce(
               (acc, job) => acc + job.productionQuantity,
               0
@@ -182,7 +182,7 @@ const SalesOrdersTable = memo(({ data, count }: SalesOrdersTableProps) => {
           const everyMadeLineIsCompleted = lines.every((line) => {
             if (line.methodType !== "Make") return true;
             const relevantJobs =
-              jobs.filter((job) => job.salesOrderLineId === line.id) ?? [];
+              jobs.filter?.((job) => job.salesOrderLineId === line.id) ?? [];
             const totalJobQuantity = relevantJobs.reduce(
               (acc, job) => acc + job.quantityComplete,
               0

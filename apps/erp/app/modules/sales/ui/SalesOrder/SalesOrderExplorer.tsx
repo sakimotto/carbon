@@ -85,13 +85,14 @@ function getRelatedItems(
       key: "jobs",
       name: "Jobs",
       module: "production",
-      children: items.jobs
-        .filter((job) => job.salesOrderLineId === lineId)
-        .map((job) => ({
-          id: job.id ?? "",
-          documentReadableId: job.jobId ?? "",
-          documentId: job.id ?? ""
-        }))
+      children:
+        items.jobs
+          ?.filter((job) => job.salesOrderLineId === lineId)
+          .map((job) => ({
+            id: job.id ?? "",
+            documentReadableId: job.jobId ?? "",
+            documentId: job.id ?? ""
+          })) ?? []
     },
     {
       key: "shipments",

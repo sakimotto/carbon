@@ -85,10 +85,11 @@ export const getPurchaseOrderStatus = (
 };
 
 export const getSalesOrderJobStatus = (
-  jobs: SalesOrderJob[],
+  jobs: SalesOrderJob[] | undefined,
   line: SalesOrderLine
 ) => {
-  const filteredJobs = jobs.filter((j) => j.salesOrderLineId === line.id);
+  const filteredJobs =
+    jobs?.filter((j) => j.salesOrderLineId === line.id) ?? [];
   const isMade = line.methodType === "Make";
   const saleQuantity = line.saleQuantity ?? 0;
 
