@@ -112,6 +112,8 @@ export const path = {
     logout: "/logout",
     maintenance: `${x}/maintenance`,
     maintenanceDetail: (id: string) => generatePath(`${x}/dispatch/${id}`),
+    maintenanceDispatchItem: (id: string) =>
+      generatePath(`${x}/dispatch/${id}/item`),
     maintenanceEvent: `${x}/maintenance-event`,
     messagingNotify: `${x}/proxy/api/messaging/notify`,
     newMaintenanceDispatch: `${x}/dispatch/new`,

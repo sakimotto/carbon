@@ -220,3 +220,52 @@ export async function getMaintenanceDispatchItems(
     )
     .eq("maintenanceDispatchId", dispatchId);
 }
+
+export async function getWorkCenterReplacementParts(
+  client: SupabaseClient<Database>,
+  workCenterId: string
+) {
+  return client
+    .from("workCenterReplacementPart")
+    .select(
+      `
+      *,
+      item:itemId (id, name, description)
+    `
+    )
+    .eq("workCenterId", workCenterId);
+}
+
+export async function addMaintenanceDispatchItem(
+  client: SupabaseClient<Database>,
+  args: {
+    maintenanceDispatchId: string;
+    itemId: string;
+    quantity: number;
+    unitOfMeasureCode: string;
+    companyId: string;
+    createdBy: string;
+  }
+) {
+  return client
+    .from("maintenanceDispatchItem")
+    .insert([
+      {
+        maintenanceDispatchId: args.maintenanceDispatchId,
+        itemId: args.itemId,
+        quantity: args.quantity,
+        unitOfMeasureCode: args.unitOfMeasureCode,
+        companyId: args.companyId,
+        createdBy: args.createdBy
+      }
+    ])
+    .select("id")
+    .single();
+}
+
+export async function deleteMaintenanceDispatchItem(
+  client: SupabaseClient<Database>,
+  itemId: string
+) {
+  return client.from("maintenanceDispatchItem").delete().eq("id", itemId);
+}

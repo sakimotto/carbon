@@ -1,15 +1,23 @@
-import { DateTimePicker, Select, ValidatedForm } from "@carbon/form";
+import { DateTimePicker, Hidden, Select, ValidatedForm } from "@carbon/form";
 import {
   Button,
   HStack,
+  IconButton,
+  Modal,
+  ModalBody,
+  ModalContent,
+  ModalFooter,
+  ModalHeader,
+  ModalTitle,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   toast,
+  useDisclosure,
   VStack
 } from "@carbon/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { LuCopy, LuKeySquare, LuLink } from "react-icons/lu";
+import { useCallback, useEffect, useState } from "react";
+import { LuClock, LuCopy, LuKeySquare, LuLink, LuPencil } from "react-icons/lu";
 import { useFetcher, useParams } from "react-router";
 import { z } from "zod/v3";
 import {
@@ -22,28 +30,48 @@ import { usePermissions, useRouteData } from "~/hooks";
 import { path } from "~/utils/path";
 import { copyToClipboard } from "~/utils/string";
 import {
+  maintenanceDispatchEventValidator,
   maintenanceDispatchPriority,
   maintenanceSeverity,
   maintenanceSource,
   oeeImpact
 } from "../../production.models";
-import type { MaintenanceDispatchDetail } from "../../types";
+import type {
+  MaintenanceDispatchDetail,
+  MaintenanceDispatchEvent
+} from "../../types";
 import MaintenanceOeeImpact from "./MaintenanceOeeImpact";
 import MaintenancePriority from "./MaintenancePriority";
 import MaintenanceSeverity from "./MaintenanceSeverity";
 import MaintenanceSource from "./MaintenanceSource";
 import MaintenanceStatus from "./MaintenanceStatus";
 
+function formatDuration(seconds: number | null): string {
+  if (!seconds) return "-";
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  }
+  return `${minutes}m`;
+}
+
 const MaintenanceDispatchProperties = () => {
   const { dispatchId } = useParams();
   if (!dispatchId) throw new Error("dispatchId not found");
 
   const permissions = usePermissions();
+  const eventModal = useDisclosure();
+  const [selectedEvent, setSelectedEvent] =
+    useState<MaintenanceDispatchEvent | null>(null);
 
   const routeData = useRouteData<{
     dispatch: MaintenanceDispatchDetail;
+    events: MaintenanceDispatchEvent[];
     failureModes: { id: string; name: string }[];
   }>(path.to.maintenanceDispatch(dispatchId));
+
+  const events = routeData?.events ?? [];
 
   const { options: workCenterOptions } = useWorkCenters({});
 
@@ -57,11 +85,27 @@ const MaintenanceDispatchProperties = () => {
       : routeData?.dispatch?.assignee;
 
   const fetcher = useFetcher<{ error?: { message: string } }>();
+  const eventFetcher = useFetcher<{ error?: { message: string } }>();
+
   useEffect(() => {
     if (fetcher.data?.error) {
       toast.error(fetcher.data.error.message);
     }
   }, [fetcher.data]);
+
+  useEffect(() => {
+    if (
+      eventFetcher.state === "idle" &&
+      eventFetcher.data &&
+      !eventFetcher.data.error
+    ) {
+      eventModal.onClose();
+      setSelectedEvent(null);
+    }
+    if (eventFetcher.data?.error) {
+      toast.error(eventFetcher.data.error.message);
+    }
+  }, [eventFetcher.state, eventFetcher.data, eventModal]);
 
   const onUpdate = useCallback(
     (field: string, value: string | null) => {
@@ -487,6 +531,52 @@ const MaintenanceDispatchProperties = () => {
         </>
       )}
 
+      <VStack spacing={2} className="w-full">
+        <HStack className="w-full justify-between">
+          <h3 className="text-xs text-muted-foreground">Timecards</h3>
+          <LuClock className="w-3 h-3 text-muted-foreground" />
+        </HStack>
+        {events.length === 0 ? (
+          <span className="text-xs text-muted-foreground">No timecards</span>
+        ) : (
+          <div className="w-full space-y-1">
+            {events.map((event) => (
+              <HStack
+                key={event.id}
+                className="w-full justify-between py-1 px-2 rounded hover:bg-muted/50 cursor-pointer"
+                onClick={() => {
+                  setSelectedEvent(event);
+                  eventModal.onOpen();
+                }}
+              >
+                <HStack spacing={2}>
+                  <EmployeeAvatar employeeId={event.employeeId} size="xs" />
+                  <span className="text-sm font-mono">
+                    {formatDuration(event.duration)}
+                  </span>
+                  {!event.endTime && (
+                    <span className="text-xs bg-green-100 text-green-800 px-1 rounded">
+                      Active
+                    </span>
+                  )}
+                </HStack>
+                <IconButton
+                  aria-label="Edit timecard"
+                  icon={<LuPencil className="w-3 h-3" />}
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedEvent(event);
+                    eventModal.onOpen();
+                  }}
+                />
+              </HStack>
+            ))}
+          </div>
+        )}
+      </VStack>
+
       <VStack spacing={2}>
         <h3 className="text-xs text-muted-foreground">Created By</h3>
         <EmployeeAvatar
@@ -494,6 +584,95 @@ const MaintenanceDispatchProperties = () => {
           size="xxs"
         />
       </VStack>
+
+      {/* Timecard Edit Modal */}
+      {eventModal.isOpen && selectedEvent && (
+        <Modal
+          open={eventModal.isOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              eventModal.onClose();
+              setSelectedEvent(null);
+            }
+          }}
+        >
+          <ModalContent>
+            <ValidatedForm
+              method="post"
+              action={path.to.maintenanceDispatchEvents(dispatchId)}
+              validator={maintenanceDispatchEventValidator}
+              fetcher={eventFetcher}
+              defaultValues={{
+                id: selectedEvent.id,
+                maintenanceDispatchId: dispatchId,
+                employeeId: selectedEvent.employeeId,
+                workCenterId:
+                  selectedEvent.workCenterId ??
+                  routeData?.dispatch?.workCenterId ??
+                  "",
+                startTime: selectedEvent.startTime,
+                endTime: selectedEvent.endTime ?? ""
+              }}
+            >
+              <ModalHeader>
+                <ModalTitle>Edit Timecard</ModalTitle>
+              </ModalHeader>
+              <ModalBody>
+                <VStack spacing={4}>
+                  <HStack spacing={2}>
+                    <EmployeeAvatar
+                      employeeId={selectedEvent.employeeId}
+                      size="sm"
+                    />
+                    <span className="text-sm font-medium">
+                      {selectedEvent.employee?.fullName ?? "Unknown"}
+                    </span>
+                  </HStack>
+                  <Hidden name="id" value={selectedEvent.id} />
+                  <Hidden name="maintenanceDispatchId" value={dispatchId} />
+                  <Hidden name="employeeId" value={selectedEvent.employeeId} />
+                  <Hidden
+                    name="workCenterId"
+                    value={
+                      selectedEvent.workCenterId ??
+                      routeData?.dispatch?.workCenterId ??
+                      ""
+                    }
+                  />
+                  <DateTimePicker
+                    name="startTime"
+                    label="Start Time"
+                    isDisabled={!permissions.can("update", "production")}
+                  />
+                  <DateTimePicker
+                    name="endTime"
+                    label="End Time"
+                    isDisabled={!permissions.can("update", "production")}
+                  />
+                </VStack>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    eventModal.onClose();
+                    setSelectedEvent(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  isLoading={eventFetcher.state !== "idle"}
+                  isDisabled={!permissions.can("update", "production")}
+                >
+                  Save
+                </Button>
+              </ModalFooter>
+            </ValidatedForm>
+          </ModalContent>
+        </Modal>
+      )}
     </VStack>
   );
 };

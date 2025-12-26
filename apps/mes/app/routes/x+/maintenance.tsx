@@ -20,12 +20,13 @@ import {
 } from "@carbon/react";
 import { useMemo, useState } from "react";
 import { BsExclamationSquareFill } from "react-icons/bs";
-import { LuSearch, LuTriangleAlert, LuWrench } from "react-icons/lu";
+import { LuSearch, LuTriangleAlert } from "react-icons/lu";
 import type { LoaderFunctionArgs } from "react-router";
 import { Link, useLoaderData } from "react-router";
 import { HighPriorityIcon } from "~/assets/icons/HighPriorityIcon";
 import { LowPriorityIcon } from "~/assets/icons/LowPriorityIcon";
 import { MediumPriorityIcon } from "~/assets/icons/MediumPriorityIcon";
+import EmployeeAvatar from "~/components/EmployeeAvatar";
 import { getLocation } from "~/services/location.server";
 import {
   getActiveMaintenanceDispatchesByLocation,
@@ -132,10 +133,8 @@ function MaintenanceCard({ dispatch }: { dispatch: MaintenanceDispatch }) {
             >
               {dispatch.oeeImpact ?? "No Impact"}
             </Badge>
-            {dispatch.assigneeName && (
-              <span className="text-xs text-muted-foreground">
-                {dispatch.assigneeName}
-              </span>
+            {dispatch.assignee && (
+              <EmployeeAvatar employeeId={dispatch.assignee} />
             )}
           </HStack>
         </CardContent>

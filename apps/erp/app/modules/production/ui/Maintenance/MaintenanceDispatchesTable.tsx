@@ -7,6 +7,7 @@ import {
   LuBuilding,
   LuCalendar,
   LuChartNoAxesColumnIncreasing,
+  LuCircleAlert,
   LuDna,
   LuPencil,
   LuStar,
@@ -15,8 +16,11 @@ import {
 } from "react-icons/lu";
 import { useNavigate } from "react-router";
 import { EmployeeAvatar, Hyperlink, New, Table } from "~/components";
+import { Enumerable } from "~/components/Enumerable";
 import { useWorkCenters } from "~/components/Form/WorkCenters";
 import { usePermissions, useUrlParams } from "~/hooks";
+import { usePeople } from "~/stores";
+import { ListItem } from "~/types";
 import { path } from "~/utils/path";
 import {
   maintenanceDispatchPriority,
@@ -33,14 +37,16 @@ import MaintenanceStatus from "./MaintenanceStatus";
 type MaintenanceDispatchesTableProps = {
   data: MaintenanceDispatch[];
   count: number;
+  failureModes: ListItem[];
 };
 
 const MaintenanceDispatchesTable = memo(
-  ({ data, count }: MaintenanceDispatchesTableProps) => {
+  ({ data, count, failureModes }: MaintenanceDispatchesTableProps) => {
     const [params] = useUrlParams();
     const navigate = useNavigate();
     const permissions = usePermissions();
     const workCenters = useWorkCenters();
+    const [people] = usePeople();
 
     const columns = useMemo<ColumnDef<MaintenanceDispatch>[]>(() => {
       return [
@@ -54,6 +60,37 @@ const MaintenanceDispatchesTable = memo(
           ),
           meta: {
             icon: <LuBookMarked />
+          }
+        },
+        {
+          accessorKey: "workCenterId",
+          header: "Work Center",
+          cell: ({ row }) => {
+            const workCenterId = row.original.workCenterId;
+            if (!workCenterId) {
+              return <span className="text-muted-foreground">Unassigned</span>;
+            }
+            const workCenter = workCenters.find(
+              (wc) => wc.value === workCenterId
+            );
+            if (!workCenter) {
+              return <span className="text-muted-foreground">Unknown</span>;
+            }
+            return (
+              <Hyperlink to={path.to.workCenter(workCenterId)}>
+                <Enumerable value={workCenter.label} />
+              </Hyperlink>
+            );
+          },
+          meta: {
+            icon: <LuBuilding />,
+            filter: {
+              type: "static",
+              options: workCenters.map((wc) => ({
+                value: wc.value,
+                label: <Enumerable value={wc.label} />
+              }))
+            }
           }
         },
         {
@@ -133,16 +170,64 @@ const MaintenanceDispatchesTable = memo(
           }
         },
         {
+          accessorKey: "actualFailureModeId",
+          header: "Actual Failure Mode",
+          cell: ({ row }) => {
+            const actualFailureModeId = row.original.actualFailureModeId;
+            const failureMode = failureModes.find(
+              (mode) => mode.id === actualFailureModeId
+            );
+            if (!actualFailureModeId) {
+              return null;
+            }
+            return <Enumerable value={failureMode?.name ?? null} />;
+          },
+          meta: {
+            icon: <LuCircleAlert />,
+            filter: {
+              type: "static",
+              options: failureModes?.map((mode) => ({
+                value: mode.id,
+                label: <Enumerable value={mode.name} />
+              }))
+            }
+          }
+        },
+        {
+          accessorKey: "suspectedFailureModeId",
+          header: "Suspected Failure Mode",
+          cell: ({ row }) => {
+            const suspectedFailureModeId = row.original.suspectedFailureModeId;
+            const failureMode = failureModes.find(
+              (mode) => mode.id === suspectedFailureModeId
+            );
+            if (!suspectedFailureModeId) {
+              return null;
+            }
+            return <Enumerable value={failureMode?.name ?? null} />;
+          },
+          meta: {
+            icon: <LuCircleAlert />,
+            filter: {
+              type: "static",
+              options: failureModes?.map((mode) => ({
+                value: mode.id,
+                label: <Enumerable value={mode.name} />
+              }))
+            }
+          }
+        },
+        {
           accessorKey: "assignee",
           header: "Assignee",
           cell: ({ row }) => {
             const assignee = row.original.assignee;
-            if (!assignee?.id) {
+            if (!assignee) {
               return <span className="text-muted-foreground">Unassigned</span>;
             }
             return (
               <HStack>
-                <EmployeeAvatar employeeId={assignee.id} size="xs" />
+                <EmployeeAvatar employeeId={assignee} size="xs" />
               </HStack>
             );
           },
@@ -150,30 +235,7 @@ const MaintenanceDispatchesTable = memo(
             icon: <LuUser />
           }
         },
-        {
-          accessorKey: "workCenterId",
-          header: "Work Center",
-          cell: ({ row }) => {
-            const workCenterId = row.original.workCenterId;
-            if (!workCenterId) {
-              return <span className="text-muted-foreground">Unassigned</span>;
-            }
-            const workCenter = workCenters.find(
-              (wc) => wc.value === workCenterId
-            );
-            if (!workCenter) {
-              return <span className="text-muted-foreground">Unknown</span>;
-            }
-            return (
-              <Hyperlink to={path.to.workCenter(workCenterId)}>
-                {workCenter.label}
-              </Hyperlink>
-            );
-          },
-          meta: {
-            icon: <LuBuilding />
-          }
-        },
+
         {
           accessorKey: "plannedStartTime",
           header: "Planned Start",
@@ -186,10 +248,57 @@ const MaintenanceDispatchesTable = memo(
           }
         },
         {
+          accessorKey: "createdBy",
+          header: "Created By",
+          cell: ({ row }) => {
+            const createdBy = row.original.createdBy;
+            return <EmployeeAvatar employeeId={createdBy} size="xs" />;
+          },
+          meta: {
+            icon: <LuUser />,
+            filter: {
+              type: "static",
+              options: people.map((employee) => ({
+                value: employee.id,
+                label: employee.name
+              }))
+            }
+          }
+        },
+        {
           accessorKey: "createdAt",
-          header: "Created",
+          header: "Created At",
           cell: ({ row }) => {
             const date = row.original.createdAt;
+            return date ? formatDate(date) : "-";
+          },
+          meta: {
+            icon: <LuCalendar />
+          }
+        },
+        {
+          accessorKey: "updatedBy",
+          header: "Updated By",
+          cell: ({ row }) => {
+            const updatedBy = row.original.updatedBy;
+            return <EmployeeAvatar employeeId={updatedBy} size="xs" />;
+          },
+          meta: {
+            icon: <LuUser />,
+            filter: {
+              type: "static",
+              options: people.map((employee) => ({
+                value: employee.id,
+                label: employee.name
+              }))
+            }
+          }
+        },
+        {
+          accessorKey: "updatedAt",
+          header: "Updated At",
+          cell: ({ row }) => {
+            const date = row.original.updatedAt;
             return date ? formatDate(date) : "-";
           },
           meta: {
@@ -233,6 +342,14 @@ const MaintenanceDispatchesTable = memo(
       <Table<MaintenanceDispatch>
         data={data}
         columns={columns}
+        defaultColumnVisibility={{
+          plannedStartTime: false,
+          suspectedFailureModeId: false,
+          createdBy: false,
+          createdAt: false,
+          updatedBy: false,
+          updatedAt: false
+        }}
         count={count}
         primaryAction={
           permissions.can("create", "production") && (

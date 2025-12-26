@@ -218,7 +218,7 @@ export function MaintenanceNav({
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Maintenance"
-            className={cn(activeMaintenanceCount > 0 && "text-amber-500")}
+            className={cn(activeMaintenanceCount > 0 && "text-emerald-500")}
             isActive={isActive}
             asChild
           >

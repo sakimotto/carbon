@@ -2,7 +2,10 @@ import { requirePermissions } from "@carbon/auth/auth.server";
 import { VStack } from "@carbon/react";
 import type { LoaderFunctionArgs } from "react-router";
 import { Outlet, useLoaderData } from "react-router";
-import { getMaintenanceDispatches } from "~/modules/production";
+import {
+  getFailureModesList,
+  getMaintenanceDispatches
+} from "~/modules/production";
 import MaintenanceDispatchesTable from "~/modules/production/ui/Maintenance/MaintenanceDispatchesTable";
 import type { Handle } from "~/utils/handle";
 import { path } from "~/utils/path";
@@ -26,22 +29,35 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { limit, offset, sorts, filters } =
     getGenericQueryFilters(searchParams);
 
-  return await getMaintenanceDispatches(client, companyId, {
-    search,
-    status,
-    limit,
-    offset,
-    sorts,
-    filters
-  });
+  const [dispatches, failureModes] = await Promise.all([
+    getMaintenanceDispatches(client, companyId, {
+      search,
+      status,
+      limit,
+      offset,
+      sorts,
+      filters
+    }),
+    getFailureModesList(client, companyId)
+  ]);
+
+  return {
+    dispatches: dispatches.data ?? [],
+    count: dispatches.count ?? 0,
+    failureModes: failureModes.data ?? []
+  };
 }
 
 export default function MaintenanceRoute() {
-  const { data, count } = useLoaderData<typeof loader>();
+  const { dispatches, count, failureModes } = useLoaderData<typeof loader>();
 
   return (
     <VStack spacing={0} className="h-full">
-      <MaintenanceDispatchesTable data={data ?? []} count={count ?? 0} />
+      <MaintenanceDispatchesTable
+        data={dispatches ?? []}
+        count={count ?? 0}
+        failureModes={failureModes ?? []}
+      />
       <Outlet />
     </VStack>
   );
