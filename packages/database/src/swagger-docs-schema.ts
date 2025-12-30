@@ -9163,6 +9163,9 @@ export default {
             $ref: "#/parameters/rowFilter.maintenanceFailureMode.updatedAt",
           },
           {
+            $ref: "#/parameters/rowFilter.maintenanceFailureMode.type",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -9243,6 +9246,9 @@ export default {
             $ref: "#/parameters/rowFilter.maintenanceFailureMode.updatedAt",
           },
           {
+            $ref: "#/parameters/rowFilter.maintenanceFailureMode.type",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -9275,6 +9281,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.maintenanceFailureMode.updatedAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.maintenanceFailureMode.type",
           },
           {
             $ref: "#/parameters/body.maintenanceFailureMode",
@@ -23440,9 +23449,6 @@ export default {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.source",
           },
           {
-            $ref: "#/parameters/rowFilter.maintenanceDispatch.severity",
-          },
-          {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.workCenterId",
           },
           {
@@ -23495,6 +23501,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.oeeImpact",
+          },
+          {
+            $ref: "#/parameters/rowFilter.maintenanceDispatch.severity",
           },
           {
             $ref: "#/parameters/select",
@@ -23574,9 +23583,6 @@ export default {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.source",
           },
           {
-            $ref: "#/parameters/rowFilter.maintenanceDispatch.severity",
-          },
-          {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.workCenterId",
           },
           {
@@ -23629,6 +23635,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.oeeImpact",
+          },
+          {
+            $ref: "#/parameters/rowFilter.maintenanceDispatch.severity",
           },
           {
             $ref: "#/parameters/preferReturn",
@@ -23662,9 +23671,6 @@ export default {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.source",
           },
           {
-            $ref: "#/parameters/rowFilter.maintenanceDispatch.severity",
-          },
-          {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.workCenterId",
           },
           {
@@ -23717,6 +23723,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.maintenanceDispatch.oeeImpact",
+          },
+          {
+            $ref: "#/parameters/rowFilter.maintenanceDispatch.severity",
           },
           {
             $ref: "#/parameters/body.maintenanceDispatch",
@@ -59323,6 +59332,18 @@ export default {
             $ref: "#/parameters/rowFilter.companySettings.maintenanceAdvanceDays",
           },
           {
+            $ref: "#/parameters/rowFilter.companySettings.maintenanceDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.qualityDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.operationsDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.otherDispatchNotificationGroup",
+          },
+          {
             $ref: "#/parameters/select",
           },
           {
@@ -59433,6 +59454,18 @@ export default {
             $ref: "#/parameters/rowFilter.companySettings.maintenanceAdvanceDays",
           },
           {
+            $ref: "#/parameters/rowFilter.companySettings.maintenanceDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.qualityDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.operationsDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.otherDispatchNotificationGroup",
+          },
+          {
             $ref: "#/parameters/preferReturn",
           },
         ],
@@ -59495,6 +59528,18 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.companySettings.maintenanceAdvanceDays",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.maintenanceDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.qualityDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.operationsDispatchNotificationGroup",
+          },
+          {
+            $ref: "#/parameters/rowFilter.companySettings.otherDispatchNotificationGroup",
           },
           {
             $ref: "#/parameters/body.companySettings",
@@ -63802,6 +63847,45 @@ export default {
         tags: ["(rpc) get_next_prefixed_sequence"],
       },
     },
+    "/rpc/get_maintenance_schedules_by_location": {
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                p_company_id: {
+                  format: "text",
+                  type: "string",
+                },
+                p_location_id: {
+                  format: "text",
+                  type: "string",
+                },
+              },
+              required: ["p_company_id", "p_location_id"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_maintenance_schedules_by_location"],
+      },
+    },
     "/rpc/get_active_job_operations_by_employee": {
       post: {
         parameters: [
@@ -64082,6 +64166,45 @@ export default {
           },
         },
         tags: ["(rpc) get_purchasing_planning"],
+      },
+    },
+    "/rpc/get_maintenance_dispatches_by_location": {
+      post: {
+        parameters: [
+          {
+            in: "body",
+            name: "args",
+            required: true,
+            schema: {
+              properties: {
+                p_company_id: {
+                  format: "text",
+                  type: "string",
+                },
+                p_location_id: {
+                  format: "text",
+                  type: "string",
+                },
+              },
+              required: ["p_company_id", "p_location_id"],
+              type: "object",
+            },
+          },
+          {
+            $ref: "#/parameters/preferParams",
+          },
+        ],
+        produces: [
+          "application/json",
+          "application/vnd.pgrst.object+json;nulls=stripped",
+          "application/vnd.pgrst.object+json",
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+          },
+        },
+        tags: ["(rpc) get_maintenance_dispatches_by_location"],
       },
     },
     "/rpc/id": {
@@ -68456,7 +68579,7 @@ export default {
       type: "object",
     },
     maintenanceFailureMode: {
-      required: ["id", "name", "companyId", "createdBy", "createdAt"],
+      required: ["id", "name", "companyId", "createdBy", "createdAt", "type"],
       properties: {
         id: {
           default: "public.id()",
@@ -68493,6 +68616,12 @@ export default {
         },
         updatedAt: {
           format: "timestamp with time zone",
+          type: "string",
+        },
+        type: {
+          default: "Maintenance",
+          enum: ["Maintenance", "Quality", "Operations", "Other"],
+          format: 'public."maintenanceFailureModeType"',
           type: "string",
         },
       },
@@ -75134,6 +75263,7 @@ export default {
         "createdBy",
         "createdAt",
         "oeeImpact",
+        "severity",
       ],
       properties: {
         id: {
@@ -75165,16 +75295,6 @@ export default {
           default: "Reactive",
           enum: ["Scheduled", "Reactive", "Non-Conformance"],
           format: 'public."maintenanceSource"',
-          type: "string",
-        },
-        severity: {
-          enum: [
-            "Preventive",
-            "Operator Performed",
-            "Support Required",
-            "OEM Required",
-          ],
-          format: 'public."maintenanceSeverity"',
           type: "string",
         },
         workCenterId: {
@@ -75268,6 +75388,16 @@ export default {
           default: "No Impact",
           enum: ["Down", "Planned", "Impact", "No Impact"],
           format: 'public."oeeImpact"',
+          type: "string",
+        },
+        severity: {
+          enum: [
+            "Preventive",
+            "Operator Performed",
+            "Support Required",
+            "OEM Required",
+          ],
+          format: 'public."maintenanceSeverity"',
           type: "string",
         },
       },
@@ -92669,6 +92799,34 @@ export default {
           format: "integer",
           type: "integer",
         },
+        maintenanceDispatchNotificationGroup: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        qualityDispatchNotificationGroup: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        operationsDispatchNotificationGroup: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
+        otherDispatchNotificationGroup: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
+        },
       },
       type: "object",
     },
@@ -97750,6 +97908,12 @@ export default {
     },
     "rowFilter.maintenanceFailureMode.updatedAt": {
       name: "updatedAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.maintenanceFailureMode.type": {
+      name: "type",
       required: false,
       in: "query",
       type: "string",
@@ -105263,12 +105427,6 @@ export default {
       in: "query",
       type: "string",
     },
-    "rowFilter.maintenanceDispatch.severity": {
-      name: "severity",
-      required: false,
-      in: "query",
-      type: "string",
-    },
     "rowFilter.maintenanceDispatch.workCenterId": {
       name: "workCenterId",
       required: false,
@@ -105373,6 +105531,12 @@ export default {
     },
     "rowFilter.maintenanceDispatch.oeeImpact": {
       name: "oeeImpact",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.maintenanceDispatch.severity": {
+      name: "severity",
       required: false,
       in: "query",
       type: "string",
@@ -124916,6 +125080,30 @@ export default {
     },
     "rowFilter.companySettings.maintenanceAdvanceDays": {
       name: "maintenanceAdvanceDays",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.companySettings.maintenanceDispatchNotificationGroup": {
+      name: "maintenanceDispatchNotificationGroup",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.companySettings.qualityDispatchNotificationGroup": {
+      name: "qualityDispatchNotificationGroup",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.companySettings.operationsDispatchNotificationGroup": {
+      name: "operationsDispatchNotificationGroup",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.companySettings.otherDispatchNotificationGroup": {
+      name: "otherDispatchNotificationGroup",
       required: false,
       in: "query",
       type: "string",

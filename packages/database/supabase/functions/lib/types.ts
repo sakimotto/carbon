@@ -49566,14 +49566,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["customerCountryCode"]
+            columns: ["paymentCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
           },
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["paymentCountryCode"]
+            columns: ["customerCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
@@ -54048,7 +54048,6 @@ export type Database = {
       maintenanceFailureModeType:
         | "Maintenance"
         | "Quality"
-        | "Safety"
         | "Operations"
         | "Other"
       maintenanceFrequency:
@@ -55196,7 +55195,6 @@ export const Constants = {
       maintenanceFailureModeType: [
         "Maintenance",
         "Quality",
-        "Safety",
         "Operations",
         "Other",
       ],
