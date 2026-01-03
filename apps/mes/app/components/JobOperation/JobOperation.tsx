@@ -103,7 +103,6 @@ import type {
 import { useItems } from "~/stores";
 import { path } from "~/utils/path";
 import ItemThumbnail from "../ItemThumbnail";
-import { BatchIssueModal } from "./components/BatchIssueModal";
 import { OperationChat } from "./components/Chat";
 import {
   Controls,
@@ -112,11 +111,10 @@ import {
   Times,
   WorkTypeToggle
 } from "./components/Controls";
-import { IssueModal } from "./components/IssueModal";
+import { IssueMaterialModal } from "./components/IssueMaterialModal";
 import { MaintenanceDispatch } from "./components/MaintenanceDispatch";
 import { ParametersListItem } from "./components/Parameter";
 import { QuantityModal } from "./components/QuantityModal";
-import { SerialIssueModal } from "./components/SerialIssueModal";
 import { SerialSelectorModal } from "./components/SerialSelectorModal";
 import {
   DeleteStepRecordModal,
@@ -1270,57 +1268,23 @@ export const JobOperation = ({
                               )}
                             </Tbody>
                           </Table>
-                          {issueModal.isOpen &&
-                            selectedMaterial?.requiresBatchTracking !== true &&
-                            selectedMaterial?.requiresSerialTracking !==
-                              true && (
-                              <IssueModal
-                                operationId={operation.id}
-                                material={selectedMaterial ?? undefined}
-                                onClose={() => {
-                                  setSelectedMaterial(null);
-                                  issueModal.onClose();
-                                }}
-                              />
-                            )}
-                          {issueModal.isOpen &&
-                            selectedMaterial?.requiresBatchTracking ===
-                              true && (
-                              <BatchIssueModal
-                                parentId={trackedEntityId ?? ""}
-                                parentIdIsSerialized={
-                                  method?.requiresSerialTracking ?? false
-                                }
-                                operationId={operation.id}
-                                material={selectedMaterial ?? undefined}
-                                trackedInputs={
-                                  resolvedMaterials?.trackedInputs ?? []
-                                }
-                                onClose={() => {
-                                  setSelectedMaterial(null);
-                                  issueModal.onClose();
-                                }}
-                              />
-                            )}
-                          {issueModal.isOpen &&
-                            selectedMaterial?.requiresSerialTracking ===
-                              true && (
-                              <SerialIssueModal
-                                operationId={operation.id}
-                                material={selectedMaterial ?? undefined}
-                                parentId={trackedEntityId ?? ""}
-                                parentIdIsSerialized={
-                                  method?.requiresSerialTracking ?? false
-                                }
-                                trackedInputs={
-                                  resolvedMaterials?.trackedInputs ?? []
-                                }
-                                onClose={() => {
-                                  setSelectedMaterial(null);
-                                  issueModal.onClose();
-                                }}
-                              />
-                            )}
+                          {issueModal.isOpen && (
+                            <IssueMaterialModal
+                              operationId={operation.id}
+                              material={selectedMaterial ?? undefined}
+                              parentId={trackedEntityId ?? ""}
+                              parentIdIsSerialized={
+                                method?.requiresSerialTracking ?? false
+                              }
+                              trackedInputs={
+                                resolvedMaterials?.trackedInputs ?? []
+                              }
+                              onClose={() => {
+                                setSelectedMaterial(null);
+                                issueModal.onClose();
+                              }}
+                            />
+                          )}
                         </>
                       );
                     }}

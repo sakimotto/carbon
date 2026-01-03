@@ -134,7 +134,9 @@ export const finishValidator = z.object({
 });
 
 export const issueTrackedEntityValidator = z.object({
-  materialId: z.string(),
+  materialId: z.string().optional(),
+  jobOperationId: z.string().optional(),
+  itemId: z.string().optional(),
   parentTrackedEntityId: z.string(),
   children: z.array(
     z.object({

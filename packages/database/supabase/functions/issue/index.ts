@@ -96,7 +96,9 @@ const payloadValidator = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("trackedEntitiesToOperation"),
-    materialId: z.string(),
+    materialId: z.string().optional(),
+    jobOperationId: z.string().optional(),
+    itemId: z.string().optional(),
     parentTrackedEntityId: z.string(),
     children: z.array(
       z.object({
@@ -1137,6 +1139,8 @@ serve(async (req: Request) => {
       case "trackedEntitiesToOperation": {
         const {
           materialId,
+          jobOperationId,
+          itemId,
           parentTrackedEntityId,
           children,
           companyId,
@@ -1149,6 +1153,13 @@ serve(async (req: Request) => {
 
         if (children.length === 0) {
           throw new Error("Children are required");
+        }
+
+        // Either materialId or (jobOperationId + itemId) must be provided
+        if (!materialId && (!jobOperationId || !itemId)) {
+          throw new Error(
+            "Either materialId or both jobOperationId and itemId must be provided"
+          );
         }
 
         const splitEntities = await db.transaction().execute(async (trx) => {
@@ -1179,29 +1190,99 @@ serve(async (req: Request) => {
             throw new Error("Tracked entities are not available");
           }
 
-          let jobMaterial = await trx
-            .selectFrom("jobMaterial")
-            .where("id", "=", materialId)
-            .selectAll()
-            .executeTakeFirst();
-
-          // Check if any tracked entity has a different sourceDocumentId than the material's itemId
+          let jobMaterial: Awaited<
+            ReturnType<
+              ReturnType<typeof trx.selectFrom<"jobMaterial">>["selectAll"]
+            >
+          >[0] | undefined;
+          let actualMaterialId: string | undefined = materialId;
           const firstTrackedEntity = trackedEntities[0];
-          let actualMaterialId = materialId;
 
-          if (
-            firstTrackedEntity &&
-            jobMaterial &&
-            firstTrackedEntity.sourceDocumentId !== jobMaterial.itemId
-          ) {
-            // Create a new jobMaterial for the tracked entity's item
+          if (materialId) {
+            // Existing behavior: fetch the jobMaterial
+            jobMaterial = await trx
+              .selectFrom("jobMaterial")
+              .where("id", "=", materialId)
+              .selectAll()
+              .executeTakeFirst();
+
+            // Check if any tracked entity has a different sourceDocumentId than the material's itemId
+            if (
+              firstTrackedEntity &&
+              jobMaterial &&
+              firstTrackedEntity.sourceDocumentId !== jobMaterial.itemId
+            ) {
+              // Create a new jobMaterial for the tracked entity's item
+              const totalChildQuantity = children.reduce((sum, child) => {
+                return sum + Number(child.quantity);
+              }, 0);
+
+              const itemCost = await trx
+                .selectFrom("itemCost")
+                .where("itemId", "=", firstTrackedEntity.sourceDocumentId!)
+                .select("unitCost")
+                .executeTakeFirst();
+
+              const newJobMaterial = await trx
+                .insertInto("jobMaterial")
+                .values({
+                  companyId,
+                  createdBy: userId,
+                  description: firstTrackedEntity.sourceDocumentReadableId ?? "",
+                  estimatedQuantity: 0,
+                  itemId: firstTrackedEntity.sourceDocumentId!,
+                  jobId: jobMaterial.jobId!,
+                  jobMakeMethodId: jobMaterial.jobMakeMethodId,
+                  jobOperationId: jobMaterial.jobOperationId,
+                  itemType: jobMaterial.itemType,
+                  methodType: jobMaterial.methodType,
+                  quantity: 0,
+                  quantityIssued: totalChildQuantity,
+                  requiresBatchTracking: jobMaterial.requiresBatchTracking,
+                  requiresSerialTracking: jobMaterial.requiresSerialTracking,
+                  unitCost: itemCost?.unitCost,
+                })
+                .returning("id")
+                .executeTakeFirstOrThrow();
+
+              actualMaterialId = newJobMaterial.id!;
+
+              // Fetch the newly created jobMaterial
+              jobMaterial = await trx
+                .selectFrom("jobMaterial")
+                .where("id", "=", actualMaterialId)
+                .selectAll()
+                .executeTakeFirstOrThrow();
+            }
+          } else if (jobOperationId && itemId) {
+            // New behavior: create a jobMaterial on the fly
+            const jobOperation = await trx
+              .selectFrom("jobOperation")
+              .where("id", "=", jobOperationId)
+              .select(["jobId", "jobMakeMethodId"])
+              .executeTakeFirst();
+
+            if (!jobOperation) {
+              throw new Error("Job operation not found");
+            }
+
+            const item = await trx
+              .selectFrom("item")
+              .where("id", "=", itemId)
+              .select(["name", "type", "itemTrackingType", "defaultMethodType"])
+              .executeTakeFirst();
+
+            if (!item) {
+              throw new Error("Item not found");
+            }
+
             const totalChildQuantity = children.reduce((sum, child) => {
               return sum + Number(child.quantity);
             }, 0);
 
             const itemCost = await trx
               .selectFrom("itemCost")
-              .where("itemId", "=", firstTrackedEntity.sourceDocumentId!)
+              .where("itemId", "=", itemId)
               .select("unitCost")
               .executeTakeFirst();
 
@@ -1210,18 +1291,18 @@ serve(async (req: Request) => {
               .values({
                 companyId,
                 createdBy: userId,
-                description: firstTrackedEntity.sourceDocumentReadableId ?? "",
+                description: item.name ?? "",
                 estimatedQuantity: 0,
-                itemId: firstTrackedEntity.sourceDocumentId!,
-                jobId: jobMaterial.jobId!,
-                jobMakeMethodId: jobMaterial.jobMakeMethodId,
-                jobOperationId: jobMaterial.jobOperationId,
-                itemType: jobMaterial.itemType,
-                methodType: jobMaterial.methodType,
+                itemId: itemId,
+                jobId: jobOperation.jobId!,
+                jobMakeMethodId: jobOperation.jobMakeMethodId,
+                jobOperationId: jobOperationId,
+                itemType: item.type ?? "Part",
+                methodType: item.defaultMethodType ?? "Pick",
                 quantity: 0,
                 quantityIssued: totalChildQuantity,
-                requiresBatchTracking: jobMaterial.requiresBatchTracking,
-                requiresSerialTracking: jobMaterial.requiresSerialTracking,
+                requiresBatchTracking: item.itemTrackingType === "Batch",
+                requiresSerialTracking: item.itemTrackingType === "Serial",
                 unitCost: itemCost?.unitCost,
               })
               .returning("id")
@@ -1235,6 +1316,10 @@ serve(async (req: Request) => {
               .where("id", "=", actualMaterialId)
               .selectAll()
               .executeTakeFirstOrThrow();
+          }
+
+          if (!jobMaterial) {
+            throw new Error("Job material not found");
           }
 
           // Get item details
@@ -1276,7 +1361,7 @@ serve(async (req: Request) => {
               id: activityId,
               type: "Consume",
               sourceDocument: "Job Material",
-              sourceDocumentId: materialId,
+              sourceDocumentId: actualMaterialId,
               sourceDocumentReadableId: item?.readableIdWithRevision ?? "",
               attributes: {
                 Job: job?.id!,
@@ -1350,7 +1435,7 @@ serve(async (req: Request) => {
                   id: splitActivityId,
                   type: "Split",
                   sourceDocument: "Job Material",
-                  sourceDocumentId: materialId,
+                  sourceDocumentId: actualMaterialId,
                   attributes: {
                     "Original Quantity": Number(trackedEntity.quantity),
                     "Consumed Quantity": quantity,
