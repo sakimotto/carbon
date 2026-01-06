@@ -2,7 +2,6 @@ import { useCarbon } from "@carbon/auth";
 import type { RealtimeChannel, SupabaseClient } from "@supabase/supabase-js";
 import { REALTIME_SUBSCRIBE_STATES } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef } from "react";
-import useMount from "./useMount";
 
 interface UseRealtimeChannelOptions<TDeps extends any[]> {
   topic: string;
@@ -20,29 +19,49 @@ export const useRealtimeChannel = <TDeps extends any[]>(
 ) => {
   const { topic, setup, enabled = true, dependencies = [] } = options;
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const isTearingDownRef = useRef(false);
   const { carbon, isRealtimeAuthSet } = useCarbon();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: suppressed due to migration
   const memoSetup = useCallback(setup, [topic, ...dependencies]);
 
-  const teardown = useCallback(async () => {
-    console.log(`🌀 Tearing down realtime channel ${topic}...`);
-    const channel = channelRef.current;
-
-    if (!channel || !carbon) return;
-
-    try {
-      await carbon.removeChannel(channel); // prefer removeChannel always[web:14][web:37]
-    } catch (error) {
-      console.error(`❌ Error removing channel ${topic}:`, error);
-    } finally {
-      channelRef.current = null;
-    }
-  }, [carbon, topic]);
-
   // biome-ignore lint/correctness/useExhaustiveDependencies: suppressed due to migration
   useEffect(() => {
     if (!carbon) return;
+
+    // Define teardown inline - NOT in dependency array
+    const teardown = async () => {
+      // Re-entrancy guard
+      if (isTearingDownRef.current) {
+        console.log(
+          `🌀 Teardown already in progress for ${topic}, skipping...`
+        );
+        return;
+      }
+
+      console.log(`🌀 Tearing down realtime channel ${topic}...`);
+      const channel = channelRef.current;
+
+      if (!channel) return;
+
+      isTearingDownRef.current = true;
+
+      try {
+        // Add timeout to prevent hanging indefinitely
+        await Promise.race([
+          carbon.removeChannel(channel),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("Channel removal timeout")), 5000)
+          )
+        ]);
+      } catch (error) {
+        console.error(`❌ Error removing channel ${topic}:`, error);
+      } finally {
+        console.log(`🌀 Realtime channel ${topic} torn down.`);
+        channelRef.current = null;
+        isTearingDownRef.current = false;
+      }
+    };
 
     if (!isRealtimeAuthSet || !enabled) {
       // If disabled/auth lost, tear down any existing channel
@@ -90,19 +109,19 @@ export const useRealtimeChannel = <TDeps extends any[]>(
         );
       }
     })();
+
+    // Cleanup on unmount or dependency change
+    return () => {
+      void teardown();
+    };
   }, [
     carbon,
     isRealtimeAuthSet,
     enabled,
     topic,
-    memoSetup,
-    teardown
-    // dependencies are already in memoSetup, so not needed here
+    memoSetup
+    // teardown is NOT in dependencies - it's defined inline
   ]);
-
-  useMount(() => {
-    return () => void teardown();
-  });
 
   return channelRef;
 };
