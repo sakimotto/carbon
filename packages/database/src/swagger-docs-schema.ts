@@ -56679,6 +56679,102 @@ export default {
         tags: ["gauge"],
       },
     },
+    "/riskRegisters": {
+      get: {
+        parameters: [
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.id",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.companyId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.title",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.description",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.source",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.sourceId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.severity",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.likelihood",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.itemId",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.status",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.assignee",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.createdBy",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.createdAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.updatedAt",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.notes",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.type",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.workCenterName",
+          },
+          {
+            $ref: "#/parameters/rowFilter.riskRegisters.workCenterId",
+          },
+          {
+            $ref: "#/parameters/select",
+          },
+          {
+            $ref: "#/parameters/order",
+          },
+          {
+            $ref: "#/parameters/range",
+          },
+          {
+            $ref: "#/parameters/rangeUnit",
+          },
+          {
+            $ref: "#/parameters/offset",
+          },
+          {
+            $ref: "#/parameters/limit",
+          },
+          {
+            $ref: "#/parameters/preferCount",
+          },
+        ],
+        responses: {
+          "200": {
+            description: "OK",
+            schema: {
+              items: {
+                $ref: "#/definitions/riskRegisters",
+              },
+              type: "array",
+            },
+          },
+          "206": {
+            description: "Partial Content",
+          },
+        },
+        tags: ["riskRegisters"],
+      },
+    },
     "/trainingQuestion": {
       get: {
         parameters: [
@@ -91755,6 +91851,103 @@ export default {
       },
       type: "object",
     },
+    riskRegisters: {
+      properties: {
+        id: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "uuid",
+          type: "string",
+        },
+        companyId: {
+          description:
+            "Note:\nThis is a Foreign Key to `company.id`.<fk table='company' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        title: {
+          format: "text",
+          type: "string",
+        },
+        description: {
+          format: "text",
+          type: "string",
+        },
+        source: {
+          enum: [
+            "Customer",
+            "General",
+            "Item",
+            "Job",
+            "Quote Line",
+            "Supplier",
+            "Work Center",
+          ],
+          format: 'public."riskSource"',
+          type: "string",
+        },
+        sourceId: {
+          format: "text",
+          type: "string",
+        },
+        severity: {
+          format: "integer",
+          type: "integer",
+        },
+        likelihood: {
+          format: "integer",
+          type: "integer",
+        },
+        itemId: {
+          description:
+            "Note:\nThis is a Foreign Key to `item.id`.<fk table='item' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        status: {
+          enum: ["Open", "In Review", "Mitigating", "Closed", "Accepted"],
+          format: 'public."riskStatus"',
+          type: "string",
+        },
+        assignee: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        createdBy: {
+          description:
+            "Note:\nThis is a Foreign Key to `user.id`.<fk table='user' column='id'/>",
+          format: "text",
+          type: "string",
+        },
+        createdAt: {
+          format: "timestamp with time zone",
+          type: "string",
+        },
+        updatedAt: {
+          format: "timestamp with time zone",
+          type: "string",
+        },
+        notes: {
+          format: "json",
+        },
+        type: {
+          enum: ["Risk", "Opportunity"],
+          format: 'public."riskRegisterType"',
+          type: "string",
+        },
+        workCenterName: {
+          format: "text",
+          type: "string",
+        },
+        workCenterId: {
+          description: "Note:\nThis is a Primary Key.<pk/>",
+          format: "text",
+          type: "string",
+        },
+      },
+      type: "object",
+    },
     trainingQuestion: {
       required: [
         "id",
@@ -124025,6 +124218,123 @@ export default {
     },
     "rowFilter.gauge.lastCalibrationStatus": {
       name: "lastCalibrationStatus",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "body.riskRegisters": {
+      name: "riskRegisters",
+      description: "riskRegisters",
+      required: false,
+      in: "body",
+      schema: {
+        $ref: "#/definitions/riskRegisters",
+      },
+    },
+    "rowFilter.riskRegisters.id": {
+      name: "id",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.companyId": {
+      name: "companyId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.title": {
+      name: "title",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.description": {
+      name: "description",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.source": {
+      name: "source",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.sourceId": {
+      name: "sourceId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.severity": {
+      name: "severity",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.likelihood": {
+      name: "likelihood",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.itemId": {
+      name: "itemId",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.status": {
+      name: "status",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.assignee": {
+      name: "assignee",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.createdBy": {
+      name: "createdBy",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.createdAt": {
+      name: "createdAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.updatedAt": {
+      name: "updatedAt",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.notes": {
+      name: "notes",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.type": {
+      name: "type",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.workCenterName": {
+      name: "workCenterName",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.riskRegisters.workCenterId": {
+      name: "workCenterId",
       required: false,
       in: "query",
       type: "string",
