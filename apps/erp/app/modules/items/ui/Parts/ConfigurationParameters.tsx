@@ -1,5 +1,6 @@
 import {
   Array as ArrayInput,
+  Combobox,
   Hidden,
   Input,
   Select,
@@ -68,6 +69,8 @@ import {
 import { useFetcher, useFetchers, useParams, useSubmit } from "react-router";
 import { EmployeeAvatar } from "~/components";
 import { ConfiguratorDataTypeIcon } from "~/components/Configurator/Icons";
+import { Enumerable } from "~/components/Enumerable";
+import { useShape } from "~/components/Form/Shape";
 import { ConfirmDelete } from "~/components/Modals";
 import type { ConfigurationParameter } from "~/modules/items";
 import {
@@ -95,14 +98,17 @@ export default function ConfigurationParametersForm({
 }) {
   const {
     isList,
+    isMaterial,
     itemId,
     key,
     onChangeCheckForListType,
     setKey,
     setIsList,
+    setIsMaterial,
     updateKey
   } = useConfigurationParameters();
 
+  const materialShapeOptions = useShape();
   const submit = useSubmit();
   const fetcher = useFetcher<typeof configurationParameterAction>();
 
@@ -188,6 +194,7 @@ export default function ConfigurationParametersForm({
                 onSubmit={() => {
                   setKey("");
                   setIsList(false);
+                  setIsMaterial(false);
                 }}
                 defaultValues={{
                   itemId: itemId,
@@ -195,7 +202,8 @@ export default function ConfigurationParametersForm({
                   label: "",
                   dataType: "numeric",
                   listOptions: [],
-                  configurationParameterGroupId: undefined
+                  configurationParameterGroupId: undefined,
+                  materialFormFilterId: ""
                 }}
                 className="w-full"
               >
@@ -235,6 +243,18 @@ export default function ConfigurationParametersForm({
                     />
                     {isList && (
                       <ArrayInput name="listOptions" label="List Parameters" />
+                    )}
+                    {isMaterial && (
+                      <Combobox
+                        name="materialFormFilterId"
+                        label="Material Shape"
+                        isClearable
+                        isOptional
+                        options={materialShapeOptions.map((shape) => ({
+                          label: <Enumerable value={shape.label} />,
+                          value: shape.value
+                        }))}
+                      />
                     )}
                   </div>
                   <HStack spacing={2}>
@@ -777,9 +797,10 @@ function ConfigurableParameter({
   parameter: ConfigurationParameter;
   isOverlay?: boolean;
 }) {
-  const { isList, key, onChangeCheckForListType, updateKey } =
+  const { isList, isMaterial, key, onChangeCheckForListType, updateKey } =
     useConfigurationParameters(parameter);
 
+  const materialShapeOptions = useShape();
   const disclosure = useDisclosure();
   const deleteParameterDisclosure = useDisclosure();
   const submitted = useRef(false);
@@ -846,7 +867,8 @@ function ConfigurableParameter({
             key: parameter.key,
             label: parameter.label,
             dataType: parameter.dataType,
-            listOptions: parameter.listOptions ?? []
+            listOptions: parameter.listOptions ?? [],
+            materialFormFilterId: parameter.materialFormFilterId ?? undefined
           }}
         >
           <Hidden name="id" />
@@ -885,6 +907,18 @@ function ConfigurableParameter({
               />
               {isList && (
                 <ArrayInput name="listOptions" label="List Parameters" />
+              )}
+              {isMaterial && (
+                <Combobox
+                  name="materialFormFilterId"
+                  label="Material Shape"
+                  isOptional
+                  isClearable
+                  options={materialShapeOptions.map((shape) => ({
+                    label: <Enumerable value={shape.label} />,
+                    value: shape.value
+                  }))}
+                />
               )}
             </div>
             <HStack className="w-full justify-end" spacing={2}>
@@ -1042,7 +1076,9 @@ function useConfigurationParameters(parameter?: ConfigurationParameter) {
   if (!itemId) throw new Error("Could not find itemId");
   const [key, setKey] = useState(parameter?.key ?? "");
   const [isList, setIsList] = useState(parameter?.dataType === "list");
-
+  const [isMaterial, setIsMaterial] = useState(
+    parameter?.dataType === "material"
+  );
   const onChangeCheckForListType = (
     newValue: {
       value: string;
@@ -1052,6 +1088,7 @@ function useConfigurationParameters(parameter?: ConfigurationParameter) {
     if (!newValue) return;
     const type = newValue.value;
     setIsList(type === "list");
+    setIsMaterial(type === "material");
   };
 
   const updateKey = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1067,10 +1104,12 @@ function useConfigurationParameters(parameter?: ConfigurationParameter) {
   return {
     key,
     isList,
+    isMaterial,
     itemId,
     onChangeCheckForListType,
     setKey,
     setIsList,
+    setIsMaterial,
     updateKey
   };
 }

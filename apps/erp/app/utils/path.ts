@@ -83,6 +83,10 @@ export const path = {
       materialFinishes: (substanceId: string) =>
         generatePath(`${api}/items/finishes/${substanceId}`),
       materialForms: `${api}/items/forms`,
+      materials: (materialFormId?: string) =>
+        generatePath(
+          `${api}/items/materials${materialFormId ? `?materialFormId=${materialFormId}` : ""}`
+        ),
       materialGrades: (substanceId: string) =>
         generatePath(`${api}/items/grades/${substanceId}`),
       materialTypes: (substanceId: string, formId: string) =>

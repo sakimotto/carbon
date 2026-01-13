@@ -23,10 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
   Switch,
-  toast
+  toast,
+  useMount
 } from "@carbon/react";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { LuChevronDown, LuChevronUp, LuTriangleAlert } from "react-icons/lu";
+import { useFetcher } from "react-router";
 import { z } from "zod";
 import { zfd } from "zod-form-data";
 import type {
@@ -35,6 +37,7 @@ import type {
   MaterialConfigurationData
 } from "~/modules/items/types";
 import { useMaterials } from "~/stores/items";
+import { path } from "~/utils/path";
 
 interface FormData {
   [key: string]: string | number | boolean | MaterialConfigurationData;
@@ -83,9 +86,35 @@ function generateConfigurationSchema(parameters: ConfigurationParameter[]) {
   return z.object(schemaFields);
 }
 
+type MaterialOption = {
+  id: string;
+  name: string;
+  readableIdWithRevision: string;
+};
+
+function useMaterialsWithFilter(materialFormFilterId?: string | null) {
+  const allMaterials = useMaterials();
+  const materialsFetcher = useFetcher<{ data: MaterialOption[] }>();
+
+  useMount(() => {
+    if (materialFormFilterId) {
+      materialsFetcher.load(path.to.api.materials(materialFormFilterId));
+    }
+  });
+
+  const materials = useMemo(() => {
+    if (materialFormFilterId && materialsFetcher.data?.data) {
+      return materialsFetcher.data.data;
+    }
+    return allMaterials;
+  }, [materialFormFilterId, materialsFetcher.data?.data, allMaterials]);
+
+  return materials;
+}
+
 function ParameterField({ parameter }: ParameterFieldProps) {
   const { formData, setFormData } = useConfigurator();
-  const materials = useMaterials();
+  const materials = useMaterialsWithFilter(parameter.materialFormFilterId);
 
   const handleChange = (value: string | number | boolean) => {
     setFormData({ ...formData, [parameter.key]: value });
