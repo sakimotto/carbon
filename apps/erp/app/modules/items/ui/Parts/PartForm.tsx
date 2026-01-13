@@ -53,7 +53,7 @@ type PartFormProps = {
   onClose?: () => void;
 };
 
-const fileSizeLimitMb = 50;
+const fileSizeLimitMb = 120;
 
 function startsWithLetter(value: string) {
   return /^[A-Za-z]/.test(value);

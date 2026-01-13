@@ -10,7 +10,7 @@ type ModelUploadProps = {
   onFileChange: (file: File | null) => void;
 };
 
-const fileSizeLimitMb = 50;
+const fileSizeLimitMb = 120;
 const supportedModelTypes = ["stp", "step"];
 
 export const ModelUpload = ({

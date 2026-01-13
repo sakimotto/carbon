@@ -18,7 +18,7 @@ import { useFetcher } from "react-router";
 import { useUser } from "~/hooks";
 import { getPrivateUrl, path } from "~/utils/path";
 
-const fileSizeLimitMb = 50;
+const fileSizeLimitMb = 120;
 
 type CadModelProps = {
   modelPath: string | null;
