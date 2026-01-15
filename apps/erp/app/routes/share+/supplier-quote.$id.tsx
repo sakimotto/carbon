@@ -265,7 +265,6 @@ const NotesEditorModal = ({
     return (
       <>
         <Button
-          variant="secondary"
           className="mt-3"
           leftIcon={hasNotes ? <LuPencil /> : <LuCirclePlus />}
           variant={hasNotes ? "secondary" : "primary"}
