@@ -113,6 +113,7 @@ const BoMExplorer = ({
   if (!itemId) throw new Error("itemId not found");
   if (!methodId) throw new Error("methodId not found");
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: methods and selectNode cause re-renders
   useEffect(() => {
     if (selectedMaterialId) {
       const node = methods.find(
@@ -128,8 +129,16 @@ const BoMExplorer = ({
       if (node) {
         selectNode(node.id);
       }
+    } else if (params.methodId) {
+      // On initial load at the root manufacturing route, select the root method
+      const node = methods.find(
+        (m) => m.data.materialMakeMethodId === params.methodId
+      );
+      if (node) {
+        selectNode(node.id);
+      }
     }
-  }, [selectedMaterialId, params.makeMethodId, methods, selectNode]);
+  }, [selectedMaterialId, params.makeMethodId, params.methodId]);
 
   const importBomDisclosure = useDisclosure();
 
