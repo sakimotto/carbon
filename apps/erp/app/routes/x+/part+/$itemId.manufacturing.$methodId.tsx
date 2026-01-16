@@ -3,7 +3,14 @@ import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import { type JSONContent } from "@carbon/react";
 import type { LoaderFunctionArgs } from "react-router";
-import { Outlet, redirect, useLoaderData, useParams } from "react-router";
+import {
+  Outlet,
+  redirect,
+  useLoaderData,
+  useMatches,
+  useParams
+} from "react-router";
+import { Empty } from "~/components";
 import { ResizablePanels } from "~/components/Layout";
 import type { FlatTreeItem } from "~/components/TreeView";
 import { flattenTree } from "~/components/TreeView";
@@ -128,9 +135,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export default function PartManufacturing() {
   const { makeMethod, methods } = useLoaderData<typeof loader>();
 
+  const matches = useMatches();
   const params = useParams();
   const { itemId } = params;
   if (!itemId) throw new Error("Could not find itemId");
+
+  const content =
+    matches.at(-1)?.id === "routes/x+/part+/$itemId.manufacturing.$methodId" ? (
+      <Empty />
+    ) : (
+      <Outlet />
+    );
 
   return (
     <div className="flex h-[calc(100dvh-99px)] overflow-hidden w-full">
@@ -149,7 +164,7 @@ export default function PartManufacturing() {
           }
           content={
             <div className="h-[calc(100dvh-99px)] overflow-y-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-accent w-full">
-              <Outlet />
+              {content}
             </div>
           }
           properties={<PartProperties />}

@@ -72,6 +72,8 @@ const BoMExplorer = ({
     status: makeMethodStatus
   } = makeMethod;
 
+  const [selectedMaterialId, setSelectedMaterialId] = useBom();
+
   const {
     nodes,
     getTreeProps,
@@ -111,7 +113,6 @@ const BoMExplorer = ({
   if (!itemId) throw new Error("itemId not found");
   if (!methodId) throw new Error("methodId not found");
 
-  const [selectedMaterialId, setSelectedMaterialId] = useBom();
   useEffect(() => {
     if (selectedMaterialId) {
       const node = methods.find(
@@ -277,8 +278,10 @@ const BoMExplorer = ({
                         ) {
                           return;
                         }
+
                         selectNode(node.id);
                         setSelectedMaterialId(node.data.methodMaterialId);
+
                         if (node.data.isRoot) {
                           if (
                             location.pathname !==
