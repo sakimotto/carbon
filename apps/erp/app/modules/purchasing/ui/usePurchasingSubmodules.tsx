@@ -1,6 +1,7 @@
 import {
   LuContainer,
   LuCreditCard,
+  LuFileText,
   LuLayoutList,
   LuPackageSearch,
   LuShapes,
@@ -21,6 +22,12 @@ const purchasingRoutes: AuthenticatedRouteGroup[] = [
         to: path.to.suppliers,
         icon: <LuContainer />,
         table: "supplier"
+      },
+      {
+        name: "RFQs",
+        to: path.to.purchasingRfqs,
+        icon: <LuFileText />,
+        table: "purchasingRfq"
       },
       {
         name: "Quotes",

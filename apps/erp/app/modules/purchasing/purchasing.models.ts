@@ -382,3 +382,46 @@ export const supplierQuoteLineValidator = z.object({
     zfd.numeric(z.number().min(0.00001, { message: "Quantity is required" }))
   )
 });
+
+export const purchasingRfqStatusType = [
+  "Draft",
+  "Ready for request",
+  "Requested",
+  "Closed"
+] as const;
+
+export const purchasingRfqValidator = z.object({
+  id: zfd.text(z.string().optional()),
+  rfqId: zfd.text(z.string().optional()),
+  rfqDate: z.string().min(1, { message: "RFQ Date is required" }),
+  expirationDate: zfd.text(z.string().optional()),
+  locationId: zfd.text(z.string().optional()),
+  employeeId: zfd.text(z.string().optional()),
+  status: z.enum(purchasingRfqStatusType).optional(),
+  supplierIds: z
+    .array(z.string())
+    .min(1, { message: "At least one supplier is required" })
+});
+
+export const purchasingRfqLineValidator = z.object({
+  id: zfd.text(z.string().optional()),
+  purchasingRfqId: z.string().min(1, { message: "RFQ is required" }),
+  partNumber: zfd.text(z.string().optional()),
+  partRevision: zfd.text(z.string().optional()),
+  itemId: zfd.text(z.string().optional()),
+  description: zfd.text(z.string().optional()),
+  quantity: z.array(
+    zfd.numeric(z.number().min(0.00001, { message: "Quantity is required" }))
+  ),
+  unitOfMeasureCode: z
+    .string()
+    .min(1, { message: "Unit of measure is required" }),
+  order: zfd.numeric(z.number().min(0))
+});
+
+export const purchasingRfqSuppliersValidator = z.object({
+  purchasingRfqId: z.string().min(1, { message: "RFQ is required" }),
+  supplierIds: z
+    .array(z.string())
+    .min(1, { message: "At least one supplier is required" })
+});

@@ -97,6 +97,11 @@ export default function SupplierQuoteDetailsRoute() {
     quote: SupplierQuote;
     files: Promise<(FileObject & { quoteLineId: string | null })[]>;
     interaction: SupplierInteraction;
+    purchasingRfqs: {
+      id: string;
+      rfqId?: string;
+      status?: string;
+    }[];
   }>(path.to.supplierQuote(id));
 
   if (!routeData) throw new Error("Could not find quote data");
@@ -117,7 +122,10 @@ export default function SupplierQuoteDetailsRoute() {
 
   return (
     <>
-      <SupplierInteractionState interaction={routeData.interaction} />
+      <SupplierInteractionState
+        interaction={routeData.interaction}
+        purchasingRfqs={routeData.purchasingRfqs ?? []}
+      />
       <SupplierQuoteSummary />
       <SupplierInteractionNotes
         key={`notes-${initialValues.id}`}

@@ -33,6 +33,7 @@ import {
   LuEllipsisVertical,
   LuExternalLink,
   LuEye,
+  LuGitCompare,
   LuLoaderCircle,
   LuPanelLeft,
   LuPanelRight,
@@ -56,6 +57,7 @@ import type {
   SupplierQuoteLine,
   SupplierQuoteLinePrice
 } from "../../types";
+import SupplierQuoteCompareDrawer from "./SupplierQuoteCompareDrawer";
 import SupplierQuoteSendModal from "./SupplierQuoteSendModal";
 import SupplierQuoteStatus from "./SupplierQuoteStatus";
 import SupplierQuoteToOrderDrawer from "./SupplierQuoteToOrderDrawer";
@@ -72,12 +74,14 @@ const SupplierQuoteHeader = () => {
     lines: SupplierQuoteLine[];
     interaction: SupplierInteraction;
     prices: SupplierQuoteLinePrice[];
+    purchasingRfqs: { id: string; rfqId: string; status: string }[];
   }>(path.to.supplierQuote(id));
 
   const isOutsideProcessing =
     routeData?.quote?.supplierQuoteType === "Outside Processing";
 
   const convertToOrderModal = useDisclosure();
+  const compareModal = useDisclosure();
   const deleteModal = useDisclosure();
   const shareModal = useDisclosure();
   const finalizeModal = useDisclosure();
@@ -91,6 +95,9 @@ const SupplierQuoteHeader = () => {
   const quoteStatus: string = routeData?.quote?.status ?? "";
   const editableStatuses = ["Draft", "Declined"];
   const isEditableStatus = editableStatuses.includes(quoteStatus);
+
+  // Get the first linked RFQ ID for comparison
+  const linkedRfqId = routeData?.purchasingRfqs?.[0]?.id ?? null;
 
   const canSend =
     isEditableStatus && permissions.can("update", "purchasing") && hasLines;
@@ -215,6 +222,16 @@ const SupplierQuoteHeader = () => {
               </Button>
             )}
 
+            {routeData?.quote?.status === "Active" && linkedRfqId && (
+              <Button
+                variant="secondary"
+                leftIcon={<LuGitCompare />}
+                onClick={compareModal.onOpen}
+              >
+                Compare
+              </Button>
+            )}
+
             {routeData?.quote?.status === "Draft" && (
               <statusFetcher.Form
                 method="post"
@@ -317,6 +334,13 @@ const SupplierQuoteHeader = () => {
         onClose={shareModal.onClose}
         isOpen={shareModal.isOpen}
       />
+      {compareModal.isOpen && linkedRfqId && (
+        <SupplierQuoteCompareDrawer
+          isOpen={compareModal.isOpen}
+          onClose={compareModal.onClose}
+          purchasingRfqId={linkedRfqId}
+        />
+      )}
     </>
   );
 };

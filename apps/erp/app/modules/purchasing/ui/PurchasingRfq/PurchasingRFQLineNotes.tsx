@@ -23,21 +23,18 @@ import { useState } from "react";
 import { usePermissions, useUser } from "~/hooks";
 import { getPrivateUrl } from "~/utils/path";
 
-const SupplierInteractionNotes = ({
+const PurchasingRFQLineNotes = ({
   id,
   table,
   title,
+  subTitle,
   internalNotes: initialInternalNotes,
   externalNotes: initialExternalNotes
 }: {
   id: string | null;
-  table:
-    | "supplierQuote"
-    | "purchaseOrder"
-    | "receipt"
-    | "purchaseInvoice"
-    | "purchasingRfq";
+  table: "purchasingRfqLine";
   title: string;
+  subTitle: string;
   internalNotes?: JSONContent;
   externalNotes?: JSONContent;
 }) => {
@@ -58,7 +55,7 @@ const SupplierInteractionNotes = ({
 
   const onUploadImage = async (file: File) => {
     const fileType = file.name.split(".").pop();
-    const fileName = `${companyId}/supplier-interaction/${id}/${nanoid()}.${fileType}`;
+    const fileName = `${companyId}/purchasing-rfq-line/${id}/${nanoid()}.${fileType}`;
 
     const result = await carbon?.storage.from("private").upload(fileName, file);
 
@@ -114,11 +111,12 @@ const SupplierInteractionNotes = ({
             <CardHeader>
               <CardTitle>{title}</CardTitle>
               <CardDescription>
+                {subTitle} -{" "}
                 {tab === "internal" ? "Internal Notes" : "External Notes"}
               </CardDescription>
             </CardHeader>
             <CardAction>
-              {["purchaseOrder"].includes(table) && isEmployee && (
+              {isEmployee && (
                 <TabsList>
                   <TabsTrigger value="internal">Internal</TabsTrigger>
                   <TabsTrigger value="external">External</TabsTrigger>
@@ -128,7 +126,7 @@ const SupplierInteractionNotes = ({
           </HStack>
           <CardContent>
             <TabsContent value="internal">
-              {permissions.can("update", "sales") ? (
+              {permissions.can("update", "purchasing") ? (
                 <Editor
                   initialValue={(internalNotes ?? {}) as JSONContent}
                   onUpload={onUploadImage}
@@ -146,27 +144,25 @@ const SupplierInteractionNotes = ({
                 />
               )}
             </TabsContent>
-            {["purchaseOrder", "purchaseInvoice"].includes(table) && (
-              <TabsContent value="external">
-                {permissions.can("update", "sales") ? (
-                  <Editor
-                    initialValue={(externalNotes ?? {}) as JSONContent}
-                    onUpload={onUploadImage}
-                    onChange={(value) => {
-                      setExternalNotes(value);
-                      onUpdateExternalNotes(value);
-                    }}
-                  />
-                ) : (
-                  <div
-                    className="prose dark:prose-invert"
-                    dangerouslySetInnerHTML={{
-                      __html: generateHTML(externalNotes as JSONContent)
-                    }}
-                  />
-                )}
-              </TabsContent>
-            )}
+            <TabsContent value="external">
+              {permissions.can("update", "purchasing") ? (
+                <Editor
+                  initialValue={(externalNotes ?? {}) as JSONContent}
+                  onUpload={onUploadImage}
+                  onChange={(value) => {
+                    setExternalNotes(value);
+                    onUpdateExternalNotes(value);
+                  }}
+                />
+              ) : (
+                <div
+                  className="prose dark:prose-invert"
+                  dangerouslySetInnerHTML={{
+                    __html: generateHTML(externalNotes as JSONContent)
+                  }}
+                />
+              )}
+            </TabsContent>
           </CardContent>
         </Tabs>
       </Card>
@@ -174,4 +170,4 @@ const SupplierInteractionNotes = ({
   );
 };
 
-export default SupplierInteractionNotes;
+export default PurchasingRFQLineNotes;

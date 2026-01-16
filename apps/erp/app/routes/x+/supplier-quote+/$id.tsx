@@ -7,6 +7,7 @@ import { Outlet, redirect, useParams } from "react-router";
 import { PanelProvider, ResizablePanels } from "~/components/Layout/Panels";
 import { getCurrencyByCode } from "~/modules/accounting";
 import {
+  getLinkedPurchasingRfqs,
   getSupplierInteraction,
   getSupplierInteractionDocuments,
   getSupplierQuote,
@@ -36,10 +37,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (!id) throw new Error("Could not find id");
   const serviceRole = await getCarbonServiceRole();
 
-  const [quote, lines, prices] = await Promise.all([
+  const [quote, lines, prices, linkedRfqs] = await Promise.all([
     getSupplierQuote(serviceRole, id),
     getSupplierQuoteLines(serviceRole, id),
-    getSupplierQuoteLinePricesByQuoteId(serviceRole, id)
+    getSupplierQuoteLinePricesByQuoteId(serviceRole, id),
+    getLinkedPurchasingRfqs(serviceRole, id)
   ]);
 
   if (quote.error) {
@@ -72,6 +74,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     exchangeRate = presentationCurrency.data.exchangeRate;
   }
 
+  // Extract purchasing RFQs from the linked data
+  const purchasingRfqs =
+    linkedRfqs.data?.map((link) => link.purchasingRfq).filter(Boolean) ?? [];
+
   return {
     quote: quote.data,
     lines: lines.data ?? [],
@@ -82,7 +88,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       quote.data.supplierInteractionId!
     ),
     interaction: supplierInteraction.data,
-    exchangeRate
+    exchangeRate,
+    purchasingRfqs
   };
 }
 

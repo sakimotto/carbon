@@ -1672,3 +1672,356 @@ export async function upsertSupplierType(
       .eq("id", supplierType.id);
   }
 }
+
+// ============================================================
+// PURCHASING RFQ FUNCTIONS
+// ============================================================
+
+export async function deletePurchasingRFQ(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string
+) {
+  return client.from("purchasingRfq").delete().eq("id", purchasingRfqId);
+}
+
+export async function deletePurchasingRFQLine(
+  client: SupabaseClient<Database>,
+  purchasingRfqLineId: string
+) {
+  return client
+    .from("purchasingRfqLine")
+    .delete()
+    .eq("id", purchasingRfqLineId);
+}
+
+export async function getPurchasingRFQ(
+  client: SupabaseClient<Database>,
+  id: string
+) {
+  return client.from("purchasingRfqs").select("*").eq("id", id).single();
+}
+
+export async function getPurchasingRFQs(
+  client: SupabaseClient<Database>,
+  companyId: string,
+  args: GenericQueryFilters & {
+    search: string | null;
+  }
+) {
+  let query = client
+    .from("purchasingRfqs")
+    .select("*", { count: "exact" })
+    .eq("companyId", companyId);
+
+  if (args.search) {
+    query = query.ilike("rfqId", `%${args.search}%`);
+  }
+
+  query = setGenericQueryFilters(query, args, [
+    { column: "rfqId", ascending: false }
+  ]);
+  return query;
+}
+
+export async function getPurchasingRFQLine(
+  client: SupabaseClient<Database>,
+  lineId: string
+) {
+  return client
+    .from("purchasingRfqLines")
+    .select("*")
+    .eq("id", lineId)
+    .single();
+}
+
+export async function getPurchasingRFQLines(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string
+) {
+  return client
+    .from("purchasingRfqLines")
+    .select("*")
+    .eq("purchasingRfqId", purchasingRfqId)
+    .order("order", { ascending: true });
+}
+
+export async function getPurchasingRFQSuppliers(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string
+) {
+  return client
+    .from("purchasingRfqSupplier")
+    .select("*, supplier:supplierId(id, name)")
+    .eq("purchasingRfqId", purchasingRfqId);
+}
+
+export async function upsertPurchasingRFQ(
+  client: SupabaseClient<Database>,
+  purchasingRfq: {
+    id?: string;
+    rfqId: string;
+    rfqDate: string;
+    expirationDate?: string;
+    locationId?: string;
+    employeeId?: string;
+    status?: string;
+    companyId: string;
+    createdBy?: string;
+    updatedBy?: string;
+    customFields?: Json;
+  }
+) {
+  if (purchasingRfq.id) {
+    return client
+      .from("purchasingRfq")
+      .update(sanitize(purchasingRfq))
+      .eq("id", purchasingRfq.id)
+      .select("id")
+      .single();
+  }
+  return client
+    .from("purchasingRfq")
+    .insert([purchasingRfq])
+    .select("id")
+    .single();
+}
+
+export async function upsertPurchasingRFQLine(
+  client: SupabaseClient<Database>,
+  purchasingRfqLine: {
+    id?: string;
+    purchasingRfqId: string;
+    partNumber?: string;
+    partRevision?: string;
+    itemId?: string;
+    description?: string;
+    quantity: number[];
+    unitOfMeasureCode: string;
+    order: number;
+    companyId: string;
+    createdBy?: string;
+    updatedBy?: string;
+    customFields?: Json;
+  }
+) {
+  if (purchasingRfqLine.id) {
+    return client
+      .from("purchasingRfqLine")
+      .update(sanitize(purchasingRfqLine))
+      .eq("id", purchasingRfqLine.id)
+      .select("id")
+      .single();
+  }
+  return client
+    .from("purchasingRfqLine")
+    .insert([purchasingRfqLine])
+    .select("id")
+    .single();
+}
+
+export async function upsertPurchasingRFQSuppliers(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string,
+  supplierIds: string[],
+  companyId: string,
+  createdBy: string
+) {
+  // Delete existing suppliers for this RFQ
+  await client
+    .from("purchasingRfqSupplier")
+    .delete()
+    .eq("purchasingRfqId", purchasingRfqId);
+
+  // Insert new suppliers
+  if (supplierIds.length === 0) {
+    return { data: [], error: null };
+  }
+
+  const suppliersToInsert = supplierIds.map((supplierId) => ({
+    purchasingRfqId,
+    supplierId,
+    companyId,
+    createdBy
+  }));
+
+  return client
+    .from("purchasingRfqSupplier")
+    .insert(suppliersToInsert)
+    .select("id");
+}
+
+export async function updatePurchasingRFQStatus(
+  client: SupabaseClient<Database>,
+  args: {
+    id: string;
+    status: string;
+    assignee?: string | null;
+    updatedBy: string;
+  }
+) {
+  return client
+    .from("purchasingRfq")
+    .update({
+      status: args.status,
+      assignee: args.assignee,
+      updatedBy: args.updatedBy,
+      updatedAt: new Date().toISOString()
+    })
+    .eq("id", args.id)
+    .select("id")
+    .single();
+}
+
+export async function getPurchasingRFQLineDocuments(
+  client: SupabaseClient<Database>,
+  companyId: string,
+  lineId: string,
+  itemId?: string | null
+) {
+  const basePath = `${companyId}/purchasing-rfq/${lineId}`;
+
+  const { data, error } = await client.storage.from("private").list(basePath);
+
+  if (error) {
+    return [];
+  }
+
+  return data ?? [];
+}
+
+export async function getLinkedSupplierQuotes(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string
+) {
+  return client
+    .from("purchasingRfqToSupplierQuote")
+    .select(
+      `
+      supplierQuoteId,
+      supplierQuote:supplierQuoteId (
+        id,
+        supplierQuoteId,
+        revisionId,
+        status,
+        supplierId,
+        supplier:supplierId (name)
+      )
+    `
+    )
+    .eq("purchasingRfqId", purchasingRfqId);
+}
+
+export async function getLinkedPurchasingRfqs(
+  client: SupabaseClient<Database>,
+  supplierQuoteId: string
+) {
+  return client
+    .from("purchasingRfqToSupplierQuote")
+    .select(
+      `
+      purchasingRfqId,
+      purchasingRfq:purchasingRfqId (
+        id,
+        rfqId,
+        status
+      )
+    `
+    )
+    .eq("supplierQuoteId", supplierQuoteId);
+}
+
+export async function getLinkedPurchasingRfqsForInteraction(
+  client: SupabaseClient<Database>,
+  supplierInteractionId: string
+) {
+  // First get all supplier quote IDs in this interaction
+  const { data: quotes, error: quotesError } = await client
+    .from("supplierQuote")
+    .select("id")
+    .eq("supplierInteractionId", supplierInteractionId);
+
+  if (quotesError || !quotes || quotes.length === 0) {
+    return { data: [], error: quotesError };
+  }
+
+  const quoteIds = quotes.map((q) => q.id);
+
+  // Then get all purchasing RFQs linked to any of these quotes
+  return client
+    .from("purchasingRfqToSupplierQuote")
+    .select(
+      `
+      purchasingRfqId,
+      purchasingRfq:purchasingRfqId (
+        id,
+        rfqId,
+        status
+      )
+    `
+    )
+    .in("supplierQuoteId", quoteIds);
+}
+
+export async function getSupplierQuotesForComparison(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string
+) {
+  // 1. Get all supplier quote IDs linked to this RFQ with supplier info
+  const { data: links, error: linksError } = await client
+    .from("purchasingRfqToSupplierQuote")
+    .select(
+      `
+      supplierQuoteId,
+      supplierQuote:supplierQuoteId (
+        id,
+        supplierQuoteId,
+        revisionId,
+        status,
+        supplierId,
+        currencyCode,
+        exchangeRate,
+        supplier:supplierId (name)
+      )
+    `
+    )
+    .eq("purchasingRfqId", purchasingRfqId);
+
+  if (linksError || !links?.length) {
+    return { data: { quotes: [], lines: [], prices: [] }, error: linksError };
+  }
+
+  // Extract quotes and filter for Active status only
+  const allQuotes = links
+    .map((l) => l.supplierQuote)
+    .filter(
+      (q): q is NonNullable<typeof q> => q !== null && q.status === "Active"
+    );
+
+  if (allQuotes.length === 0) {
+    return { data: { quotes: [], lines: [], prices: [] }, error: null };
+  }
+
+  const activeQuoteIds = allQuotes
+    .map((q) => q.id)
+    .filter((id): id is string => !!id);
+
+  // 2. Fetch lines and pricing for all active quotes
+  const lines = await client
+    .from("supplierQuoteLines")
+    .select("*")
+    .in("supplierQuoteId", activeQuoteIds);
+
+  const prices = await client
+    .from("supplierQuoteLinePrice")
+    .select("*")
+    .in("supplierQuoteId", activeQuoteIds);
+
+  return {
+    data: {
+      quotes: allQuotes,
+      lines: lines.data ?? [],
+      prices: prices.data ?? []
+    },
+    error: lines.error || prices.error
+  };
+}
