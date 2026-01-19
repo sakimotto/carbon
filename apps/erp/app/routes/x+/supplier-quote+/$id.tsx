@@ -7,7 +7,6 @@ import { Outlet, redirect, useParams } from "react-router";
 import { PanelProvider, ResizablePanels } from "~/components/Layout/Panels";
 import { getCurrencyByCode } from "~/modules/accounting";
 import {
-  getLinkedPurchasingRfqs,
   getSiblingQuotesForQuote,
   getSupplierInteraction,
   getSupplierInteractionDocuments,
@@ -38,11 +37,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (!id) throw new Error("Could not find id");
   const serviceRole = await getCarbonServiceRole();
 
-  const [quote, lines, prices, linkedRfqs, siblingQuotes] = await Promise.all([
+  const [quote, lines, prices, siblingQuotes] = await Promise.all([
     getSupplierQuote(serviceRole, id),
     getSupplierQuoteLines(serviceRole, id),
     getSupplierQuoteLinePricesByQuoteId(serviceRole, id),
-    getLinkedPurchasingRfqs(serviceRole, id),
     getSiblingQuotesForQuote(serviceRole, id)
   ]);
 
@@ -76,10 +74,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     exchangeRate = presentationCurrency.data.exchangeRate;
   }
 
-  // Extract purchasing RFQs from the linked data
-  const purchasingRfqs =
-    linkedRfqs.data?.map((link) => link.purchasingRfq).filter(Boolean) ?? [];
-
   // Extract sibling quotes from the linked data
   const siblingQuotesData =
     siblingQuotes.data
@@ -102,7 +96,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ),
     interaction: supplierInteraction.data,
     exchangeRate,
-    purchasingRfqs,
     siblingQuotes: siblingQuotesData
   };
 }

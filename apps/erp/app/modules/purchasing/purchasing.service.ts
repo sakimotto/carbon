@@ -34,7 +34,7 @@ import {
   type supplierTypeValidator,
   type supplierValidator
 } from "./purchasing.models";
-import type { PurchaseOrder, SupplierQuote } from "./types";
+import type { PurchaseOrder, PurchasingRFQ, SupplierQuote } from "./types";
 
 export async function closePurchaseOrder(
   client: SupabaseClient<Database>,
@@ -429,6 +429,7 @@ export async function getSupplierInteraction(
   PostgrestSingleResponse<{
     id: string;
     companyId: string;
+    purchasingRfq: PurchasingRFQ | null;
     supplierQuotes: SupplierQuote[];
     purchaseOrders: PurchaseOrder[];
     purchaseInvoices: PurchaseInvoice[];
@@ -455,6 +456,7 @@ export async function getSupplierInteraction(
   } as unknown as PostgrestSingleResponse<{
     id: string;
     companyId: string;
+    purchasingRfq: PurchasingRFQ;
     supplierQuotes: SupplierQuote[];
     purchaseOrders: PurchaseOrder[];
     purchaseInvoices: PurchaseInvoice[];
@@ -1891,14 +1893,7 @@ export async function getLinkedSupplierQuotes(
     .select(
       `
       supplierQuoteId,
-      supplierQuote:supplierQuoteId (
-        id,
-        supplierQuoteId,
-        revisionId,
-        status,
-        supplierId,
-        supplier:supplierId (name)
-      )
+      supplierQuote:supplierQuoteId (*, supplier:supplierId (*))
     `
     )
     .eq("purchasingRfqId", purchasingRfqId);
@@ -1913,11 +1908,7 @@ export async function getLinkedPurchasingRfqs(
     .select(
       `
       purchasingRfqId,
-      purchasingRfq:purchasingRfqId (
-        id,
-        rfqId,
-        status
-      )
+      purchasingRfq:purchasingRfqId (*)
     `
     )
     .eq("supplierQuoteId", supplierQuoteId);
@@ -1945,11 +1936,7 @@ export async function getLinkedPurchasingRfqsForInteraction(
     .select(
       `
       purchasingRfqId,
-      purchasingRfq:purchasingRfqId (
-        id,
-        rfqId,
-        status
-      )
+      purchasingRfq:purchasingRfqId (*)
     `
     )
     .in("supplierQuoteId", quoteIds);
@@ -1978,14 +1965,7 @@ export async function getSiblingQuotesForQuote(
     .select(
       `
       supplierQuoteId,
-      supplierQuote:supplierQuoteId (
-        id,
-        supplierQuoteId,
-        revisionId,
-        status,
-        supplierId,
-        supplier:supplierId (name)
-      )
+      supplierQuote:supplierQuoteId (*, supplier:supplierId (*))
     `
     )
     .in("purchasingRfqId", rfqIds)
@@ -2002,7 +1982,7 @@ export async function getLinkedPurchasingRfqsForOrder(
     .select(
       `
       purchasingRfqId,
-      purchasingRfq:purchasingRfqId (id, rfqId, status)
+      purchasingRfq:purchasingRfqId (*)
     `
     )
     .eq("purchaseOrderId", purchaseOrderId);
@@ -2018,16 +1998,7 @@ export async function getSupplierQuotesForComparison(
     .select(
       `
       supplierQuoteId,
-      supplierQuote:supplierQuoteId (
-        id,
-        supplierQuoteId,
-        revisionId,
-        status,
-        supplierId,
-        currencyCode,
-        exchangeRate,
-        supplier:supplierId (name)
-      )
+      supplierQuote:supplierQuoteId (*, supplier:supplierId (*))
     `
     )
     .eq("purchasingRfqId", purchasingRfqId);

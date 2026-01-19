@@ -26,9 +26,8 @@ type LinkedSupplierQuote = {
 };
 
 type SupplierInteractionStateProps = {
-  // For use from supplier quote / purchase order (has interaction)
+  // For use from supplier quote / purchase order (has interaction with optional purchasingRfq)
   interaction?: SupplierInteraction | null;
-  purchasingRfqs?: LinkedPurchasingRFQ[];
   // For use from purchasing RFQ (has current RFQ)
   currentRfq?: LinkedPurchasingRFQ | null;
   linkedQuotes?: LinkedSupplierQuote[];
@@ -55,7 +54,6 @@ const states = ["RFQ", "Quote", "Order", "Invoice"];
 
 const SupplierInteractionState = ({
   interaction,
-  purchasingRfqs = [],
   currentRfq,
   linkedQuotes = [],
   siblingQuotes = []
@@ -66,8 +64,12 @@ const SupplierInteractionState = ({
   // Determine if we're in "RFQ mode" (viewing from purchasing RFQ) or "interaction mode" (viewing from quote/order)
   const isRfqMode = currentRfq !== undefined && currentRfq !== null;
 
-  // Combine RFQ sources: currentRfq for RFQ mode, purchasingRfqs for interaction mode
-  const rfqs = isRfqMode ? [currentRfq] : purchasingRfqs;
+  // Get RFQ: currentRfq for RFQ mode, interaction.purchasingRfq for interaction mode
+  const rfqs = isRfqMode
+    ? [currentRfq]
+    : interaction?.purchasingRfq
+      ? [interaction.purchasingRfq]
+      : [];
   const hasRfqs = rfqs.length > 0;
 
   // Combine quote sources:

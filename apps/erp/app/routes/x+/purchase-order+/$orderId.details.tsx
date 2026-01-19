@@ -121,12 +121,9 @@ export default function PurchaseOrderBasicRoute() {
     purchaseOrderDelivery: PurchaseOrderDelivery;
     lines: PurchaseOrderLine[];
     files: Promise<FileObject[]>;
-    interaction: SupplierInteraction;
-    purchasingRfqs: {
-      id: string;
-      rfqId?: string;
-      status?: string;
-    }[];
+    interaction: SupplierInteraction & {
+      purchasingRfq?: { id: string; rfqId: string; status: string } | null;
+    };
   }>(path.to.purchaseOrder(orderId));
   if (!orderData) throw new Error("Could not find order data");
 
@@ -188,10 +185,7 @@ export default function PurchaseOrderBasicRoute() {
 
   return (
     <>
-      <SupplierInteractionState
-        interaction={orderData.interaction}
-        purchasingRfqs={orderData.purchasingRfqs ?? []}
-      />
+      <SupplierInteractionState interaction={orderData.interaction} />
       <PurchaseOrderSummary onEditShippingCost={handleEditShippingCost} />
       <SupplierInteractionNotes
         key={`notes-${initialValues.id}`}

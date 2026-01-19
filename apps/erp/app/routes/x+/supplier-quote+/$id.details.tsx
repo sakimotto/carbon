@@ -96,12 +96,9 @@ export default function SupplierQuoteDetailsRoute() {
   const routeData = useRouteData<{
     quote: SupplierQuote;
     files: Promise<(FileObject & { quoteLineId: string | null })[]>;
-    interaction: SupplierInteraction;
-    purchasingRfqs: {
-      id: string;
-      rfqId?: string;
-      status?: string;
-    }[];
+    interaction: SupplierInteraction & {
+      purchasingRfq?: { id: string; rfqId: string; status: string } | null;
+    };
     siblingQuotes: {
       id: string;
       supplierQuoteId?: string;
@@ -132,7 +129,6 @@ export default function SupplierQuoteDetailsRoute() {
     <>
       <SupplierInteractionState
         interaction={routeData.interaction}
-        purchasingRfqs={routeData.purchasingRfqs ?? []}
         siblingQuotes={routeData.siblingQuotes ?? []}
       />
       <SupplierQuoteSummary />

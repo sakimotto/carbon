@@ -55214,6 +55214,7 @@ export type Database = {
           id: string
           purchaseInvoices: Json
           purchaseOrders: Json
+          purchasingRfq: Json
           supplierId: string
           supplierQuotes: Json
         }[]
