@@ -24,6 +24,7 @@ import { Empty, ItemThumbnail } from "~/components";
 import { usePermissions, useRouteData } from "~/hooks";
 import type { MethodItemType } from "~/modules/shared";
 import { path } from "~/utils/path";
+import { isRfqLocked } from "../../purchasing.models";
 import type { PurchasingRFQ, PurchasingRFQLine } from "../../types";
 import DeletePurchasingRFQLine from "./DeletePurchasingRFQLine";
 import PurchasingRFQLineForm from "./PurchasingRFQLineForm";
@@ -61,8 +62,6 @@ export default function PurchasingRFQExplorer() {
 
   const purchasingRfqLineInitialValues = {
     purchasingRfqId: rfqId,
-    partNumber: "",
-    partRevision: "",
     description: "",
     itemId: "",
     quantity: [1],
@@ -70,9 +69,7 @@ export default function PurchasingRFQExplorer() {
     unitOfMeasureCode: "EA"
   };
 
-  const isDisabled = ["Requested", "Closed"].includes(
-    purchasingRfqData?.rfqSummary.status ?? ""
-  );
+  const isDisabled = isRfqLocked(purchasingRfqData?.rfqSummary.status);
 
   const lines = purchasingRfqData?.lines ?? [];
 

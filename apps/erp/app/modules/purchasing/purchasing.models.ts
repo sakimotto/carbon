@@ -406,9 +406,7 @@ export const purchasingRfqValidator = z.object({
 export const purchasingRfqLineValidator = z.object({
   id: zfd.text(z.string().optional()),
   purchasingRfqId: z.string().min(1, { message: "RFQ is required" }),
-  partNumber: zfd.text(z.string().optional()),
-  partRevision: zfd.text(z.string().optional()),
-  itemId: zfd.text(z.string().optional()),
+  itemId: z.string().min(1, { message: "Part is required" }),
   description: zfd.text(z.string().optional()),
   quantity: z.array(
     zfd.numeric(z.number().min(0.00001, { message: "Quantity is required" }))
@@ -425,3 +423,19 @@ export const purchasingRfqSuppliersValidator = z.object({
     .array(z.string())
     .min(1, { message: "At least one supplier is required" })
 });
+
+// RFQ Status Helpers
+export const PURCHASING_RFQ_EDITABLE_STATUSES = ["Draft"] as const;
+export const PURCHASING_RFQ_LOCKED_STATUSES = ["Requested", "Closed"] as const;
+
+export function isRfqEditable(status: string | null | undefined): boolean {
+  return PURCHASING_RFQ_EDITABLE_STATUSES.includes(
+    status as (typeof PURCHASING_RFQ_EDITABLE_STATUSES)[number]
+  );
+}
+
+export function isRfqLocked(status: string | null | undefined): boolean {
+  return PURCHASING_RFQ_LOCKED_STATUSES.includes(
+    status as (typeof PURCHASING_RFQ_LOCKED_STATUSES)[number]
+  );
+}

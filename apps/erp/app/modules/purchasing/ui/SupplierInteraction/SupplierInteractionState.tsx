@@ -32,6 +32,8 @@ type SupplierInteractionStateProps = {
   // For use from purchasing RFQ (has current RFQ)
   currentRfq?: LinkedPurchasingRFQ | null;
   linkedQuotes?: LinkedSupplierQuote[];
+  // For use from quote view: sibling quotes (other quotes from same RFQ)
+  siblingQuotes?: LinkedSupplierQuote[];
 };
 
 function getSupplierInteractionIcon(state: string) {
@@ -55,7 +57,8 @@ const SupplierInteractionState = ({
   interaction,
   purchasingRfqs = [],
   currentRfq,
-  linkedQuotes = []
+  linkedQuotes = [],
+  siblingQuotes = []
 }: SupplierInteractionStateProps) => {
   const { pathname } = useOptimisticLocation();
   const navigate = useNavigate();
@@ -67,15 +70,24 @@ const SupplierInteractionState = ({
   const rfqs = isRfqMode ? [currentRfq] : purchasingRfqs;
   const hasRfqs = rfqs.length > 0;
 
-  // Combine quote sources: linkedQuotes for RFQ mode, interaction.supplierQuotes for interaction mode
+  // Combine quote sources:
+  // - RFQ mode: use linkedQuotes (quotes linked to current RFQ)
+  // - Quote mode (siblingQuotes provided): combine current quote with siblings
+  // - Order mode: use interaction.supplierQuotes (shows parent quote)
+  const interactionQuotes =
+    interaction?.supplierQuotes?.map((q) => ({
+      id: q.id!,
+      supplierQuoteId: q.supplierQuoteId ?? undefined,
+      revisionId: q.revisionId ?? undefined,
+      status: q.status ?? undefined,
+      supplierId: q.supplierId ?? undefined
+    })) ?? [];
+
   const quotes = isRfqMode
     ? linkedQuotes
-    : (interaction?.supplierQuotes?.map((q) => ({
-        id: q.id!,
-        supplierQuoteId: q.supplierQuoteId ?? undefined,
-        revisionId: q.revisionId ?? undefined,
-        status: q.status ?? undefined
-      })) ?? []);
+    : siblingQuotes.length > 0
+      ? [...interactionQuotes, ...siblingQuotes]
+      : interactionQuotes;
   const hasQuotes = quotes.length > 0;
 
   // Orders and invoices only from interaction

@@ -139,9 +139,7 @@ CREATE POLICY "Employees with purchasing_delete can delete purchasingRfqSupplier
 CREATE TABLE "purchasingRfqLine" (
   "id" TEXT NOT NULL DEFAULT xid(),
   "purchasingRfqId" TEXT NOT NULL,
-  "itemId" TEXT,
-  "partNumber" TEXT,
-  "partRevision" TEXT,
+  "itemId" TEXT NOT NULL,
   "description" TEXT,
   "quantity" NUMERIC(20, 2)[] DEFAULT ARRAY[1]::NUMERIC(20, 2)[],
   "unitOfMeasureCode" TEXT NOT NULL,
@@ -284,6 +282,7 @@ CREATE OR REPLACE VIEW "purchasingRfqs" WITH(SECURITY_INVOKER=true) AS
     rfq.*,
     l."name" AS "locationName",
     (SELECT COUNT(*) FROM "purchasingRfqSupplier" rs WHERE rs."purchasingRfqId" = rfq.id) AS "supplierCount",
+    (SELECT COALESCE(array_agg(s."name" ORDER BY s."name"), ARRAY[]::TEXT[]) FROM "purchasingRfqSupplier" rs JOIN "supplier" s ON s.id = rs."supplierId" WHERE rs."purchasingRfqId" = rfq.id) AS "supplierNames",
     EXISTS(SELECT 1 FROM "purchasingRfqFavorite" rf WHERE rf."rfqId" = rfq.id AND rf."userId" = auth.uid()::text) AS favorite
   FROM "purchasingRfq" rfq
   LEFT JOIN "location" l ON l.id = rfq."locationId";

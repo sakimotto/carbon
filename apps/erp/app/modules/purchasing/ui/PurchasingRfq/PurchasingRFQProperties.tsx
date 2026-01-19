@@ -23,6 +23,7 @@ import type { action } from "~/routes/x+/items+/update";
 import { useSuppliers } from "~/stores";
 import { path } from "~/utils/path";
 import { copyToClipboard } from "~/utils/string";
+import { isRfqEditable } from "../../purchasing.models";
 import type { PurchasingRFQ, PurchasingRFQSupplier } from "../../types";
 import { SupplierForm } from "../Supplier";
 
@@ -131,7 +132,7 @@ const PurchasingRFQProperties = () => {
 
   const isDisabled =
     !permissions.can("update", "purchasing") ||
-    !["Draft"].includes(routeData?.rfqSummary?.status ?? "");
+    !isRfqEditable(routeData?.rfqSummary?.status);
 
   return (
     <VStack
@@ -193,6 +194,44 @@ const PurchasingRFQProperties = () => {
         variant="inline"
         isReadOnly={!permissions.can("update", "purchasing")}
       />
+
+      <ValidatedForm
+        defaultValues={{
+          supplierIds: currentSupplierIds
+        }}
+        validator={z.object({
+          supplierIds: z.array(z.string()).optional()
+        })}
+        className="w-full"
+      >
+        <CreatableMultiSelect
+          name="supplierIds"
+          label="Suppliers"
+          options={supplierOptions}
+          value={currentSupplierIds}
+          isReadOnly={isDisabled}
+          disabled={isDisabled}
+          onChange={(selected) => {
+            onUpdateSuppliers(selected);
+          }}
+          onCreateOption={(option) => {
+            newSupplierModal.onOpen();
+            setCreated(option);
+          }}
+        />
+        {newSupplierModal.isOpen && (
+          <SupplierForm
+            type="modal"
+            onClose={() => {
+              setCreated("");
+              newSupplierModal.onClose();
+            }}
+            initialValues={{
+              name: created
+            }}
+          />
+        )}
+      </ValidatedForm>
 
       <ValidatedForm
         defaultValues={{
@@ -274,43 +313,6 @@ const PurchasingRFQProperties = () => {
             }
           }}
         />
-      </ValidatedForm>
-
-      <ValidatedForm
-        defaultValues={{
-          supplierIds: currentSupplierIds
-        }}
-        validator={z.object({
-          supplierIds: z.array(z.string()).optional()
-        })}
-        className="w-full"
-      >
-        <CreatableMultiSelect
-          name="supplierIds"
-          label="Suppliers"
-          options={supplierOptions}
-          value={currentSupplierIds}
-          isReadOnly={isDisabled}
-          onChange={(selected) => {
-            onUpdateSuppliers(selected);
-          }}
-          onCreateOption={(option) => {
-            newSupplierModal.onOpen();
-            setCreated(option);
-          }}
-        />
-        {newSupplierModal.isOpen && (
-          <SupplierForm
-            type="modal"
-            onClose={() => {
-              setCreated("");
-              newSupplierModal.onClose();
-            }}
-            initialValues={{
-              name: created
-            }}
-          />
-        )}
       </ValidatedForm>
 
       <CustomFormInlineFields

@@ -25241,10 +25241,8 @@ export type Database = {
           externalNotes: Json | null
           id: string
           internalNotes: Json | null
-          itemId: string | null
+          itemId: string
           order: number
-          partNumber: string | null
-          partRevision: string | null
           purchasingRfqId: string
           quantity: number[] | null
           unitOfMeasureCode: string
@@ -25260,10 +25258,8 @@ export type Database = {
           externalNotes?: Json | null
           id?: string
           internalNotes?: Json | null
-          itemId?: string | null
+          itemId: string
           order?: number
-          partNumber?: string | null
-          partRevision?: string | null
           purchasingRfqId: string
           quantity?: number[] | null
           unitOfMeasureCode: string
@@ -25279,10 +25275,8 @@ export type Database = {
           externalNotes?: Json | null
           id?: string
           internalNotes?: Json | null
-          itemId?: string | null
+          itemId?: string
           order?: number
-          partNumber?: string | null
-          partRevision?: string | null
           purchasingRfqId?: string
           quantity?: number[] | null
           unitOfMeasureCode?: string
@@ -46184,14 +46178,14 @@ export type Database = {
           },
           {
             foreignKeyName: "partner_id_fkey"
-            columns: ["supplierLocationId"]
+            columns: ["id"]
             isOneToOne: false
             referencedRelation: "supplierLocation"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "partner_id_fkey"
-            columns: ["id"]
+            columns: ["supplierLocationId"]
             isOneToOne: false
             referencedRelation: "supplierLocation"
             referencedColumns: ["id"]
@@ -47959,8 +47953,6 @@ export type Database = {
           itemType: Database["public"]["Enums"]["itemType"] | null
           modelPath: string | null
           order: number | null
-          partNumber: string | null
-          partRevision: string | null
           purchasingRfqId: string | null
           quantity: number[] | null
           thumbnailPath: string | null
@@ -48145,6 +48137,7 @@ export type Database = {
           rfqId: string | null
           status: Database["public"]["Enums"]["purchasingRfqStatus"] | null
           supplierCount: number | null
+          supplierNames: string[] | null
           updatedAt: string | null
           updatedBy: string | null
         }
@@ -51181,14 +51174,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["paymentCountryCode"]
+            columns: ["customerCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
           },
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["customerCountryCode"]
+            columns: ["paymentCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]

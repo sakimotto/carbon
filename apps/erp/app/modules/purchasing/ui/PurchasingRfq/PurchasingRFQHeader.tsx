@@ -21,6 +21,7 @@ import {
   ModalFooter,
   ModalHeader,
   ModalTitle,
+  toast,
   useDisclosure,
   useMount,
   VStack
@@ -46,6 +47,7 @@ import { usePanels } from "~/components/Layout";
 import ConfirmDelete from "~/components/Modals/ConfirmDelete";
 import { usePermissions, useRouteData, useUser } from "~/hooks";
 import { path } from "~/utils/path";
+import { isRfqEditable } from "../../purchasing.models";
 import type { PurchasingRFQ, PurchasingRFQLine } from "../../types";
 import { SupplierQuoteCompareDrawer } from "../SupplierQuote";
 import PurchasingRFQStatus from "./PurchasingRFQStatus";
@@ -131,7 +133,7 @@ const PurchasingRFQHeader = () => {
               <input type="hidden" name="status" value="Ready for request" />
               <Button
                 isDisabled={
-                  status !== "Draft" ||
+                  !isRfqEditable(status) ||
                   routeData?.lines?.length === 0 ||
                   !permissions.can("update", "purchasing")
                 }
@@ -140,7 +142,7 @@ const PurchasingRFQHeader = () => {
                   statusFetcher.formData?.get("status") === "Ready for request"
                 }
                 leftIcon={<LuCircleCheck />}
-                variant={status === "Draft" ? "primary" : "secondary"}
+                variant={isRfqEditable(status) ? "primary" : "secondary"}
                 type="submit"
               >
                 Ready to Send
@@ -149,12 +151,12 @@ const PurchasingRFQHeader = () => {
           ) : (
             <Button
               isDisabled={
-                status !== "Draft" ||
+                !isRfqEditable(status) ||
                 routeData?.lines?.length === 0 ||
                 !permissions.can("update", "purchasing")
               }
               leftIcon={<LuCircleCheck />}
-              variant={status === "Draft" ? "primary" : "secondary"}
+              variant={isRfqEditable(status) ? "primary" : "secondary"}
               onClick={requiresSuppliersAlert.onOpen}
             >
               Ready to Send
@@ -312,10 +314,15 @@ function NoQuoteReasonModal({
   const { carbon } = useCarbon();
   const fetchReasons = async () => {
     if (!carbon) return;
-    const { data } = await carbon
+    const { data, error } = await carbon
       .from("noQuoteReason")
       .select("*")
       .eq("companyId", user.company.id);
+
+    if (error) {
+      toast.error("Failed to load no-quote reasons");
+      return;
+    }
 
     setNoQuoteReasons(
       data?.map((reason) => ({ label: reason.name, value: reason.id })) ?? []
@@ -437,10 +444,15 @@ function ConvertToSupplierQuotesModal({
           <Alert variant="warning">
             <LuTriangleAlert className="h-4 w-4" />
             <AlertTitle>
-              These suppliers can provide the parts in this RFQ
+              Please make sure these suppliers can provide the parts listed in
+              this RFQ
             </AlertTitle>
             <AlertDescription>
-              {suppliers.map((s) => s.supplier?.name).join(", ")}
+              <ul className="list-disc list-inside mt-2">
+                {suppliers.map((s) => (
+                  <li key={s.id}>{s.supplier?.name}</li>
+                ))}
+              </ul>
             </AlertDescription>
           </Alert>
         </ModalBody>

@@ -14,24 +14,25 @@ import { sanitize } from "~/utils/supabase";
 import { getCurrencyByCode } from "../accounting/accounting.service";
 import type { PurchaseInvoice } from "../invoicing/types";
 import { upsertExternalLink } from "../shared/shared.service";
-import type {
-  purchaseOrderDeliveryValidator,
-  purchaseOrderLineValidator,
-  purchaseOrderPaymentValidator,
-  purchaseOrderStatusType,
-  purchaseOrderValidator,
-  selectedLinesValidator,
-  supplierAccountingValidator,
-  supplierContactValidator,
-  supplierPaymentValidator,
-  supplierProcessValidator,
-  supplierQuoteLineValidator,
-  supplierQuoteStatusType,
-  supplierQuoteValidator,
-  supplierShippingValidator,
-  supplierStatusValidator,
-  supplierTypeValidator,
-  supplierValidator
+import {
+  type purchaseOrderDeliveryValidator,
+  type purchaseOrderLineValidator,
+  type purchaseOrderPaymentValidator,
+  type purchaseOrderStatusType,
+  type purchaseOrderValidator,
+  purchasingRfqStatusType,
+  type selectedLinesValidator,
+  type supplierAccountingValidator,
+  type supplierContactValidator,
+  type supplierPaymentValidator,
+  type supplierProcessValidator,
+  type supplierQuoteLineValidator,
+  type supplierQuoteStatusType,
+  type supplierQuoteValidator,
+  type supplierShippingValidator,
+  type supplierStatusValidator,
+  type supplierTypeValidator,
+  type supplierValidator
 } from "./purchasing.models";
 import type { PurchaseOrder, SupplierQuote } from "./types";
 
@@ -1764,7 +1765,7 @@ export async function upsertPurchasingRFQ(
     expirationDate?: string;
     locationId?: string;
     employeeId?: string;
-    status?: string;
+    status?: (typeof purchasingRfqStatusType)[number];
     companyId: string;
     createdBy?: string;
     updatedBy?: string;
@@ -1788,23 +1789,32 @@ export async function upsertPurchasingRFQ(
 
 export async function upsertPurchasingRFQLine(
   client: SupabaseClient<Database>,
-  purchasingRfqLine: {
-    id?: string;
-    purchasingRfqId: string;
-    partNumber?: string;
-    partRevision?: string;
-    itemId?: string;
-    description?: string;
-    quantity: number[];
-    unitOfMeasureCode: string;
-    order: number;
-    companyId: string;
-    createdBy?: string;
-    updatedBy?: string;
-    customFields?: Json;
-  }
+  purchasingRfqLine:
+    | {
+        purchasingRfqId: string;
+        itemId: string;
+        description?: string;
+        quantity: number[];
+        unitOfMeasureCode: string;
+        order: number;
+        companyId: string;
+        createdBy: string;
+        customFields?: Json;
+      }
+    | {
+        id: string;
+        purchasingRfqId: string;
+        itemId: string;
+        description?: string;
+        quantity: number[];
+        unitOfMeasureCode: string;
+        order: number;
+        companyId: string;
+        updatedBy: string;
+        customFields?: Json;
+      }
 ) {
-  if (purchasingRfqLine.id) {
+  if ("id" in purchasingRfqLine) {
     return client
       .from("purchasingRfqLine")
       .update(sanitize(purchasingRfqLine))
@@ -1854,7 +1864,7 @@ export async function updatePurchasingRFQStatus(
   client: SupabaseClient<Database>,
   args: {
     id: string;
-    status: string;
+    status: (typeof purchasingRfqStatusType)[number];
     assignee?: string | null;
     updatedBy: string;
   }
@@ -1870,23 +1880,6 @@ export async function updatePurchasingRFQStatus(
     .eq("id", args.id)
     .select("id")
     .single();
-}
-
-export async function getPurchasingRFQLineDocuments(
-  client: SupabaseClient<Database>,
-  companyId: string,
-  lineId: string,
-  itemId?: string | null
-) {
-  const basePath = `${companyId}/purchasing-rfq/${lineId}`;
-
-  const { data, error } = await client.storage.from("private").list(basePath);
-
-  if (error) {
-    return [];
-  }
-
-  return data ?? [];
 }
 
 export async function getLinkedSupplierQuotes(
@@ -1960,6 +1953,59 @@ export async function getLinkedPurchasingRfqsForInteraction(
     `
     )
     .in("supplierQuoteId", quoteIds);
+}
+
+// Get sibling quotes (quotes sharing any RFQ with current quote)
+export async function getSiblingQuotesForQuote(
+  client: SupabaseClient<Database>,
+  supplierQuoteId: string
+) {
+  // First get all RFQ IDs linked to this quote
+  const { data: linkedRfqs, error: rfqError } = await client
+    .from("purchasingRfqToSupplierQuote")
+    .select("purchasingRfqId")
+    .eq("supplierQuoteId", supplierQuoteId);
+
+  if (rfqError || !linkedRfqs || linkedRfqs.length === 0) {
+    return { data: [], error: rfqError };
+  }
+
+  const rfqIds = linkedRfqs.map((r) => r.purchasingRfqId);
+
+  // Get all quotes linked to any of these RFQs (excluding current quote)
+  return client
+    .from("purchasingRfqToSupplierQuote")
+    .select(
+      `
+      supplierQuoteId,
+      supplierQuote:supplierQuoteId (
+        id,
+        supplierQuoteId,
+        revisionId,
+        status,
+        supplierId,
+        supplier:supplierId (name)
+      )
+    `
+    )
+    .in("purchasingRfqId", rfqIds)
+    .neq("supplierQuoteId", supplierQuoteId);
+}
+
+// Direct Order→RFQ lookup (more efficient than going through interaction)
+export async function getLinkedPurchasingRfqsForOrder(
+  client: SupabaseClient<Database>,
+  purchaseOrderId: string
+) {
+  return client
+    .from("purchasingRfqToPurchaseOrder")
+    .select(
+      `
+      purchasingRfqId,
+      purchasingRfq:purchasingRfqId (id, rfqId, status)
+    `
+    )
+    .eq("purchaseOrderId", purchaseOrderId);
 }
 
 export async function getSupplierQuotesForComparison(

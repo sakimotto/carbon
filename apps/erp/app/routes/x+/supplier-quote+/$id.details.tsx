@@ -102,6 +102,14 @@ export default function SupplierQuoteDetailsRoute() {
       rfqId?: string;
       status?: string;
     }[];
+    siblingQuotes: {
+      id: string;
+      supplierQuoteId?: string;
+      revisionId?: number;
+      status?: string;
+      supplierId?: string;
+      supplier?: { name: string } | null;
+    }[];
   }>(path.to.supplierQuote(id));
 
   if (!routeData) throw new Error("Could not find quote data");
@@ -125,6 +133,7 @@ export default function SupplierQuoteDetailsRoute() {
       <SupplierInteractionState
         interaction={routeData.interaction}
         purchasingRfqs={routeData.purchasingRfqs ?? []}
+        siblingQuotes={routeData.siblingQuotes ?? []}
       />
       <SupplierQuoteSummary />
       <SupplierInteractionNotes

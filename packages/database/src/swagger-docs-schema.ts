@@ -421,12 +421,6 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLines.itemId",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLines.partNumber",
-          },
-          {
-            $ref: "#/parameters/rowFilter.purchasingRfqLines.partRevision",
-          },
-          {
             $ref: "#/parameters/rowFilter.purchasingRfqLines.description",
           },
           {
@@ -12280,12 +12274,6 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.itemId",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.partNumber",
-          },
-          {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.partRevision",
-          },
-          {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.description",
           },
           {
@@ -12390,12 +12378,6 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.itemId",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.partNumber",
-          },
-          {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.partRevision",
-          },
-          {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.description",
           },
           {
@@ -12452,12 +12434,6 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.itemId",
-          },
-          {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.partNumber",
-          },
-          {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.partRevision",
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.description",
@@ -23861,6 +23837,9 @@ export default {
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqs.supplierCount",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqs.supplierNames",
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqs.favorite",
@@ -66310,14 +66289,6 @@ export default {
           format: "text",
           type: "string",
         },
-        partNumber: {
-          format: "text",
-          type: "string",
-        },
-        partRevision: {
-          format: "text",
-          type: "string",
-        },
         description: {
           format: "text",
           type: "string",
@@ -71981,6 +71952,7 @@ export default {
       required: [
         "id",
         "purchasingRfqId",
+        "itemId",
         "unitOfMeasureCode",
         "order",
         "companyId",
@@ -72002,14 +71974,6 @@ export default {
         itemId: {
           description:
             "Note:\nThis is a Foreign Key to `item.id`.<fk table='item' column='id'/>",
-          format: "text",
-          type: "string",
-        },
-        partNumber: {
-          format: "text",
-          type: "string",
-        },
-        partRevision: {
           format: "text",
           type: "string",
         },
@@ -77197,6 +77161,13 @@ export default {
         supplierCount: {
           format: "bigint",
           type: "integer",
+        },
+        supplierNames: {
+          format: "text[]",
+          items: {
+            type: "string",
+          },
+          type: "array",
         },
         favorite: {
           format: "boolean",
@@ -95687,18 +95658,6 @@ export default {
       in: "query",
       type: "string",
     },
-    "rowFilter.purchasingRfqLines.partNumber": {
-      name: "partNumber",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.purchasingRfqLines.partRevision": {
-      name: "partRevision",
-      required: false,
-      in: "query",
-      type: "string",
-    },
     "rowFilter.purchasingRfqLines.description": {
       name: "description",
       required: false,
@@ -102206,18 +102165,6 @@ export default {
       in: "query",
       type: "string",
     },
-    "rowFilter.purchasingRfqLine.partNumber": {
-      name: "partNumber",
-      required: false,
-      in: "query",
-      type: "string",
-    },
-    "rowFilter.purchasingRfqLine.partRevision": {
-      name: "partRevision",
-      required: false,
-      in: "query",
-      type: "string",
-    },
     "rowFilter.purchasingRfqLine.description": {
       name: "description",
       required: false,
@@ -108026,6 +107973,12 @@ export default {
     },
     "rowFilter.purchasingRfqs.supplierCount": {
       name: "supplierCount",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.purchasingRfqs.supplierNames": {
+      name: "supplierNames",
       required: false,
       in: "query",
       type: "string",

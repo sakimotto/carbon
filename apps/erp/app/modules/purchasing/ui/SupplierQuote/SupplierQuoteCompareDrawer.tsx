@@ -182,7 +182,7 @@ const SupplierQuoteCompareDrawer = ({
         }
       }}
     >
-      <DrawerContent size="full">
+      <DrawerContent size="xl">
         <DrawerHeader>
           <HStack className="w-full justify-between">
             <HStack>
@@ -505,7 +505,7 @@ const ComparisonView = ({
               Line Item Comparison
             </Heading>
 
-            <div className="w-full overflow-x-auto">
+            <div className="w-full overflow-x-auto border border-border rounded-md">
               <Table>
                 <Thead>
                   <Tr>
@@ -748,57 +748,59 @@ const LinePricingOptions = ({
         }
       }}
     >
-      <Table>
-        <Thead>
-          <Tr>
-            <Th></Th>
-            <Th>Quantity</Th>
-            <Th>Unit Price</Th>
-            <Th>Shipping</Th>
-            <Th>Lead Time</Th>
-            <Th>Tax</Th>
-            <Th>Total Price</Th>
-          </Tr>
-        </Thead>
-        <Tbody>
-          {!Array.isArray(options) || options.length === 0 ? (
+      <div className="w-full border border-border rounded-md overflow-hidden">
+        <Table className=" w-full ">
+          <Thead>
             <Tr>
-              <Td colSpan={7} className="text-center py-8">
-                No pricing options found
-              </Td>
+              <Th></Th>
+              <Th>Quantity</Th>
+              <Th>Unit Price</Th>
+              <Th>Shipping</Th>
+              <Th>Lead Time</Th>
+              <Th>Tax</Th>
+              <Th>Total Price</Th>
             </Tr>
-          ) : (
-            options.map((option) => (
-              <Tr key={option.quantity}>
-                <Td>
-                  <RadioGroupItem
-                    value={option.quantity.toString()}
-                    id={`${line.id}:${option.quantity.toString()}`}
-                  />
-                  <label
-                    htmlFor={`${line.id}:${option.quantity.toString()}`}
-                    className="sr-only"
-                  >
-                    {option.quantity}
-                  </label>
-                </Td>
-                <Td>{option.quantity}</Td>
-                <Td>{formatter.format(option.supplierUnitPrice ?? 0)}</Td>
-                <Td>{formatter.format(option.supplierShippingCost ?? 0)}</Td>
-                <Td>{option.leadTime ?? 0} days</Td>
-                <Td>{formatter.format(option.supplierTaxAmount ?? 0)}</Td>
-                <Td>
-                  {formatter.format(
-                    (option.supplierUnitPrice ?? 0) * option.quantity +
-                      (option.supplierShippingCost ?? 0) +
-                      (option.supplierTaxAmount ?? 0)
-                  )}
+          </Thead>
+          <Tbody>
+            {!Array.isArray(options) || options.length === 0 ? (
+              <Tr>
+                <Td colSpan={7} className="text-center py-8">
+                  No pricing options found
                 </Td>
               </Tr>
-            ))
-          )}
-        </Tbody>
-      </Table>
+            ) : (
+              options.map((option) => (
+                <Tr key={option.quantity}>
+                  <Td>
+                    <RadioGroupItem
+                      value={option.quantity.toString()}
+                      id={`${line.id}:${option.quantity.toString()}`}
+                    />
+                    <label
+                      htmlFor={`${line.id}:${option.quantity.toString()}`}
+                      className="sr-only"
+                    >
+                      {option.quantity}
+                    </label>
+                  </Td>
+                  <Td>{option.quantity}</Td>
+                  <Td>{formatter.format(option.supplierUnitPrice ?? 0)}</Td>
+                  <Td>{formatter.format(option.supplierShippingCost ?? 0)}</Td>
+                  <Td>{option.leadTime ?? 0} days</Td>
+                  <Td>{formatter.format(option.supplierTaxAmount ?? 0)}</Td>
+                  <Td>
+                    {formatter.format(
+                      (option.supplierUnitPrice ?? 0) * option.quantity +
+                        (option.supplierShippingCost ?? 0) +
+                        (option.supplierTaxAmount ?? 0)
+                    )}
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </Tbody>
+        </Table>
+      </div>
     </RadioGroup>
   );
 };

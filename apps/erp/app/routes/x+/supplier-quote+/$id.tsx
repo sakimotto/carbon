@@ -8,6 +8,7 @@ import { PanelProvider, ResizablePanels } from "~/components/Layout/Panels";
 import { getCurrencyByCode } from "~/modules/accounting";
 import {
   getLinkedPurchasingRfqs,
+  getSiblingQuotesForQuote,
   getSupplierInteraction,
   getSupplierInteractionDocuments,
   getSupplierQuote,
@@ -37,11 +38,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if (!id) throw new Error("Could not find id");
   const serviceRole = await getCarbonServiceRole();
 
-  const [quote, lines, prices, linkedRfqs] = await Promise.all([
+  const [quote, lines, prices, linkedRfqs, siblingQuotes] = await Promise.all([
     getSupplierQuote(serviceRole, id),
     getSupplierQuoteLines(serviceRole, id),
     getSupplierQuoteLinePricesByQuoteId(serviceRole, id),
-    getLinkedPurchasingRfqs(serviceRole, id)
+    getLinkedPurchasingRfqs(serviceRole, id),
+    getSiblingQuotesForQuote(serviceRole, id)
   ]);
 
   if (quote.error) {
@@ -78,6 +80,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const purchasingRfqs =
     linkedRfqs.data?.map((link) => link.purchasingRfq).filter(Boolean) ?? [];
 
+  // Extract sibling quotes from the linked data
+  const siblingQuotesData =
+    siblingQuotes.data
+      ?.map((link) => link.supplierQuote)
+      .filter(Boolean)
+      // Deduplicate by quote ID (a quote might be linked to multiple shared RFQs)
+      .filter(
+        (quote, index, self) =>
+          self.findIndex((q) => q?.id === quote?.id) === index
+      ) ?? [];
+
   return {
     quote: quote.data,
     lines: lines.data ?? [],
@@ -89,7 +102,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ),
     interaction: supplierInteraction.data,
     exchangeRate,
-    purchasingRfqs
+    purchasingRfqs,
+    siblingQuotes: siblingQuotesData
   };
 }
 

@@ -6,7 +6,7 @@ import type { LoaderFunctionArgs } from "react-router";
 import { Outlet, redirect, useParams } from "react-router";
 import { PanelProvider, ResizablePanels } from "~/components/Layout/Panels";
 import {
-  getLinkedPurchasingRfqsForInteraction,
+  getLinkedPurchasingRfqsForOrder,
   getPurchaseOrder,
   getPurchaseOrderDelivery,
   getPurchaseOrderLines,
@@ -73,12 +73,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ? getSupplier(client, purchaseOrder.data.supplierId)
       : null,
     getSupplierInteraction(client, purchaseOrder.data.supplierInteractionId),
-    purchaseOrder.data.supplierInteractionId
-      ? getLinkedPurchasingRfqsForInteraction(
-          client,
-          purchaseOrder.data.supplierInteractionId
-        )
-      : { data: [] }
+    // Use direct Order→RFQ lookup (more efficient than going through interaction)
+    getLinkedPurchasingRfqsForOrder(client, orderId)
   ]);
 
   // Extract purchasing RFQs from the linked data

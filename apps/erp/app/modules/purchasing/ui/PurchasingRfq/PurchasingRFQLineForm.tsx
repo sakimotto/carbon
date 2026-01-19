@@ -70,15 +70,13 @@ const PurchasingRFQLineForm = ({
   const isEditing = initialValues.id !== undefined;
 
   const [itemData, setItemData] = useState<{
-    partNumber: string;
-    partRevision: string;
     itemId: string;
+    itemReadableId: string;
     description: string;
     unitOfMeasureCode: string;
   }>({
-    partNumber: initialValues.partNumber ?? "",
-    partRevision: initialValues.partRevision ?? "",
     itemId: initialValues.itemId ?? "",
+    itemReadableId: "",
     description: initialValues.description ?? "",
     unitOfMeasureCode: initialValues.unitOfMeasureCode ?? "EA"
   });
@@ -88,7 +86,7 @@ const PurchasingRFQLineForm = ({
 
     const item = await carbon
       .from("item")
-      .select("name, unitOfMeasureCode")
+      .select("name, readableIdWithRevision, unitOfMeasureCode")
       .eq("id", itemId)
       .eq("companyId", company.id)
       .single();
@@ -101,6 +99,7 @@ const PurchasingRFQLineForm = ({
     const newItemData = {
       ...itemData,
       itemId,
+      itemReadableId: item.data?.readableIdWithRevision ?? "",
       description: item.data?.name ?? "",
       unitOfMeasureCode: item.data?.unitOfMeasureCode ?? "EA"
     };
@@ -137,11 +136,7 @@ const PurchasingRFQLineForm = ({
                 <ModalCardHeader>
                   <ModalCardTitle>
                     {isEditing
-                      ? `${itemData?.partNumber}${
-                          itemData?.partRevision
-                            ? `.${itemData?.partRevision}`
-                            : ""
-                        }`
+                      ? itemData?.itemReadableId || "RFQ Line"
                       : "New RFQ Line"}
                   </ModalCardTitle>
                   <ModalCardDescription>
@@ -189,30 +184,8 @@ const PurchasingRFQLineForm = ({
                 <VStack>
                   <div className="grid w-full gap-x-8 gap-y-4 grid-cols-1 lg:grid-cols-3">
                     <div className="col-span-2 grid w-full gap-x-8 gap-y-4 grid-cols-1 lg:grid-cols-2 auto-rows-min">
-                      <InputControlled
-                        name="partNumber"
-                        label="Part Number"
-                        value={itemData.partNumber}
-                        onChange={(newValue) => {
-                          setItemData((d) => ({
-                            ...d,
-                            partNumber: newValue
-                          }));
-                        }}
-                        autoFocus
-                      />
-                      <InputControlled
-                        name="partRevision"
-                        label="Part Revision"
-                        value={itemData.partRevision}
-                        onChange={(newValue) => {
-                          setItemData((d) => ({
-                            ...d,
-                            partRevision: newValue
-                          }));
-                        }}
-                      />
                       <Item
+                        autoFocus
                         name="itemId"
                         label="Part"
                         type="Part"

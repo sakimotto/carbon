@@ -1,4 +1,12 @@
-import { HStack, MenuIcon, MenuItem, useDisclosure } from "@carbon/react";
+import {
+  HStack,
+  MenuIcon,
+  MenuItem,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  useDisclosure
+} from "@carbon/react";
 import { formatDate } from "@carbon/utils";
 import type { ColumnDef } from "@tanstack/react-table";
 import { memo, useMemo, useState } from "react";
@@ -59,11 +67,34 @@ const PurchasingRFQsTable = memo(
           }
         },
         {
-          accessorKey: "supplierCount",
+          accessorKey: "supplierNames",
           header: "Suppliers",
-          cell: (item) => {
-            const count = item.getValue<number>();
-            return <span>{count ?? 0}</span>;
+          cell: ({ row }) => {
+            const names = row.original.supplierNames ?? [];
+            if (names.length === 0) {
+              return <span className="text-muted-foreground">—</span>;
+            }
+            if (names.length === 1) {
+              return <span>{names[0]}</span>;
+            }
+            const remaining = names.length - 1;
+            return (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help">
+                    {names[0]}{" "}
+                    <span className="text-muted-foreground">+{remaining}</span>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex flex-col gap-1">
+                    {names.map((name) => (
+                      <span key={name}>{name}</span>
+                    ))}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            );
           },
           meta: {
             icon: <LuContainer />

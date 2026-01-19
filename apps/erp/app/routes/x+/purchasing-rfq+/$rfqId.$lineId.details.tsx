@@ -3,26 +3,17 @@ import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import { validationError, validator } from "@carbon/form";
 import type { JSONContent } from "@carbon/react";
-import { Spinner } from "@carbon/react";
-import { Fragment, Suspense } from "react";
+import { Fragment } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import {
-  Await,
-  Outlet,
-  redirect,
-  useLoaderData,
-  useParams
-} from "react-router";
+import { Outlet, redirect, useLoaderData, useParams } from "react-router";
 import { CadModel } from "~/components";
 import { usePermissions } from "~/hooks";
 import {
   getPurchasingRFQLine,
-  getPurchasingRFQLineDocuments,
   purchasingRfqLineValidator,
   upsertPurchasingRFQLine
 } from "~/modules/purchasing";
 import {
-  PurchasingRFQLineDocuments,
   PurchasingRFQLineForm,
   PurchasingRFQLineNotes
 } from "~/modules/purchasing/ui/PurchasingRfq";
@@ -30,7 +21,7 @@ import { setCustomFields } from "~/utils/form";
 import { path } from "~/utils/path";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  const { companyId } = await requirePermissions(request, {
+  await requirePermissions(request, {
     view: "purchasing"
   });
 
@@ -49,11 +40,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     );
   }
 
-  const itemId = line.data.itemId;
-
   return {
-    line: line.data,
-    files: getPurchasingRFQLineDocuments(serviceRole, companyId, lineId, itemId)
+    line: line.data
   };
 };
 
@@ -99,7 +87,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function PurchasingRFQLine() {
-  const { line, files } = useLoaderData<typeof loader>();
+  const { line } = useLoaderData<typeof loader>();
 
   const permissions = usePermissions();
 
@@ -131,26 +119,6 @@ export default function PurchasingRFQLine() {
         internalNotes={line.internalNotes as JSONContent}
         externalNotes={line.externalNotes as JSONContent}
       />
-
-      <Suspense
-        fallback={
-          <div className="flex w-full h-full rounded bg-gradient-to-tr from-background to-card items-center justify-center">
-            <Spinner className="h-10 w-10" />
-          </div>
-        }
-      >
-        <Await resolve={files}>
-          {(resolvedFiles) => (
-            <PurchasingRFQLineDocuments
-              files={resolvedFiles ?? []}
-              id={rfqId}
-              lineId={lineId}
-              itemId={line?.itemId}
-              type="Request for Quote"
-            />
-          )}
-        </Await>
-      </Suspense>
       <CadModel
         isReadOnly={!permissions.can("update", "purchasing")}
         metadata={{

@@ -2,7 +2,7 @@ export { default as DeletePurchasingRFQLine } from "./DeletePurchasingRFQLine";
 export { default as PurchasingRFQExplorer } from "./PurchasingRFQExplorer";
 export { default as PurchasingRFQForm } from "./PurchasingRFQForm";
 export { default as PurchasingRFQHeader } from "./PurchasingRFQHeader";
-export { default as PurchasingRFQLineDocuments } from "./PurchasingRFQLineDocuments";
+
 export { default as PurchasingRFQLineForm } from "./PurchasingRFQLineForm";
 export { default as PurchasingRFQLineNotes } from "./PurchasingRFQLineNotes";
 export { default as PurchasingRFQProperties } from "./PurchasingRFQProperties";
