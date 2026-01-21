@@ -1,6 +1,5 @@
 import type { Database } from "@carbon/database";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { getUserGroups } from "~/modules/users/users.server";
 import type { GenericQueryFilters } from "~/utils/query";
 import { setGenericQueryFilters } from "~/utils/query";
 import { sanitize } from "~/utils/supabase";
@@ -31,7 +30,7 @@ export async function canViewApprovalRequest(
     return false;
   }
 
-  const userGroups = await getUserGroups(client, userId);
+  const userGroups = await client.rpc("groups_for_user", { uid: userId });
   const userGroupIds = userGroups.data || [];
   return approverGroupIds.some((groupId) => userGroupIds.includes(groupId));
 }
@@ -50,7 +49,7 @@ export async function canApproveRequest(
     return false;
   }
 
-  const userGroups = await getUserGroups(client, userId);
+  const userGroups = await client.rpc("groups_for_user", { uid: userId });
   const userGroupIds = userGroups.data || [];
   return approverGroupIds.some((groupId) => userGroupIds.includes(groupId));
 }
@@ -71,7 +70,7 @@ export async function getApprovalsForUser(
   companyId: string,
   args?: GenericQueryFilters & ApprovalFilters
 ) {
-  const userGroups = await getUserGroups(client, userId);
+  const userGroups = await client.rpc("groups_for_user", { uid: userId });
   const groupIds = userGroups.data || [];
 
   let query = client
@@ -119,7 +118,7 @@ export async function getPendingApprovalsForApprover(
   userId: string,
   companyId: string
 ) {
-  const userGroups = await getUserGroups(client, userId);
+  const userGroups = await client.rpc("groups_for_user", { uid: userId });
   const groupIds = userGroups.data || [];
 
   let query = client
@@ -409,7 +408,7 @@ export async function getApprovalCounts(
   userId: string,
   companyId: string
 ) {
-  const userGroups = await getUserGroups(client, userId);
+  const userGroups = await client.rpc("groups_for_user", { uid: userId });
   const groupIds = userGroups.data || [];
 
   let pendingQuery = client
