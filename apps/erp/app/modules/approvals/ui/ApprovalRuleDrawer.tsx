@@ -1,8 +1,10 @@
 import {
+  Boolean as FormBoolean,
   Number as FormNumber,
   Hidden,
   Input,
   MultiSelect,
+  SelectControlled,
   Submit,
   ValidatedForm
 } from "@carbon/form";
@@ -15,8 +17,9 @@ import {
   DrawerHeader,
   DrawerTitle,
   HStack,
-  Switch
+  VStack
 } from "@carbon/react";
+import { useState } from "react";
 import { User } from "~/components/Form";
 import { usePermissions } from "~/hooks";
 import {
@@ -28,8 +31,9 @@ import { path } from "~/utils/path";
 
 type ApprovalRuleDrawerProps = {
   rule: ApprovalRule | null;
-  documentType: ApprovalDocumentType;
+  documentType: ApprovalDocumentType | null;
   groups: Array<{ id: string; name: string }>;
+  canEdit?: boolean;
   onClose: () => void;
 };
 
@@ -37,16 +41,31 @@ const ApprovalRuleDrawer = ({
   rule,
   documentType,
   groups,
+  canEdit = true,
   onClose
 }: ApprovalRuleDrawerProps) => {
   const permissions = usePermissions();
   const isEditing = !!rule;
-  const isDisabled = !permissions.can("update", "settings");
+  const isDisabled =
+    !permissions.can("update", "settings") || (isEditing && !canEdit);
+
+  const [selectedDocumentType, setSelectedDocumentType] =
+    useState<ApprovalDocumentType | null>(documentType || null);
 
   const groupOptions = groups.map((g) => ({
     value: g.id,
     label: g.name
   }));
+
+  const documentTypeOptions: Array<{
+    value: ApprovalDocumentType;
+    label: string;
+  }> = [
+    { value: "purchaseOrder", label: "Purchase Order" },
+    { value: "qualityDocument", label: "Quality Document" }
+  ];
+
+  const effectiveDocumentType = rule?.documentType || selectedDocumentType;
 
   const defaultValues = rule
     ? {
@@ -64,7 +83,7 @@ const ApprovalRuleDrawer = ({
       }
     : {
         name: "",
-        documentType,
+        documentType: selectedDocumentType || undefined,
         enabled: true,
         approverGroupIds: [],
         lowerBoundAmount: 0,
@@ -80,8 +99,8 @@ const ApprovalRuleDrawer = ({
           method="post"
           action={
             isEditing
-              ? path.to.approvalRule(rule!.id!)
-              : path.to.newApprovalRule(documentType)
+              ? path.to.approvalRule(rule.id)
+              : path.to.newApprovalRule()
           }
           defaultValues={defaultValues}
           className="flex flex-col h-full"
@@ -92,28 +111,57 @@ const ApprovalRuleDrawer = ({
             </DrawerTitle>
           </DrawerHeader>
           <DrawerBody>
-            <div className="flex flex-col gap-6">
+            <VStack spacing={4} className="items-stretch">
               {isEditing && rule?.id && <Hidden name="id" value={rule.id} />}
-              <Hidden name="documentType" value={documentType} />
+
+              {!isEditing && (
+                <SelectControlled
+                  name="documentType"
+                  label="Document Type"
+                  options={documentTypeOptions}
+                  value={selectedDocumentType || ""}
+                  onChange={(option) => {
+                    if (option) {
+                      setSelectedDocumentType(
+                        option.value as ApprovalDocumentType
+                      );
+                    }
+                  }}
+                />
+              )}
+
+              {isEditing && effectiveDocumentType && (
+                <Hidden name="documentType" value={effectiveDocumentType} />
+              )}
+
+              <FormBoolean
+                name="enabled"
+                label="Enabled"
+                helperText="Enable this rule to automatically require approval for matching documents"
+                variant="large"
+              />
+
               <Input name="name" label="Rule Name" required />
-              <Switch name="enabled" label="Enabled" />
+
               <MultiSelect
                 name="approverGroupIds"
                 label="Approver Groups"
-                placeholder="Select groups"
+                placeholder="Select approver groups"
                 options={groupOptions}
               />
+
               <User
                 name="defaultApproverId"
                 label="Default Approver"
-                placeholder="Select a user"
+                placeholder="Select a default approver"
               />
-              {documentType === "purchaseOrder" && (
+
+              {/* Purchase Order Specific Fields */}
+              {effectiveDocumentType === "purchaseOrder" && (
                 <>
                   <FormNumber
                     name="lowerBoundAmount"
-                    label="Lower Bound Amount"
-                    helperText="Minimum amount (inclusive) for this rule"
+                    label="Minimum Amount"
                     step={100}
                     formatOptions={{
                       style: "currency",
@@ -123,8 +171,7 @@ const ApprovalRuleDrawer = ({
 
                   <FormNumber
                     name="upperBoundAmount"
-                    label="Upper Bound Amount"
-                    helperText="Maximum amount (exclusive) for this rule. Leave empty for no upper limit."
+                    label="Maximum Amount (Optional)"
                     step={100}
                     formatOptions={{
                       style: "currency",
@@ -133,12 +180,13 @@ const ApprovalRuleDrawer = ({
                   />
                 </>
               )}
+
               <FormNumber
                 name="escalationDays"
                 label="Escalation Days"
-                helperText="Auto-escalate after this many days (leave empty to disable)"
+                helperText="Automatically escalate approval requests after this many days. Leave empty to disable escalation."
               />
-            </div>
+            </VStack>
           </DrawerBody>
           <DrawerFooter>
             <HStack>

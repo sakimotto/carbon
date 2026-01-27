@@ -26,9 +26,7 @@ export const approvalRequestValidator = z.object({
 });
 
 export const approvalDecisionValidator = z.object({
-  id: zfd.text(
-    z.string().min(1, { message: "Approval request ID is required" })
-  ),
+  id: zfd.text(z.string().optional()),
   decision: z.enum(["Approved", "Rejected"], {
     errorMap: () => ({ message: "Decision is required" })
   }),
@@ -44,7 +42,7 @@ export const approvalRuleValidator = z.object({
   documentType: z.enum(approvalDocumentType, {
     errorMap: () => ({ message: "Document type is required" })
   }),
-  enabled: z.boolean().default(true),
+  enabled: zfd.checkbox(),
   approverGroupIds: zfd.repeatableOfType(z.string()).optional(),
   defaultApproverId: zfd.text(z.string().optional()),
   lowerBoundAmount: zfd.numeric(z.number().min(0).default(0)),
