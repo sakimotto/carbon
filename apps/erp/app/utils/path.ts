@@ -369,13 +369,12 @@ export const path = {
       generatePath(
         `${x}/settings/approvals/requests/${id}?decision=${decision}`
       ),
-    approvalSettings: `${x}/settings/approvals`,
+    approvalRules: `${x}/settings/approval-rules`,
     approvalRule: (id: string) =>
-      generatePath(`${x}/settings/approvals/rules/${id}`),
-    newApprovalRule: (tab: string) =>
-      generatePath(`${x}/settings/approvals/rules/new?tab=${tab}`),
+      generatePath(`${x}/settings/approval-rules/${id}`),
+    newApprovalRule: () => `${x}/settings/approval-rules/new`,
     deleteApprovalRule: (id: string) =>
-      generatePath(`${x}/settings/approvals/rules/${id}/delete`),
+      generatePath(`${x}/settings/approval-rules/${id}/delete`),
     abilities: `${x}/resources/abilities`,
     ability: (id: string) => generatePath(`${x}/resources/ability/${id}`),
     account: `${x}/account`,

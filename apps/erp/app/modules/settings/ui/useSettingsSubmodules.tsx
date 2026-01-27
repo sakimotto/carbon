@@ -106,8 +106,8 @@ const settingsRoutes: AuthenticatedRouteGroup<{
     name: "System",
     routes: [
       {
-        name: "Approvals",
-        to: path.to.approvalSettings,
+        name: "Approval Rules",
+        to: path.to.approvalRules,
         role: "employee",
         icon: <LuCircleCheck />
       },
