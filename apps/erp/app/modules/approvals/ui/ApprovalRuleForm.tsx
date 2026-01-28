@@ -101,7 +101,6 @@ const ApprovalRuleForm = ({
                     <FormNumber
                       name="lowerBoundAmount"
                       label="Minimum Amount"
-                      step={100}
                       formatOptions={{
                         style: "currency",
                         currency: baseCurrencyCode
