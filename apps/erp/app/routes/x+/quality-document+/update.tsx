@@ -1,13 +1,149 @@
 import { getCarbonServiceRole } from "@carbon/auth";
 import { requirePermissions } from "@carbon/auth/auth.server";
+import type { Database } from "@carbon/database";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { type ActionFunctionArgs } from "react-router";
 import {
+  canApproveRequest,
   createApprovalRequest,
   getApprovalRuleByAmount,
+  getLatestApprovalForDocument,
   hasPendingApproval,
   isApprovalRequired
 } from "~/modules/approvals";
 import { qualityDocumentStatus } from "~/modules/quality/quality.models";
+
+type DocRow = { id: string; status: string | null };
+
+/**
+ * Process transition to Active from Draft or Archived.
+ * When approval rules apply: create request and use Draft as "in progress".
+ * - Draft → submit: stay Draft until approved, then Draft → Active.
+ * - Archived → submit: move to Draft, create request; when approved, Draft → Active.
+ * Otherwise: update to Active immediately.
+ */
+async function processToActive(
+  client: SupabaseClient<Database>,
+  serviceRole: SupabaseClient<Database>,
+  companyId: string,
+  userId: string,
+  docList: DocRow[],
+  ids: string[]
+) {
+  const idsToSkipActive: string[] = [];
+  const archivedIdsToMoveToDraft: string[] = [];
+  const canTransitionToActive = (s: string | null) =>
+    s === "Draft" || s === "Archived";
+  for (const doc of docList) {
+    if (!canTransitionToActive(doc.status)) continue;
+    const approvalRequired = await isApprovalRequired(
+      serviceRole,
+      "qualityDocument",
+      companyId,
+      undefined
+    );
+    if (!approvalRequired) continue;
+    const hasPending = await hasPendingApproval(
+      serviceRole,
+      "qualityDocument",
+      doc.id
+    );
+    if (hasPending) {
+      idsToSkipActive.push(doc.id);
+      continue;
+    }
+    const config = await getApprovalRuleByAmount(
+      serviceRole,
+      "qualityDocument",
+      companyId,
+      undefined
+    );
+    await createApprovalRequest(serviceRole, {
+      documentType: "qualityDocument",
+      documentId: doc.id,
+      companyId,
+      requestedBy: userId,
+      createdBy: userId,
+      approverGroupIds: config.data?.approverGroupIds || undefined,
+      approverId: config.data?.defaultApproverId || undefined
+    });
+    idsToSkipActive.push(doc.id);
+    if (doc.status === "Archived") {
+      archivedIdsToMoveToDraft.push(doc.id);
+    }
+  }
+  for (const docId of archivedIdsToMoveToDraft) {
+    await client
+      .from("qualityDocument")
+      .update({
+        status: "Draft",
+        updatedBy: userId,
+        updatedAt: new Date().toISOString()
+      })
+      .eq("id", docId);
+  }
+  const idsToUpdateToActive = ids.filter((id) => !idsToSkipActive.includes(id));
+  if (idsToUpdateToActive.length === 0) {
+    return { data: null, error: null } as const;
+  }
+  return client
+    .from("qualityDocument")
+    .update({
+      status: "Active",
+      updatedBy: userId,
+      updatedAt: new Date().toISOString()
+    })
+    .in("id", idsToUpdateToActive);
+}
+
+/**
+ * Cancels pending approval requests when changing status to Archived or Draft.
+ * - Archived: any user with update quality may archive; pending requests are cancelled.
+ * - Draft: only the requester or an approver may change to Draft (withdraw); others get an error.
+ */
+async function cancelPendingApprovalsForArchiveOrDraft(
+  serviceRole: SupabaseClient<Database>,
+  userId: string,
+  docList: DocRow[],
+  allowAnyUpdater: boolean
+): Promise<{ message: string } | null> {
+  const toCancel: { id: string }[] = [];
+  for (const doc of docList) {
+    const latest = await getLatestApprovalForDocument(
+      serviceRole,
+      "qualityDocument",
+      doc.id
+    );
+    const req = latest.data;
+    if (!req || req.status !== "Pending") continue;
+    if (!allowAnyUpdater) {
+      const isRequester = req.requestedBy === userId;
+      const isApprover = await canApproveRequest(
+        serviceRole,
+        { approverId: req.approverId, approverGroupIds: req.approverGroupIds },
+        userId
+      );
+      if (!isRequester && !isApprover) {
+        return {
+          message:
+            "Only the requester or an approver can change status to Draft when there is a pending approval request"
+        };
+      }
+    }
+    if (req.id) toCancel.push({ id: req.id });
+  }
+  for (const { id: reqId } of toCancel) {
+    await serviceRole
+      .from("approvalRequest")
+      .update({
+        status: "Cancelled",
+        updatedBy: userId,
+        updatedAt: new Date().toISOString()
+      })
+      .eq("id", reqId);
+  }
+  return null;
+}
 
 export async function action({ request }: ActionFunctionArgs) {
   const { client, companyId, userId } = await requirePermissions(request, {
@@ -35,66 +171,55 @@ export async function action({ request }: ActionFunctionArgs) {
           updatedAt: new Date().toISOString()
         })
         .in("id", ids as string[]);
-    case "status":
-      // When status changes to "Active", check if approval is required
-      if (value === "Active") {
-        const currentDocs = await client
-          .from("qualityDocument")
-          .select("id, status")
-          .in("id", ids as string[]);
+    case "status": {
+      const statusValue = value as (typeof qualityDocumentStatus)[number];
+      if (!qualityDocumentStatus.includes(statusValue)) {
+        return { error: { message: "Invalid status" }, data: null };
+      }
 
-        if (currentDocs.error) {
-          return { error: currentDocs.error, data: null };
-        }
+      const currentDocs = await client
+        .from("qualityDocument")
+        .select("id, status")
+        .in("id", ids as string[]);
 
-        // Process each document that's changing from Draft to Active
-        for (const doc of currentDocs.data ?? []) {
-          if (doc.status === "Draft") {
-            const approvalRequired = await isApprovalRequired(
-              serviceRole,
-              "qualityDocument",
-              companyId,
-              undefined
-            );
+      if (currentDocs.error) {
+        return { error: currentDocs.error, data: null };
+      }
 
-            if (approvalRequired) {
-              const hasPending = await hasPendingApproval(
-                serviceRole,
-                "qualityDocument",
-                doc.id
-              );
+      const docList = (currentDocs.data ?? []) as DocRow[];
+      const idList = ids as string[];
 
-              if (!hasPending) {
-                const config = await getApprovalRuleByAmount(
-                  serviceRole,
-                  "qualityDocument",
-                  companyId,
-                  undefined
-                );
+      if (statusValue === "Active") {
+        return processToActive(
+          client,
+          serviceRole,
+          companyId,
+          userId,
+          docList,
+          idList
+        );
+      }
 
-                await createApprovalRequest(serviceRole, {
-                  documentType: "qualityDocument",
-                  documentId: doc.id,
-                  companyId,
-                  requestedBy: userId,
-                  createdBy: userId,
-                  approverGroupIds: config.data?.approverGroupIds || undefined,
-                  approverId: config.data?.defaultApproverId || undefined
-                });
-              }
-            }
-          }
-        }
+      if (statusValue === "Archived" || statusValue === "Draft") {
+        const allowAnyUpdater = statusValue === "Archived";
+        const err = await cancelPendingApprovalsForArchiveOrDraft(
+          serviceRole,
+          userId,
+          docList,
+          allowAnyUpdater
+        );
+        if (err) return { error: { message: err.message }, data: null };
       }
 
       return await client
         .from("qualityDocument")
         .update({
-          [field]: value as (typeof qualityDocumentStatus)[number],
+          status: statusValue,
           updatedBy: userId,
           updatedAt: new Date().toISOString()
         })
-        .in("id", ids as string[]);
+        .in("id", idList);
+    }
     case "tags":
       return await client
         .from("qualityDocument")
