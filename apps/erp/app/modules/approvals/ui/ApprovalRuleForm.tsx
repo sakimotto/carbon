@@ -97,16 +97,14 @@ const ApprovalRuleForm = ({
                 approvalDocumentTypesWithAmounts.includes(
                   effectiveDocumentType
                 ) && (
-                  <>
-                    <FormNumber
-                      name="lowerBoundAmount"
-                      label="Minimum Amount"
-                      formatOptions={{
-                        style: "currency",
-                        currency: baseCurrencyCode
-                      }}
-                    />
-                  </>
+                  <FormNumber
+                    name="lowerBoundAmount"
+                    label="Minimum Amount"
+                    formatOptions={{
+                      style: "currency",
+                      currency: baseCurrencyCode
+                    }}
+                  />
                 )}
 
               <Users

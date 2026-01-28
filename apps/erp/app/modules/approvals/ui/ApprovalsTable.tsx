@@ -163,22 +163,6 @@ const ApprovalsTable = memo(({ data, count }: ApprovalsTableProps) => {
         id: "approverName",
         header: "Approver",
         cell: ({ row }) => {
-          const groupNames = row.original.approverGroupNames;
-          if (
-            groupNames &&
-            Array.isArray(groupNames) &&
-            groupNames.length > 0
-          ) {
-            return (
-              <HStack spacing={1}>
-                {groupNames.map((name, idx) => (
-                  <Badge key={idx} variant="outline">
-                    {name}
-                  </Badge>
-                ))}
-              </HStack>
-            );
-          }
           if (row.original.approverId) {
             return <EmployeeAvatar employeeId={row.original.approverId} />;
           }
