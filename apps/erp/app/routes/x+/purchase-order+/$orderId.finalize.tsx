@@ -17,7 +17,6 @@ import { type ActionFunctionArgs, redirect } from "react-router";
 import { getPaymentTermsList } from "~/modules/accounting";
 import {
   createApprovalRequest,
-  getApprovalRuleByAmount,
   hasPendingApproval,
   isApprovalRequired
 } from "~/modules/approvals";
@@ -55,8 +54,6 @@ export async function action(args: ActionFunctionArgs) {
 
   const serviceRole = getCarbonServiceRole();
 
-  // Get purchase order first to check if approval is required
-  // This allows us to set status to "Needs Approval" directly if needed
   const purchaseOrder = await getPurchaseOrder(serviceRole, orderId);
   if (purchaseOrder.error) {
     throw redirect(
@@ -86,12 +83,6 @@ export async function action(args: ActionFunctionArgs) {
     orderAmount
   );
 
-  // If approval is required, we'll set status to "Needs Approval" after finalizing
-  // Otherwise, finalizePurchaseOrder will set the calculated status
-
-  // Finalize the purchase order (sets orderDate, updatedAt, etc.)
-  // If approval is not required, it will also set the calculated status
-  // If approval is required, we'll override the status to "Needs Approval" below
   const finalize = await finalizePurchaseOrder(client, orderId, userId);
   if (finalize.error) {
     throw redirect(
@@ -119,22 +110,13 @@ export async function action(args: ActionFunctionArgs) {
     );
 
     if (!hasPending) {
-      const config = await getApprovalRuleByAmount(
-        serviceRole,
-        "purchaseOrder",
-        companyId,
-        orderAmount
-      );
-
       await createApprovalRequest(serviceRole, {
         documentType: "purchaseOrder",
         documentId: orderId,
         companyId,
         requestedBy: userId,
         createdBy: userId,
-        amount: orderAmount,
-        approverGroupIds: config.data?.approverGroupIds || undefined,
-        approverId: config.data?.defaultApproverId || undefined
+        amount: orderAmount
       });
     }
 

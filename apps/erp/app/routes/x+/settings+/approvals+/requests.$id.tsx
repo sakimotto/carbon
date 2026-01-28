@@ -40,9 +40,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Check if user can approve/reject this request
   const canApprove = await canApproveRequest(
     serviceRole,
-    approval.data,
+    {
+      amount: approval.data.amount,
+      documentType: approval.data.documentType,
+      companyId: approval.data.companyId
+    },
     userId
   );
+
   if (!canApprove) {
     throw redirect(
       path.to.approvalRequests,
@@ -112,7 +117,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
   // Check if user can approve/reject this request
   const canApprove = await canApproveRequest(
     serviceRole,
-    approval.data,
+    {
+      amount: approval.data.amount,
+      documentType: approval.data.documentType,
+      companyId: approval.data.companyId
+    },
     userId
   );
   if (!canApprove) {

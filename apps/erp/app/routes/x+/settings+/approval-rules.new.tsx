@@ -12,10 +12,10 @@ import { redirect, useLoaderData, useNavigate } from "react-router";
 import {
   type ApprovalDocumentType,
   approvalRuleValidator,
+  getApprovalRules,
   upsertApprovalRule
 } from "~/modules/approvals";
 import ApprovalRuleForm from "~/modules/approvals/ui/ApprovalRuleForm";
-
 import { path } from "~/utils/path";
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -52,6 +52,23 @@ export async function action({ request }: ActionFunctionArgs) {
 
   if (validation.error) {
     return validationError(validation.error);
+  }
+
+  const existingRules = await getApprovalRules(serviceRole, companyId);
+  const rulesForType =
+    existingRules.data?.filter(
+      (r) => r.documentType === validation.data.documentType
+    ) || [];
+  const duplicateRule = rulesForType.find(
+    (r) => r.lowerBoundAmount === (validation.data.lowerBoundAmount ?? 0)
+  );
+
+  if (duplicateRule) {
+    return validationError({
+      fieldErrors: {
+        lowerBoundAmount: `A rule with this minimum amount already exists. The maximum for this rule would be set by the next higher rule.`
+      }
+    });
   }
 
   const result = await upsertApprovalRule(serviceRole, {

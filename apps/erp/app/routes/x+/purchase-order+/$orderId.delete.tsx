@@ -11,7 +11,7 @@ import { redirect } from "react-router";
 import {
   canApproveRequest,
   canCancelRequest,
-  getLatestApprovalForDocument
+  getLatestApprovalRequestForDocument
 } from "~/modules/approvals";
 import { deletePurchaseOrder, getPurchaseOrder } from "~/modules/purchasing";
 
@@ -47,7 +47,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   // If PO is in "Needs Approval", check permissions
   if (poStatus && poStatus === "Needs Approval") {
-    const approvalRequest = await getLatestApprovalForDocument(
+    const approvalRequest = await getLatestApprovalRequestForDocument(
       serviceRole,
       "purchaseOrder",
       orderId
@@ -67,7 +67,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
       );
       const isApprover = await canApproveRequest(
         serviceRole,
-        approvalRequest.data,
+        {
+          amount: approvalRequest.data.amount,
+          documentType: approvalRequest.data.documentType,
+          companyId: approvalRequest.data.companyId
+        },
         userId
       );
 

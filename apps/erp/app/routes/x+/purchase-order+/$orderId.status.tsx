@@ -104,7 +104,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
         const isRequester = latestApproval.requestedBy === userId;
         const isApprover = await canApproveRequest(
           serviceRole,
-          latestApproval,
+          {
+            amount: latestApproval.amount,
+            documentType: latestApproval.documentType,
+            companyId: latestApproval.companyId
+          },
           userId
         );
 

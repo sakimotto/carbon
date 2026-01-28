@@ -9,7 +9,7 @@ import { PanelProvider, ResizablePanels } from "~/components/Layout/Panels";
 import {
   canApproveRequest,
   canCancelRequest,
-  getLatestApprovalForDocument,
+  getLatestApprovalRequestForDocument,
   isApprovalRequired
 } from "~/modules/approvals";
 import {
@@ -52,7 +52,11 @@ async function getQualityDocumentApprovalContext(
   }
 
   const [latest, approvalRequired] = await Promise.all([
-    getLatestApprovalForDocument(serviceRole, "qualityDocument", documentId),
+    getLatestApprovalRequestForDocument(
+      serviceRole,
+      "qualityDocument",
+      documentId
+    ),
     isApprovalRequired(serviceRole, "qualityDocument", companyId, undefined)
   ]);
 
@@ -61,7 +65,15 @@ async function getQualityDocumentApprovalContext(
     return { ...defaultContext, isApprovalRequired: approvalRequired };
   }
 
-  const canApprove = await canApproveRequest(serviceRole, req, userId);
+  const canApprove = await canApproveRequest(
+    serviceRole,
+    {
+      amount: req.amount,
+      documentType: req.documentType,
+      companyId: req.companyId
+    },
+    userId
+  );
   const isRequester = canCancelRequest(
     { requestedBy: req.requestedBy, status: req.status },
     userId

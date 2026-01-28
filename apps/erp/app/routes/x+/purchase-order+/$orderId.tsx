@@ -8,7 +8,7 @@ import { PanelProvider, ResizablePanels } from "~/components/Layout/Panels";
 import {
   canApproveRequest,
   canCancelRequest,
-  getLatestApprovalForDocument
+  getLatestApprovalRequestForDocument
 } from "~/modules/approvals";
 import {
   getPurchaseOrder,
@@ -80,7 +80,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     getSupplierInteraction(client, purchaseOrder.data.supplierInteractionId),
     // Only fetch approval request if status is "Needs Approval"
     purchaseOrder.data?.status === "Needs Approval"
-      ? getLatestApprovalForDocument(serviceRole, "purchaseOrder", orderId)
+      ? getLatestApprovalRequestForDocument(
+          serviceRole,
+          "purchaseOrder",
+          orderId
+        )
       : Promise.resolve({ data: null, error: null })
   ]);
 
@@ -100,7 +104,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     canApprove = await canApproveRequest(
       serviceRole,
-      approvalRequest.data,
+      {
+        amount: approvalRequest.data.amount,
+        documentType: approvalRequest.data.documentType,
+        companyId: approvalRequest.data.companyId
+      },
       userId
     );
 

@@ -6,8 +6,7 @@ import { type ActionFunctionArgs } from "react-router";
 import {
   canApproveRequest,
   createApprovalRequest,
-  getApprovalRuleByAmount,
-  getLatestApprovalForDocument,
+  getLatestApprovalRequestForDocument,
   hasPendingApproval,
   isApprovalRequired
 } from "~/modules/approvals";
@@ -52,20 +51,13 @@ async function processToActive(
       idsToSkipActive.push(doc.id);
       continue;
     }
-    const config = await getApprovalRuleByAmount(
-      serviceRole,
-      "qualityDocument",
-      companyId,
-      undefined
-    );
     await createApprovalRequest(serviceRole, {
       documentType: "qualityDocument",
       documentId: doc.id,
       companyId,
       requestedBy: userId,
       createdBy: userId,
-      approverGroupIds: config.data?.approverGroupIds || undefined,
-      approverId: config.data?.defaultApproverId || undefined
+      amount: undefined
     });
     idsToSkipActive.push(doc.id);
     if (doc.status === "Archived") {
@@ -109,7 +101,7 @@ async function cancelPendingApprovalsForArchiveOrDraft(
 ): Promise<{ message: string } | null> {
   const toCancel: { id: string }[] = [];
   for (const doc of docList) {
-    const latest = await getLatestApprovalForDocument(
+    const latest = await getLatestApprovalRequestForDocument(
       serviceRole,
       "qualityDocument",
       doc.id
@@ -120,7 +112,11 @@ async function cancelPendingApprovalsForArchiveOrDraft(
       const isRequester = req.requestedBy === userId;
       const isApprover = await canApproveRequest(
         serviceRole,
-        { approverId: req.approverId, approverGroupIds: req.approverGroupIds },
+        {
+          amount: req.amount,
+          documentType: req.documentType,
+          companyId: req.companyId
+        },
         userId
       );
       if (!isRequester && !isApprover) {
