@@ -427,7 +427,13 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLines.quantity",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLines.unitOfMeasureCode",
+            $ref: "#/parameters/rowFilter.purchasingRfqLines.purchaseUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLines.inventoryUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLines.conversionFactor",
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqLines.order",
@@ -12280,7 +12286,13 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.quantity",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.unitOfMeasureCode",
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.purchaseUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.inventoryUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.conversionFactor",
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.order",
@@ -12384,7 +12396,13 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.quantity",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.unitOfMeasureCode",
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.purchaseUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.inventoryUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.conversionFactor",
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.order",
@@ -12442,7 +12460,13 @@ export default {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.quantity",
           },
           {
-            $ref: "#/parameters/rowFilter.purchasingRfqLine.unitOfMeasureCode",
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.purchaseUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.inventoryUnitOfMeasureCode",
+          },
+          {
+            $ref: "#/parameters/rowFilter.purchasingRfqLine.conversionFactor",
           },
           {
             $ref: "#/parameters/rowFilter.purchasingRfqLine.order",
@@ -66300,9 +66324,17 @@ export default {
           },
           type: "array",
         },
-        unitOfMeasureCode: {
+        purchaseUnitOfMeasureCode: {
           format: "text",
           type: "string",
+        },
+        inventoryUnitOfMeasureCode: {
+          format: "text",
+          type: "string",
+        },
+        conversionFactor: {
+          format: "numeric",
+          type: "number",
         },
         order: {
           format: "double precision",
@@ -71953,7 +71985,8 @@ export default {
         "id",
         "purchasingRfqId",
         "itemId",
-        "unitOfMeasureCode",
+        "purchaseUnitOfMeasureCode",
+        "inventoryUnitOfMeasureCode",
         "order",
         "companyId",
         "createdBy",
@@ -71988,9 +72021,18 @@ export default {
           },
           type: "array",
         },
-        unitOfMeasureCode: {
+        purchaseUnitOfMeasureCode: {
           format: "text",
           type: "string",
+        },
+        inventoryUnitOfMeasureCode: {
+          format: "text",
+          type: "string",
+        },
+        conversionFactor: {
+          default: 1,
+          format: "numeric",
+          type: "number",
         },
         order: {
           default: 0,
@@ -95670,8 +95712,20 @@ export default {
       in: "query",
       type: "string",
     },
-    "rowFilter.purchasingRfqLines.unitOfMeasureCode": {
-      name: "unitOfMeasureCode",
+    "rowFilter.purchasingRfqLines.purchaseUnitOfMeasureCode": {
+      name: "purchaseUnitOfMeasureCode",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.purchasingRfqLines.inventoryUnitOfMeasureCode": {
+      name: "inventoryUnitOfMeasureCode",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.purchasingRfqLines.conversionFactor": {
+      name: "conversionFactor",
       required: false,
       in: "query",
       type: "string",
@@ -102177,8 +102231,20 @@ export default {
       in: "query",
       type: "string",
     },
-    "rowFilter.purchasingRfqLine.unitOfMeasureCode": {
-      name: "unitOfMeasureCode",
+    "rowFilter.purchasingRfqLine.purchaseUnitOfMeasureCode": {
+      name: "purchaseUnitOfMeasureCode",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.purchasingRfqLine.inventoryUnitOfMeasureCode": {
+      name: "inventoryUnitOfMeasureCode",
+      required: false,
+      in: "query",
+      type: "string",
+    },
+    "rowFilter.purchasingRfqLine.conversionFactor": {
+      name: "conversionFactor",
       required: false,
       in: "query",
       type: "string",

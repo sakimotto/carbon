@@ -10,7 +10,7 @@ import {
   getLinkedSupplierQuotes,
   getPurchasingRFQ,
   getPurchasingRFQLines,
-  getPurchasingRFQSuppliers,
+  getPurchasingRFQSuppliersWithLinks,
   getSupplierInteractionDocuments
 } from "~/modules/purchasing";
 import {
@@ -39,7 +39,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const [rfqSummary, lines, suppliers, linkedQuotes] = await Promise.all([
     getPurchasingRFQ(serviceRole, rfqId),
     getPurchasingRFQLines(serviceRole, rfqId),
-    getPurchasingRFQSuppliers(serviceRole, rfqId),
+    getPurchasingRFQSuppliersWithLinks(serviceRole, rfqId),
     getLinkedSupplierQuotes(serviceRole, rfqId)
   ]);
 
@@ -64,6 +64,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const supplierQuotes =
     linkedQuotes.data?.map((link) => link.supplierQuote).filter(Boolean) ?? [];
 
+  // Create a map of supplierId -> quote externalLinkId for the header
+  const quoteExternalLinkBySupplierId = new Map<string, string>();
+  for (const quote of supplierQuotes) {
+    if (quote && (quote as any).supplierId && (quote as any).externalLinkId) {
+      quoteExternalLinkBySupplierId.set(
+        (quote as any).supplierId,
+        (quote as any).externalLinkId
+      );
+    }
+  }
+
   return {
     rfqSummary: rfqSummary.data,
     lines:
@@ -71,14 +82,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ...line,
         id: line.id ?? "",
         order: line.order ?? 0,
-        unitOfMeasureCode: line.unitOfMeasureCode ?? "",
+        purchaseUnitOfMeasureCode: line.purchaseUnitOfMeasureCode ?? "",
+        inventoryUnitOfMeasureCode: line.inventoryUnitOfMeasureCode ?? "",
+        conversionFactor: line.conversionFactor ?? 1,
         description: line.description ?? "",
         externalNotes: (line.externalNotes ?? {}) as JSONContent,
         internalNotes: (line.internalNotes ?? {}) as JSONContent,
         itemId: line.itemId ?? "",
         quantity: line.quantity ?? [1]
       })) ?? [],
-    suppliers: suppliers.data ?? [],
+    suppliers:
+      suppliers.data?.map((s) => ({
+        id: s.id,
+        supplierId: s.supplierId,
+        supplier: s.supplier,
+        // Use the supplier quote's external link (for sharing), not the rfqSupplier's
+        quoteExternalLinkId: quoteExternalLinkBySupplierId.get(s.supplierId)
+      })) ?? [],
     linkedQuotes: supplierQuotes,
     // Use rfqId as the interaction ID for document storage
     files: getSupplierInteractionDocuments(serviceRole, companyId, rfqId)

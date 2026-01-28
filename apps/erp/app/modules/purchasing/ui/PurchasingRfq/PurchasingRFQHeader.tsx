@@ -26,19 +26,21 @@ import {
   useMount,
   VStack
 } from "@carbon/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  LuCircleCheck,
+  LuChevronDown,
   LuCircleX,
   LuEllipsisVertical,
+  LuEye,
   LuGitCompare,
   LuLoaderCircle,
   LuPanelLeft,
   LuPanelRight,
+  LuSend,
+  LuShare2,
   LuTrash,
   LuTriangleAlert
 } from "react-icons/lu";
-import { RiProgress4Line } from "react-icons/ri";
 import type { FetcherWithComponents } from "react-router";
 import { Link, useFetcher, useParams } from "react-router";
 import { z } from "zod";
@@ -47,18 +49,18 @@ import { usePanels } from "~/components/Layout";
 import ConfirmDelete from "~/components/Modals/ConfirmDelete";
 import { usePermissions, useRouteData, useUser } from "~/hooks";
 import { path } from "~/utils/path";
-import { isRfqEditable } from "../../purchasing.models";
 import type { PurchasingRFQ, PurchasingRFQLine } from "../../types";
 import { SupplierQuoteCompareDrawer } from "../SupplierQuote";
+import FinalizeRFQModal from "./FinalizeRFQModal";
 import PurchasingRFQStatus from "./PurchasingRFQStatus";
 
 const PurchasingRFQHeader = () => {
   const { rfqId } = useParams();
   if (!rfqId) throw new Error("rfqId not found");
 
-  const convertToSupplierQuotesModal = useDisclosure();
+  const finalizeModal = useDisclosure();
   const requiresSuppliersAlert = useDisclosure();
-  const noQuoteReasonModal = useDisclosure();
+  const cancelReasonModal = useDisclosure();
   const deleteRFQModal = useDisclosure();
   const compareQuotesModal = useDisclosure();
   const { toggleExplorer, toggleProperties } = usePanels();
@@ -72,6 +74,7 @@ const PurchasingRFQHeader = () => {
       id: string;
       supplierId: string;
       supplier: { id: string; name: string };
+      quoteExternalLinkId?: string;
     }[];
     linkedQuotes: unknown[];
   }>(path.to.purchasingRfq(rfqId));
@@ -128,67 +131,94 @@ const PurchasingRFQHeader = () => {
           <PurchasingRFQStatus status={routeData?.rfqSummary?.status} />
         </HStack>
         <HStack>
-          {hasSuppliers ? (
-            <statusFetcher.Form
-              method="post"
-              action={path.to.purchasingRfqStatus(rfqId)}
-            >
-              <input type="hidden" name="status" value="Ready for request" />
-              <Button
-                isDisabled={
-                  !isRfqEditable(status) ||
-                  routeData?.lines?.length === 0 ||
-                  !permissions.can("update", "purchasing")
-                }
-                isLoading={
-                  statusFetcher.state !== "idle" &&
-                  statusFetcher.formData?.get("status") === "Ready for request"
-                }
-                leftIcon={<LuCircleCheck />}
-                variant={isRfqEditable(status) ? "primary" : "secondary"}
-                type="submit"
-              >
-                Ready to Send
-              </Button>
-            </statusFetcher.Form>
-          ) : (
+          {/* Preview Button - for Draft status */}
+          {status === "Draft" && (
             <Button
-              isDisabled={
-                !isRfqEditable(status) ||
-                routeData?.lines?.length === 0 ||
-                !permissions.can("update", "purchasing")
-              }
-              leftIcon={<LuCircleCheck />}
-              variant={isRfqEditable(status) ? "primary" : "secondary"}
-              onClick={requiresSuppliersAlert.onOpen}
+              variant="secondary"
+              leftIcon={<LuEye />}
+              asChild
             >
-              Ready to Send
+              <Link to={path.to.purchasingRfqPreview(rfqId)} target="_blank">
+                Preview
+              </Link>
             </Button>
           )}
 
-          <Button
-            isDisabled={
-              status !== "Ready for request" ||
-              routeData?.lines?.length === 0 ||
-              !hasSuppliers ||
-              !permissions.can("create", "purchasing")
-            }
-            leftIcon={<RiProgress4Line />}
-            type="submit"
-            variant={
-              ["Ready for request", "Requested"].includes(status)
-                ? "primary"
-                : "secondary"
-            }
-            onClick={convertToSupplierQuotesModal.onOpen}
-          >
-            Create Supplier Quotes
-          </Button>
+          {/* Share Dropdown - for Requested status with external links */}
+          {status === "Requested" && hasSuppliers && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="secondary"
+                  leftIcon={<LuShare2 />}
+                  rightIcon={<LuChevronDown />}
+                >
+                  Share
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {routeData?.suppliers?.map((supplier) => (
+                  <DropdownMenuItem
+                    key={supplier.id}
+                    disabled={!supplier.quoteExternalLinkId}
+                    onClick={() => {
+                      if (supplier.quoteExternalLinkId) {
+                        window.open(
+                          path.to.externalSupplierQuote(
+                            supplier.quoteExternalLinkId
+                          ),
+                          "_blank"
+                        );
+                      }
+                    }}
+                  >
+                    <DropdownMenuIcon icon={<LuShare2 />} />
+                    {supplier.supplier.name}
+                    {supplier.quoteExternalLinkId && (
+                      <Copy
+                        className="ml-2"
+                        text={`${window.location.origin}${path.to.externalSupplierQuote(supplier.quoteExternalLinkId)}`}
+                      />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
+          {hasSuppliers ? (
+            <Button
+              isDisabled={
+                status !== "Draft" ||
+                routeData?.lines?.length === 0 ||
+                !permissions.can("create", "purchasing")
+              }
+              leftIcon={<LuSend />}
+              variant={status === "Draft" ? "primary" : "secondary"}
+              onClick={finalizeModal.onOpen}
+            >
+              Finalize
+            </Button>
+          ) : (
+            <Button
+              isDisabled={
+                status !== "Draft" ||
+                routeData?.lines?.length === 0 ||
+                !permissions.can("create", "purchasing")
+              }
+              leftIcon={<LuSend />}
+              variant={status === "Draft" ? "primary" : "secondary"}
+              onClick={requiresSuppliersAlert.onOpen}
+            >
+              Finalize
+            </Button>
+          )}
+
+          {/* Cancel Button - sets status to Closed */}
           <Button
-            onClick={noQuoteReasonModal.onOpen}
+            onClick={cancelReasonModal.onOpen}
             isDisabled={
-              status !== "Ready for request" ||
+              status !== "Draft" ||
               statusFetcher.state !== "idle" ||
               !permissions.can("update", "purchasing")
             }
@@ -197,13 +227,9 @@ const PurchasingRFQHeader = () => {
               statusFetcher.formData?.get("status") === "Closed"
             }
             leftIcon={<LuCircleX />}
-            variant={
-              ["Ready for request", "Closed"].includes(status)
-                ? "destructive"
-                : "secondary"
-            }
+            variant="secondary"
           >
-            No Quote
+            Cancel
           </Button>
 
           {canCompareQuotes && (
@@ -223,7 +249,7 @@ const PurchasingRFQHeader = () => {
             <input type="hidden" name="status" value="Draft" />
             <Button
               isDisabled={
-                !["Closed"].includes(status) ||
+                status !== "Closed" ||
                 statusFetcher.state !== "idle" ||
                 !permissions.can("update", "purchasing")
               }
@@ -247,22 +273,22 @@ const PurchasingRFQHeader = () => {
           />
         </HStack>
       </HStack>
-      {convertToSupplierQuotesModal.isOpen && (
-        <ConvertToSupplierQuotesModal
+      {finalizeModal.isOpen && (
+        <FinalizeRFQModal
           lines={routeData?.lines ?? []}
           suppliers={routeData?.suppliers ?? []}
           rfqId={rfqId}
-          onClose={convertToSupplierQuotesModal.onClose}
+          onClose={finalizeModal.onClose}
         />
       )}
       {requiresSuppliersAlert.isOpen && (
         <RequiresSuppliersAlert onClose={requiresSuppliersAlert.onClose} />
       )}
-      {noQuoteReasonModal.isOpen && (
-        <NoQuoteReasonModal
+      {cancelReasonModal.isOpen && (
+        <CancelReasonModal
           fetcher={statusFetcher}
           rfqId={rfqId}
-          onClose={noQuoteReasonModal.onClose}
+          onClose={cancelReasonModal.onClose}
         />
       )}
       {deleteRFQModal.isOpen && (
@@ -293,12 +319,12 @@ const PurchasingRFQHeader = () => {
 
 export default PurchasingRFQHeader;
 
-const rfqNoQuoteReasonValidator = z.object({
+const rfqCancelReasonValidator = z.object({
   status: z.enum(["Closed"]),
   noQuoteReasonId: zfd.text(z.string().optional())
 });
 
-function NoQuoteReasonModal({
+function CancelReasonModal({
   fetcher,
   rfqId,
   onClose
@@ -308,7 +334,7 @@ function NoQuoteReasonModal({
   onClose: () => void;
 }) {
   const user = useUser();
-  const [noQuoteReasons, setNoQuoteReasons] = useState<
+  const [cancelReasons, setCancelReasons] = useState<
     {
       label: string;
       value: string;
@@ -323,11 +349,11 @@ function NoQuoteReasonModal({
       .eq("companyId", user.company.id);
 
     if (error) {
-      toast.error("Failed to load no-quote reasons");
+      toast.error("Failed to load cancel reasons");
       return;
     }
 
-    setNoQuoteReasons(
+    setCancelReasons(
       data?.map((reason) => ({ label: reason.name, value: reason.id })) ?? []
     );
   };
@@ -342,16 +368,16 @@ function NoQuoteReasonModal({
         <ValidatedForm
           method="post"
           action={path.to.purchasingRfqStatus(rfqId)}
-          validator={rfqNoQuoteReasonValidator}
+          validator={rfqCancelReasonValidator}
           fetcher={fetcher}
           onSubmit={() => {
             onClose();
           }}
         >
           <ModalHeader>
-            <ModalTitle>No Quote Reason</ModalTitle>
+            <ModalTitle>Cancel RFQ</ModalTitle>
             <ModalDescription>
-              Select a reason for why the quote was not created.
+              Select a reason for cancelling this RFQ.
             </ModalDescription>
           </ModalHeader>
           <ModalBody>
@@ -359,16 +385,16 @@ function NoQuoteReasonModal({
             <VStack spacing={2}>
               <Select
                 name="noQuoteReasonId"
-                label="No Quote Reason"
-                options={noQuoteReasons}
+                label="Cancel Reason"
+                options={cancelReasons}
               />
             </VStack>
           </ModalBody>
           <ModalFooter>
             <Button variant="secondary" onClick={onClose}>
-              Cancel
+              Back
             </Button>
-            <Submit withBlocker={false}>Save</Submit>
+            <Submit withBlocker={false}>Cancel RFQ</Submit>
           </ModalFooter>
         </ValidatedForm>
       </ModalContent>
@@ -395,83 +421,6 @@ function RequiresSuppliersAlert({ onClose }: { onClose: () => void }) {
         </ModalBody>
         <ModalFooter>
           <Button onClick={onClose}>OK</Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
-  );
-}
-
-function ConvertToSupplierQuotesModal({
-  lines,
-  suppliers,
-  rfqId,
-  onClose
-}: {
-  lines: PurchasingRFQLine[];
-  suppliers: {
-    id: string;
-    supplierId: string;
-    supplier: { id: string; name: string };
-  }[];
-  rfqId: string;
-  onClose: () => void;
-}) {
-  const fetcher = useFetcher<{ error: string | null }>();
-  const isLoading = fetcher.state !== "idle";
-
-  useEffect(() => {
-    if (fetcher.state === "loading") {
-      onClose();
-    }
-  }, [fetcher.state, onClose]);
-
-  return (
-    <Modal
-      open
-      onOpenChange={(open) => {
-        if (!open) {
-          onClose();
-        }
-      }}
-    >
-      <ModalContent>
-        <ModalHeader>
-          <ModalTitle>Create Supplier Quotes</ModalTitle>
-          <ModalDescription>
-            Send quote requests to suppliers who can provide the parts in this
-            RFQ.
-          </ModalDescription>
-        </ModalHeader>
-
-        <ModalBody>
-          <Alert variant="warning">
-            <LuTriangleAlert className="h-4 w-4" />
-            <AlertTitle>
-              Please make sure these suppliers can provide the parts listed in
-              this RFQ
-            </AlertTitle>
-            <AlertDescription>
-              <ul className="list-disc list-inside mt-2">
-                {suppliers.map((s) => (
-                  <li key={s.id}>{s.supplier?.name}</li>
-                ))}
-              </ul>
-            </AlertDescription>
-          </Alert>
-        </ModalBody>
-
-        <ModalFooter>
-          <Button variant="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-          <fetcher.Form
-            method="post"
-            action={path.to.purchasingRfqConvert(rfqId)}
-          >
-            <Button isDisabled={isLoading} type="submit" isLoading={isLoading}>
-              Create Supplier Quotes
-            </Button>
-          </fetcher.Form>
         </ModalFooter>
       </ModalContent>
     </Modal>

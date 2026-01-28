@@ -1424,6 +1424,8 @@ export const path = {
     purchasingRfqRoot: `${x}/purchasing-rfq`,
     purchasingRfqStatus: (id: string) =>
       generatePath(`${x}/purchasing-rfq/${id}/status`),
+    purchasingRfqFinalize: (id: string) =>
+      generatePath(`${x}/purchasing-rfq/${id}/finalize`),
     purchasingRfqs: `${x}/purchasing/rfqs`,
     newPurchasingRFQ: `${x}/purchasing-rfq/new`,
     newPurchasingRFQLine: (id: string) =>
@@ -1438,6 +1440,8 @@ export const path = {
       generatePath(`${x}/purchasing-rfq/${id}/compare`),
     purchasingRfqSuppliers: (id: string) =>
       generatePath(`${x}/purchasing-rfq/${id}/suppliers`),
+    purchasingRfqPreview: (id: string) =>
+      generatePath(`/share/purchasing-rfq/${id}`),
 
     saveViews: `${x}/shared/views`,
 

@@ -66,7 +66,10 @@ export default function PurchasingRFQExplorer() {
     itemId: "",
     quantity: [1],
     order: 1,
-    unitOfMeasureCode: "EA"
+    purchaseUnitOfMeasureCode: "EA",
+    inventoryUnitOfMeasureCode: "EA",
+    conversionFactor: 1,
+    itemType: "Part" as MethodItemType
   };
 
   const isDisabled = isRfqLocked(purchasingRfqData?.rfqSummary.status);

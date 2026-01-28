@@ -25234,6 +25234,7 @@ export type Database = {
       purchasingRfqLine: {
         Row: {
           companyId: string
+          conversionFactor: number | null
           createdAt: string | null
           createdBy: string
           customFields: Json | null
@@ -25241,16 +25242,18 @@ export type Database = {
           externalNotes: Json | null
           id: string
           internalNotes: Json | null
+          inventoryUnitOfMeasureCode: string
           itemId: string
           order: number
+          purchaseUnitOfMeasureCode: string
           purchasingRfqId: string
           quantity: number[] | null
-          unitOfMeasureCode: string
           updatedAt: string | null
           updatedBy: string | null
         }
         Insert: {
           companyId: string
+          conversionFactor?: number | null
           createdAt?: string | null
           createdBy: string
           customFields?: Json | null
@@ -25258,16 +25261,18 @@ export type Database = {
           externalNotes?: Json | null
           id?: string
           internalNotes?: Json | null
+          inventoryUnitOfMeasureCode: string
           itemId: string
           order?: number
+          purchaseUnitOfMeasureCode: string
           purchasingRfqId: string
           quantity?: number[] | null
-          unitOfMeasureCode: string
           updatedAt?: string | null
           updatedBy?: string | null
         }
         Update: {
           companyId?: string
+          conversionFactor?: number | null
           createdAt?: string | null
           createdBy?: string
           customFields?: Json | null
@@ -25275,11 +25280,12 @@ export type Database = {
           externalNotes?: Json | null
           id?: string
           internalNotes?: Json | null
+          inventoryUnitOfMeasureCode?: string
           itemId?: string
           order?: number
+          purchaseUnitOfMeasureCode?: string
           purchasingRfqId?: string
           quantity?: number[] | null
-          unitOfMeasureCode?: string
           updatedAt?: string | null
           updatedBy?: string | null
         }
@@ -25348,6 +25354,13 @@ export type Database = {
             referencedColumns: ["userId"]
           },
           {
+            foreignKeyName: "purchasingRfqLine_inventoryUnitOfMeasureCode_fkey"
+            columns: ["inventoryUnitOfMeasureCode", "companyId"]
+            isOneToOne: false
+            referencedRelation: "unitOfMeasure"
+            referencedColumns: ["code", "companyId"]
+          },
+          {
             foreignKeyName: "purchasingRfqLine_itemId_fkey"
             columns: ["itemId"]
             isOneToOne: false
@@ -25383,6 +25396,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "purchasingRfqLine_purchaseUnitOfMeasureCode_fkey"
+            columns: ["purchaseUnitOfMeasureCode", "companyId"]
+            isOneToOne: false
+            referencedRelation: "unitOfMeasure"
+            referencedColumns: ["code", "companyId"]
+          },
+          {
             foreignKeyName: "purchasingRfqLine_purchasingRfqId_fkey"
             columns: ["purchasingRfqId"]
             isOneToOne: false
@@ -25395,13 +25415,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "purchasingRfqs"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchasingRfqLine_unitOfMeasureCode_fkey"
-            columns: ["unitOfMeasureCode", "companyId"]
-            isOneToOne: false
-            referencedRelation: "unitOfMeasure"
-            referencedColumns: ["code", "companyId"]
           },
           {
             foreignKeyName: "purchasingRfqLine_updatedBy_fkey"
@@ -47558,14 +47571,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["customerCountryCode"]
+            columns: ["supplierCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
           },
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["supplierCountryCode"]
+            columns: ["customerCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
@@ -47940,6 +47953,7 @@ export type Database = {
       purchasingRfqLines: {
         Row: {
           companyId: string | null
+          conversionFactor: number | null
           createdAt: string | null
           createdBy: string | null
           customFields: Json | null
@@ -47947,16 +47961,17 @@ export type Database = {
           externalNotes: Json | null
           id: string | null
           internalNotes: Json | null
+          inventoryUnitOfMeasureCode: string | null
           itemId: string | null
           itemName: string | null
           itemReadableId: string | null
           itemType: Database["public"]["Enums"]["itemType"] | null
           modelPath: string | null
           order: number | null
+          purchaseUnitOfMeasureCode: string | null
           purchasingRfqId: string | null
           quantity: number[] | null
           thumbnailPath: string | null
-          unitOfMeasureCode: string | null
           updatedAt: string | null
           updatedBy: string | null
         }
@@ -48025,6 +48040,13 @@ export type Database = {
             referencedColumns: ["userId"]
           },
           {
+            foreignKeyName: "purchasingRfqLine_inventoryUnitOfMeasureCode_fkey"
+            columns: ["inventoryUnitOfMeasureCode", "companyId"]
+            isOneToOne: false
+            referencedRelation: "unitOfMeasure"
+            referencedColumns: ["code", "companyId"]
+          },
+          {
             foreignKeyName: "purchasingRfqLine_itemId_fkey"
             columns: ["itemId"]
             isOneToOne: false
@@ -48060,6 +48082,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "purchasingRfqLine_purchaseUnitOfMeasureCode_fkey"
+            columns: ["purchaseUnitOfMeasureCode", "companyId"]
+            isOneToOne: false
+            referencedRelation: "unitOfMeasure"
+            referencedColumns: ["code", "companyId"]
+          },
+          {
             foreignKeyName: "purchasingRfqLine_purchasingRfqId_fkey"
             columns: ["purchasingRfqId"]
             isOneToOne: false
@@ -48072,13 +48101,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "purchasingRfqs"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "purchasingRfqLine_unitOfMeasureCode_fkey"
-            columns: ["unitOfMeasureCode", "companyId"]
-            isOneToOne: false
-            referencedRelation: "unitOfMeasure"
-            referencedColumns: ["code", "companyId"]
           },
           {
             foreignKeyName: "purchasingRfqLine_updatedBy_fkey"
@@ -51174,14 +51196,14 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["customerCountryCode"]
+            columns: ["paymentCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]
           },
           {
             foreignKeyName: "address_countryCode_fkey"
-            columns: ["paymentCountryCode"]
+            columns: ["customerCountryCode"]
             isOneToOne: false
             referencedRelation: "country"
             referencedColumns: ["alpha2"]

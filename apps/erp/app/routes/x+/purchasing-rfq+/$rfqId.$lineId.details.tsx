@@ -3,25 +3,34 @@ import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import { validationError, validator } from "@carbon/form";
 import type { JSONContent } from "@carbon/react";
-import { Fragment } from "react";
+import { Spinner } from "@carbon/react";
+import { Fragment, Suspense } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
-import { Outlet, redirect, useLoaderData, useParams } from "react-router";
+import {
+  Await,
+  Outlet,
+  redirect,
+  useLoaderData,
+  useParams
+} from "react-router";
 import { CadModel } from "~/components";
 import { usePermissions } from "~/hooks";
 import {
   getPurchasingRFQLine,
+  getSupplierInteractionLineDocuments,
   purchasingRfqLineValidator,
   upsertPurchasingRFQLine
 } from "~/modules/purchasing";
+import { PurchasingRFQLineForm } from "~/modules/purchasing/ui/PurchasingRfq";
 import {
-  PurchasingRFQLineForm,
-  PurchasingRFQLineNotes
-} from "~/modules/purchasing/ui/PurchasingRfq";
+  SupplierInteractionLineDocuments,
+  SupplierInteractionLineNotes
+} from "~/modules/purchasing/ui/SupplierInteraction";
 import { setCustomFields } from "~/utils/form";
 import { path } from "~/utils/path";
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
-  await requirePermissions(request, {
+  const { companyId } = await requirePermissions(request, {
     view: "purchasing"
   });
 
@@ -41,7 +50,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 
   return {
-    line: line.data
+    line: line.data,
+    files: getSupplierInteractionLineDocuments(serviceRole, companyId, lineId)
   };
 };
 
@@ -87,7 +97,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 }
 
 export default function PurchasingRFQLine() {
-  const { line } = useLoaderData<typeof loader>();
+  const { line, files } = useLoaderData<typeof loader>();
 
   const permissions = usePermissions();
 
@@ -103,13 +113,20 @@ export default function PurchasingRFQLine() {
     itemId: line.itemId ?? "",
     quantity: line.quantity ?? [1],
     order: line.order ?? 1,
-    unitOfMeasureCode: line.unitOfMeasureCode ?? ""
+    purchaseUnitOfMeasureCode: line.purchaseUnitOfMeasureCode ?? "",
+    inventoryUnitOfMeasureCode: line.inventoryUnitOfMeasureCode ?? "",
+    conversionFactor: line.conversionFactor ?? 1,
+    itemType: (line.itemType ?? "Part") as
+      | "Part"
+      | "Material"
+      | "Tool"
+      | "Consumable"
   };
 
   return (
     <Fragment key={lineId}>
       <PurchasingRFQLineForm key={lineId} initialValues={initialValues} />
-      <PurchasingRFQLineNotes
+      <SupplierInteractionLineNotes
         id={line.id}
         table="purchasingRfqLine"
         title="Notes"
@@ -117,6 +134,24 @@ export default function PurchasingRFQLine() {
         internalNotes={line.internalNotes as JSONContent}
         externalNotes={line.externalNotes as JSONContent}
       />
+      <Suspense
+        fallback={
+          <div className="flex w-full h-full rounded bg-gradient-to-tr from-background to-card items-center justify-center">
+            <Spinner className="h-10 w-10" />
+          </div>
+        }
+      >
+        <Await resolve={files}>
+          {(resolvedFiles) => (
+            <SupplierInteractionLineDocuments
+              files={resolvedFiles ?? []}
+              id={rfqId}
+              lineId={lineId}
+              type="Purchasing RFQ"
+            />
+          )}
+        </Await>
+      </Suspense>
       <CadModel
         isReadOnly={!permissions.can("update", "purchasing")}
         metadata={{

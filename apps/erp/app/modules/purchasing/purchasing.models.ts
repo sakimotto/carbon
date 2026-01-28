@@ -411,9 +411,13 @@ export const purchasingRfqLineValidator = z.object({
   quantity: z.array(
     zfd.numeric(z.number().min(0.00001, { message: "Quantity is required" }))
   ),
-  unitOfMeasureCode: z
-    .string()
-    .min(1, { message: "Unit of measure is required" }),
+  purchaseUnitOfMeasureCode: zfd.text(
+    z.string().min(1, { message: "Unit of measure is required" })
+  ),
+  inventoryUnitOfMeasureCode: zfd.text(
+    z.string().min(1, { message: "Unit of measure is required" })
+  ),
+  conversionFactor: zfd.numeric(z.number().optional()),
   order: zfd.numeric(z.number().min(0))
 });
 
@@ -422,6 +426,16 @@ export const purchasingRfqSuppliersValidator = z.object({
   supplierIds: z
     .array(z.string())
     .min(1, { message: "At least one supplier is required" })
+});
+
+export const purchasingRfqFinalizeValidator = z.object({
+  suppliers: z.array(
+    z.object({
+      supplierId: z.string().min(1),
+      rfqSupplierId: z.string().min(1),
+      contactId: zfd.text(z.string().optional())
+    })
+  )
 });
 
 // RFQ Status Helpers

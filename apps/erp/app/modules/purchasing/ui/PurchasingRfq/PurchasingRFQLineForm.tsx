@@ -29,6 +29,7 @@ import { useParams } from "react-router";
 import type { z } from "zod";
 import {
   ArrayNumeric,
+  ConversionFactor,
   CustomFormFields,
   Hidden,
   InputControlled,
@@ -37,13 +38,16 @@ import {
   UnitOfMeasure
 } from "~/components/Form";
 import { usePermissions, useRouteData, useUser } from "~/hooks";
+import type { MethodItemType } from "~/modules/shared/types";
 import { path } from "~/utils/path";
 import { purchasingRfqLineValidator } from "../../purchasing.models";
 import type { PurchasingRFQ, PurchasingRFQLine } from "../../types";
 import DeletePurchasingRFQLine from "./DeletePurchasingRFQLine";
 
 type PurchasingRFQLineFormProps = {
-  initialValues: z.infer<typeof purchasingRfqLineValidator>;
+  initialValues: z.infer<typeof purchasingRfqLineValidator> & {
+    itemType: MethodItemType;
+  };
   type?: "card" | "modal";
   onClose?: () => void;
 };
@@ -69,16 +73,23 @@ const PurchasingRFQLineForm = ({
 
   const isEditing = initialValues.id !== undefined;
 
+  const [itemType, setItemType] = useState<MethodItemType>(
+    initialValues.itemType
+  );
   const [itemData, setItemData] = useState<{
     itemId: string;
     itemReadableId: string;
     description: string;
-    unitOfMeasureCode: string;
+    inventoryUom: string;
+    purchaseUom: string;
+    conversionFactor: number;
   }>({
     itemId: initialValues.itemId ?? "",
     itemReadableId: "",
     description: initialValues.description ?? "",
-    unitOfMeasureCode: initialValues.unitOfMeasureCode ?? "EA"
+    inventoryUom: initialValues.inventoryUnitOfMeasureCode ?? "",
+    purchaseUom: initialValues.purchaseUnitOfMeasureCode ?? "",
+    conversionFactor: initialValues.conversionFactor ?? 1
   });
 
   const onItemChange = async (itemId: string) => {
@@ -86,7 +97,7 @@ const PurchasingRFQLineForm = ({
 
     const item = await carbon
       .from("item")
-      .select("name, readableIdWithRevision, unitOfMeasureCode")
+      .select("name, readableIdWithRevision, type, unitOfMeasureCode")
       .eq("id", itemId)
       .eq("companyId", company.id)
       .single();
@@ -101,10 +112,15 @@ const PurchasingRFQLineForm = ({
       itemId,
       itemReadableId: item.data?.readableIdWithRevision ?? "",
       description: item.data?.name ?? "",
-      unitOfMeasureCode: item.data?.unitOfMeasureCode ?? "EA"
+      inventoryUom: item.data?.unitOfMeasureCode ?? "EA",
+      purchaseUom: item.data?.unitOfMeasureCode ?? "EA",
+      conversionFactor: 1
     };
 
     setItemData(newItemData);
+    if (item.data?.type) {
+      setItemType(item.data.type as MethodItemType);
+    }
   };
 
   const deleteDisclosure = useDisclosure();
@@ -181,6 +197,10 @@ const PurchasingRFQLineForm = ({
                 <Hidden name="id" />
                 <Hidden name="purchasingRfqId" />
                 <Hidden name="order" />
+                <Hidden
+                  name="inventoryUnitOfMeasureCode"
+                  value={itemData?.inventoryUom}
+                />
                 <VStack>
                   <div className="grid w-full gap-x-8 gap-y-4 grid-cols-1 lg:grid-cols-3">
                     <div className="col-span-2 grid w-full gap-x-8 gap-y-4 grid-cols-1 lg:grid-cols-2 auto-rows-min">
@@ -188,11 +208,22 @@ const PurchasingRFQLineForm = ({
                         autoFocus
                         name="itemId"
                         label="Part"
-                        type="Part"
+                        type={itemType}
                         value={itemData.itemId}
                         includeInactive
                         onChange={(value) => {
                           onItemChange(value?.value as string);
+                        }}
+                        onTypeChange={(type) => {
+                          setItemType(type as MethodItemType);
+                          setItemData({
+                            ...itemData,
+                            itemId: "",
+                            description: "",
+                            inventoryUom: "",
+                            purchaseUom: "",
+                            conversionFactor: 1
+                          });
                         }}
                       />
                       <InputControlled
@@ -202,14 +233,27 @@ const PurchasingRFQLineForm = ({
                         isReadOnly={!!itemData.itemId}
                       />
                       <UnitOfMeasure
-                        name="unitOfMeasureCode"
-                        value={itemData.unitOfMeasureCode}
+                        name="purchaseUnitOfMeasureCode"
+                        label="Purchase Unit of Measure"
+                        value={itemData.purchaseUom}
                         onChange={(newValue) =>
                           setItemData((d) => ({
                             ...d,
-                            unitOfMeasureCode: newValue?.value ?? "EA"
+                            purchaseUom: newValue?.value ?? "EA"
                           }))
                         }
+                      />
+                      <ConversionFactor
+                        name="conversionFactor"
+                        purchasingCode={itemData.purchaseUom}
+                        inventoryCode={itemData.inventoryUom}
+                        value={itemData.conversionFactor}
+                        onChange={(value) => {
+                          setItemData((d) => ({
+                            ...d,
+                            conversionFactor: value
+                          }));
+                        }}
                       />
 
                       <CustomFormFields table="purchasingRfqLine" />
@@ -219,6 +263,7 @@ const PurchasingRFQLineForm = ({
                         name="quantity"
                         label="Quantity"
                         defaults={[1, 25, 50, 100]}
+                        isDisabled={!isEditable}
                       />
                     </div>
                   </div>

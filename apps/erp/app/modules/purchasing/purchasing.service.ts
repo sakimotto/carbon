@@ -1797,7 +1797,9 @@ export async function upsertPurchasingRFQLine(
         itemId: string;
         description?: string;
         quantity: number[];
-        unitOfMeasureCode: string;
+        purchaseUnitOfMeasureCode: string;
+        inventoryUnitOfMeasureCode: string;
+        conversionFactor?: number;
         order: number;
         companyId: string;
         createdBy: string;
@@ -1809,7 +1811,9 @@ export async function upsertPurchasingRFQLine(
         itemId: string;
         description?: string;
         quantity: number[];
-        unitOfMeasureCode: string;
+        purchaseUnitOfMeasureCode: string;
+        inventoryUnitOfMeasureCode: string;
+        conversionFactor?: number;
         order: number;
         companyId: string;
         updatedBy: string;
@@ -2048,4 +2052,15 @@ export async function getSupplierQuotesForComparison(
     },
     error: lines.error || prices.error
   };
+}
+
+// Get RFQ suppliers with their supplier info
+export async function getPurchasingRFQSuppliersWithLinks(
+  client: SupabaseClient<Database>,
+  purchasingRfqId: string
+) {
+  return client
+    .from("purchasingRfqSupplier")
+    .select("*, supplier:supplierId(id, name)")
+    .eq("purchasingRfqId", purchasingRfqId);
 }
