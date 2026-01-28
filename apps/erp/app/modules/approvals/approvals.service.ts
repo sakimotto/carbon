@@ -3,7 +3,6 @@ import { getPurchaseOrderStatus } from "@carbon/utils";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getPurchaseOrderLines } from "~/modules/purchasing";
 import type { GenericQueryFilters } from "~/utils/query";
-import { setGenericQueryFilters } from "~/utils/query";
 import { sanitize } from "~/utils/supabase";
 import type { approvalDocumentType } from "./approvals.models";
 import type {
@@ -20,21 +19,19 @@ export async function canViewApprovalRequest(
   approvalRequest: ApprovalRequestForViewCheck,
   userId: string
 ): Promise<boolean> {
-  if (
-    approvalRequest.requestedBy === userId ||
-    approvalRequest.approverId === userId
-  ) {
+  if (approvalRequest.requestedBy === userId) {
     return true;
   }
 
-  const approverGroupIds = approvalRequest.approverGroupIds;
-  if (!approverGroupIds || approverGroupIds.length === 0) {
-    return false;
-  }
-
-  const userGroups = await client.rpc("groups_for_user", { uid: userId });
-  const userGroupIds = userGroups.data || [];
-  return approverGroupIds.some((groupId) => userGroupIds.includes(groupId));
+  return canApproveRequest(
+    client,
+    {
+      amount: approvalRequest.amount,
+      documentType: approvalRequest.documentType,
+      companyId: approvalRequest.companyId
+    },
+    userId
+  );
 }
 
 export async function canApproveRequest(
@@ -42,11 +39,22 @@ export async function canApproveRequest(
   approvalRequest: ApprovalRequestForApproveCheck,
   userId: string
 ): Promise<boolean> {
-  if (approvalRequest.approverId === userId) {
+  const rule = await getApprovalRuleByAmount(
+    client,
+    approvalRequest.documentType,
+    approvalRequest.companyId,
+    approvalRequest.amount ?? undefined
+  );
+
+  if (!rule.data) {
+    return false;
+  }
+
+  if (rule.data.defaultApproverId === userId) {
     return true;
   }
 
-  const approverGroupIds = approvalRequest.approverGroupIds;
+  const approverGroupIds = rule.data.approverGroupIds;
   if (!approverGroupIds || approverGroupIds.length === 0) {
     return false;
   }
@@ -66,143 +74,10 @@ export function canCancelRequest(
   );
 }
 
-export async function deleteApprovalRule(
-  client: SupabaseClient<Database>,
-  id: string,
-  companyId: string
-) {
-  return client
-    .from("approvalRule")
-    .delete()
-    .eq("id", id)
-    .eq("companyId", companyId);
-}
-
-export async function getApprovalsForUser(
-  client: SupabaseClient<Database>,
-  userId: string,
-  companyId: string,
-  args?: GenericQueryFilters & ApprovalFilters
-) {
-  const userGroups = await client.rpc("groups_for_user", { uid: userId });
-  const groupIds = userGroups.data || [];
-
-  let query = client
-    .from("approvalRequests")
-    .select("*", { count: "exact" })
-    .eq("companyId", companyId);
-
-  if (args?.documentType) {
-    query = query.eq("documentType", args.documentType);
-  }
-
-  if (args?.status) {
-    query = query.eq("status", args.status);
-  }
-
-  if (args?.dateFrom) {
-    query = query.gte("requestedAt", args.dateFrom);
-  }
-  if (args?.dateTo) {
-    query = query.lte("requestedAt", args.dateTo);
-  }
-
-  if (groupIds.length > 0) {
-    const groupConditions = groupIds
-      .map((gid: string) => `approverGroupIds.cs.{${gid}}`)
-      .join(",");
-    query = query.or(
-      `requestedBy.eq.${userId},approverId.eq.${userId},${groupConditions}`
-    );
-  } else {
-    query = query.or(`requestedBy.eq.${userId},approverId.eq.${userId}`);
-  }
-
-  if (args) {
-    query = setGenericQueryFilters(query, args, [
-      { column: "requestedAt", ascending: false }
-    ]);
-  }
-
-  return query;
-}
-
-export async function getPendingApprovalsForApprover(
-  client: SupabaseClient<Database>,
-  userId: string,
-  companyId: string
-) {
-  const userGroups = await client.rpc("groups_for_user", { uid: userId });
-  const groupIds = userGroups.data || [];
-
-  let query = client
-    .from("approvalRequests")
-    .select("*")
-    .eq("companyId", companyId)
-    .eq("status", "Pending");
-
-  if (groupIds.length > 0) {
-    const groupConditions = groupIds
-      .map((gid: string) => `approverGroupIds.cs.{${gid}}`)
-      .join(",");
-    query = query.or(`approverId.eq.${userId},${groupConditions}`);
-  } else {
-    query = query.eq("approverId", userId);
-  }
-
-  return query.order("requestedAt", { ascending: false });
-}
-
-export async function getApprovalRuleById(
-  client: SupabaseClient<Database>,
-  id: string,
-  companyId: string
-) {
-  return client
-    .from("approvalRule")
-    .select("*")
-    .eq("id", id)
-    .eq("companyId", companyId)
-    .single();
-}
-
-export async function getApprovalById(
-  client: SupabaseClient<Database>,
-  id: string
-) {
-  return client.from("approvalRequests").select("*").eq("id", id).single();
-}
-
-export async function getLatestApprovalForDocument(
-  client: SupabaseClient<Database>,
-  documentType: (typeof approvalDocumentType)[number],
-  documentId: string
-) {
-  return client
-    .from("approvalRequests")
-    .select("*")
-    .eq("documentType", documentType)
-    .eq("documentId", documentId)
-    .order("requestedAt", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-}
-
 export async function createApprovalRequest(
   client: SupabaseClient<Database>,
   request: CreateApprovalRequestInput & { amount?: number }
 ) {
-  const config = await getApprovalRuleByAmount(
-    client,
-    request.documentType,
-    request.companyId,
-    request.amount
-  );
-
-  const approverGroupIds =
-    request.approverGroupIds || config.data?.approverGroupIds || [];
-  const approverId = request.approverId || config.data?.defaultApproverId;
-
   return client
     .from("approvalRequest")
     .insert([
@@ -210,8 +85,7 @@ export async function createApprovalRequest(
         documentType: request.documentType,
         documentId: request.documentId,
         requestedBy: request.requestedBy,
-        approverGroupIds: approverGroupIds.length > 0 ? approverGroupIds : [],
-        approverId: approverId || null,
+        amount: request.amount ?? null,
         companyId: request.companyId,
         createdBy: request.createdBy
       }
@@ -261,7 +135,6 @@ export async function approveRequest(
     return { error: approvalUpdate.error, data: null };
   }
 
-  // Update document status based on type
   if (approvalUpdate.data) {
     const { documentType, documentId } = approvalUpdate.data;
 
@@ -290,7 +163,6 @@ export async function approveRequest(
         );
       }
     } else if (documentType === "qualityDocument") {
-      // Update quality document to "Active" when approved
       await client
         .from("qualityDocument")
         .update({
@@ -346,12 +218,10 @@ export async function rejectRequest(
     return { error: approvalUpdate.error, data: null };
   }
 
-  // Update document status based on type
   if (approvalUpdate.data) {
     const { documentType, documentId } = approvalUpdate.data;
 
     if (documentType === "purchaseOrder") {
-      // Update purchase order from "Needs Approval" back to "Draft"
       await client
         .from("purchaseOrder")
         .update({
@@ -411,6 +281,70 @@ export async function cancelApprovalRequest(
     .single();
 }
 
+export async function getApprovalById(
+  client: SupabaseClient<Database>,
+  id: string
+) {
+  const baseRequest = await client
+    .from("approvalRequest")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (baseRequest.error || !baseRequest.data) {
+    return baseRequest;
+  }
+
+  const viewData = await client
+    .from("approvalRequests")
+    .select("documentReadableId, documentDescription")
+    .eq("id", id)
+    .single();
+
+  return {
+    data: {
+      ...baseRequest.data,
+      documentReadableId: viewData.data?.documentReadableId ?? null,
+      documentDescription: viewData.data?.documentDescription ?? null
+    },
+    error: null
+  };
+}
+
+export async function getLatestApprovalRequestForDocument(
+  client: SupabaseClient<Database>,
+  documentType: (typeof approvalDocumentType)[number],
+  documentId: string
+) {
+  const baseRequest = await client
+    .from("approvalRequest")
+    .select("*")
+    .eq("documentType", documentType)
+    .eq("documentId", documentId)
+    .order("requestedAt", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (baseRequest.error || !baseRequest.data) {
+    return baseRequest;
+  }
+
+  const viewData = await client
+    .from("approvalRequests")
+    .select("documentReadableId, documentDescription")
+    .eq("id", baseRequest.data.id)
+    .single();
+
+  return {
+    data: {
+      ...baseRequest.data,
+      documentReadableId: viewData.data?.documentReadableId ?? null,
+      documentDescription: viewData.data?.documentDescription ?? null
+    },
+    error: null
+  };
+}
+
 export async function getApprovalRequestsByDocument(
   client: SupabaseClient<Database>,
   documentType: (typeof approvalDocumentType)[number],
@@ -424,39 +358,183 @@ export async function getApprovalRequestsByDocument(
     .order("requestedAt", { ascending: false });
 }
 
-export async function getApprovalRuleByAmount(
+export async function getApprovalsForUser(
   client: SupabaseClient<Database>,
-  documentType: (typeof approvalDocumentType)[number],
+  userId: string,
   companyId: string,
-  amount?: number
+  args?: GenericQueryFilters & ApprovalFilters
 ) {
   let query = client
-    .from("approvalRule")
-    .select("*")
-    .eq("documentType", documentType)
+    .from("approvalRequest")
+    .select("*", { count: "exact" })
     .eq("companyId", companyId)
-    .eq("enabled", true);
+    .eq("requestedBy", userId);
 
-  if (amount !== undefined && amount !== null) {
-    query = query
-      .lte("lowerBoundAmount", amount)
-      .or(`upperBoundAmount.is.null,upperBoundAmount.gt.${amount}`);
-  } else {
-    query = query.is("upperBoundAmount", null).eq("lowerBoundAmount", 0);
+  if (args?.documentType) {
+    query = query.eq("documentType", args.documentType);
   }
 
-  return query
-    .order("lowerBoundAmount", { ascending: false })
-    .order("id", { ascending: true })
-    .limit(1)
-    .maybeSingle();
+  if (args?.status) {
+    query = query.eq("status", args.status);
+  }
+
+  if (args?.dateFrom) {
+    query = query.gte("requestedAt", args.dateFrom);
+  }
+  if (args?.dateTo) {
+    query = query.lte("requestedAt", args.dateTo);
+  }
+
+  const requestedByUserBase = await query;
+
+  // Get readable fields from view for requestedByUser
+  const requestedByUser = await Promise.all(
+    (requestedByUserBase.data || []).map(async (approval) => {
+      const viewData = await client
+        .from("approvalRequests")
+        .select("documentReadableId, documentDescription")
+        .eq("id", approval.id)
+        .single();
+
+      return {
+        ...approval,
+        documentReadableId: viewData.data?.documentReadableId ?? null,
+        documentDescription: viewData.data?.documentDescription ?? null
+      };
+    })
+  );
+
+  let pendingQuery = client
+    .from("approvalRequest")
+    .select("*")
+    .eq("companyId", companyId)
+    .eq("status", "Pending")
+    .neq("requestedBy", userId);
+
+  if (args?.documentType) {
+    pendingQuery = pendingQuery.eq("documentType", args.documentType);
+  }
+
+  if (args?.dateFrom) {
+    pendingQuery = pendingQuery.gte("requestedAt", args.dateFrom);
+  }
+  if (args?.dateTo) {
+    pendingQuery = pendingQuery.lte("requestedAt", args.dateTo);
+  }
+
+  const allPending = await pendingQuery;
+
+  const pendingWithReadableFields = await Promise.all(
+    (allPending.data || []).map(async (approval) => {
+      const viewData = await client
+        .from("approvalRequests")
+        .select("documentReadableId, documentDescription")
+        .eq("id", approval.id)
+        .single();
+
+      return {
+        ...approval,
+        documentReadableId: viewData.data?.documentReadableId ?? null,
+        documentDescription: viewData.data?.documentDescription ?? null
+      };
+    })
+  );
+
+  const canApprovePromises = pendingWithReadableFields.map(async (approval) => {
+    const canApprove = await canApproveRequest(
+      client,
+      {
+        amount: approval.amount,
+        documentType: approval.documentType,
+        companyId: approval.companyId
+      },
+      userId
+    );
+    return canApprove ? approval : null;
+  });
+
+  const approvableByUser = (await Promise.all(canApprovePromises)).filter(
+    (approval): approval is NonNullable<typeof approval> => approval !== null
+  );
+
+  const allApprovals = [...requestedByUser, ...approvableByUser];
+
+  let filtered = allApprovals;
+  if (args?.status && args.status !== "Pending") {
+    filtered = allApprovals.filter((a) => a.status === args.status);
+  }
+
+  filtered.sort((a, b) => {
+    const aDate = new Date(a.requestedAt).getTime();
+    const bDate = new Date(b.requestedAt).getTime();
+    return bDate - aDate;
+  });
+
+  if (args?.limit) {
+    const offset = args.offset || 0;
+    filtered = filtered.slice(offset, offset + args.limit);
+  }
+
+  return {
+    data: filtered,
+    count: requestedByUserBase.count ?? allApprovals.length,
+    error: null
+  };
 }
 
-export async function getApprovalRules(
+export async function getPendingApprovalsForApprover(
   client: SupabaseClient<Database>,
+  userId: string,
   companyId: string
 ) {
-  return client.from("approvalRule").select("*").eq("companyId", companyId);
+  const allPending = await client
+    .from("approvalRequest")
+    .select("*")
+    .eq("companyId", companyId)
+    .eq("status", "Pending")
+    .order("requestedAt", { ascending: false });
+
+  if (allPending.error || !allPending.data) {
+    return allPending;
+  }
+
+  const pendingWithReadableFields = await Promise.all(
+    allPending.data.map(async (approval) => {
+      const viewData = await client
+        .from("approvalRequests")
+        .select("documentReadableId, documentDescription")
+        .eq("id", approval.id)
+        .single();
+
+      return {
+        ...approval,
+        documentReadableId: viewData.data?.documentReadableId ?? null,
+        documentDescription: viewData.data?.documentDescription ?? null
+      };
+    })
+  );
+
+  const canApprovePromises = pendingWithReadableFields.map(async (approval) => {
+    const canApprove = await canApproveRequest(
+      client,
+      {
+        amount: approval.amount,
+        documentType: approval.documentType,
+        companyId: approval.companyId
+      },
+      userId
+    );
+    return canApprove ? approval : null;
+  });
+
+  const approvableByUser = (await Promise.all(canApprovePromises)).filter(
+    (approval): approval is NonNullable<typeof approval> => approval !== null
+  );
+
+  return {
+    data: approvableByUser,
+    error: null
+  };
 }
 
 export async function upsertApprovalRule(
@@ -487,6 +565,64 @@ export async function upsertApprovalRule(
   }
 
   return client.from("approvalRule").insert([rule]).select("id").single();
+}
+
+export async function deleteApprovalRule(
+  client: SupabaseClient<Database>,
+  id: string,
+  companyId: string
+) {
+  return client
+    .from("approvalRule")
+    .delete()
+    .eq("id", id)
+    .eq("companyId", companyId);
+}
+
+export async function getApprovalRuleById(
+  client: SupabaseClient<Database>,
+  id: string,
+  companyId: string
+) {
+  return client
+    .from("approvalRule")
+    .select("*")
+    .eq("id", id)
+    .eq("companyId", companyId)
+    .single();
+}
+
+export async function getApprovalRules(
+  client: SupabaseClient<Database>,
+  companyId: string
+) {
+  return client.from("approvalRule").select("*").eq("companyId", companyId);
+}
+
+export async function getApprovalRuleByAmount(
+  client: SupabaseClient<Database>,
+  documentType: (typeof approvalDocumentType)[number],
+  companyId: string,
+  amount?: number
+) {
+  let query = client
+    .from("approvalRule")
+    .select("*")
+    .eq("documentType", documentType)
+    .eq("companyId", companyId)
+    .eq("enabled", true);
+
+  if (amount !== undefined && amount !== null) {
+    query = query.lte("lowerBoundAmount", amount);
+  } else {
+    query = query.eq("lowerBoundAmount", 0);
+  }
+
+  return query
+    .order("lowerBoundAmount", { ascending: false })
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 }
 
 export async function isApprovalRequired(
@@ -523,36 +659,4 @@ export async function hasPendingApproval(
     .limit(1);
 
   return (result.data?.length ?? 0) > 0;
-}
-
-export async function getApprovalCounts(
-  client: SupabaseClient<Database>,
-  userId: string,
-  companyId: string
-) {
-  const userGroups = await client.rpc("groups_for_user", { uid: userId });
-  const groupIds = userGroups.data || [];
-
-  let pendingQuery = client
-    .from("approvalRequest")
-    .select("id", { count: "exact", head: true })
-    .eq("companyId", companyId)
-    .eq("status", "Pending");
-
-  if (groupIds.length > 0) {
-    const groupConditions = groupIds
-      .map((gid: string) => `approverGroupIds.cs.{${gid}}`)
-      .join(",");
-    pendingQuery = pendingQuery.or(
-      `approverId.eq.${userId},${groupConditions}`
-    );
-  } else {
-    pendingQuery = pendingQuery.eq("approverId", userId);
-  }
-
-  const pending = await pendingQuery;
-
-  return {
-    pending: pending.count ?? 0
-  };
 }

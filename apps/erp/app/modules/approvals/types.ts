@@ -27,13 +27,15 @@ export type ApprovalDocumentType =
 
 export type ApprovalRequestForViewCheck = {
   requestedBy: string;
-  approverId: string | null;
-  approverGroupIds: string[] | null;
+  amount: number | null;
+  documentType: ApprovalDocumentType;
+  companyId: string;
 };
 
 export type ApprovalRequestForApproveCheck = {
-  approverId: string | null;
-  approverGroupIds: string[] | null;
+  amount: number | null;
+  documentType: ApprovalDocumentType;
+  companyId: string;
 };
 
 export type ApprovalRequestForCancelCheck = {
