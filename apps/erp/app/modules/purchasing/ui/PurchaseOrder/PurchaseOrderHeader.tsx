@@ -272,7 +272,34 @@ const PurchaseOrderHeader = () => {
                   Ship
                 </Button>
               ))}
-            {receipts.length > 0 ? (
+            {isNeedsApproval && hasApprovalRequest && canApprove ? (
+              <>
+                <Button
+                  leftIcon={<LuCheckCheck />}
+                  variant="primary"
+                  isLoading={
+                    approvalFetcher.state !== "idle" &&
+                    approvalFetcher.formData?.get("decision") === "Approved"
+                  }
+                  isDisabled={approvalFetcher.state !== "idle"}
+                  onClick={() => setApprovalDecision("Approved")}
+                >
+                  Approve
+                </Button>
+                <Button
+                  leftIcon={<LuX />}
+                  variant="destructive"
+                  isLoading={
+                    approvalFetcher.state !== "idle" &&
+                    approvalFetcher.formData?.get("decision") === "Rejected"
+                  }
+                  isDisabled={approvalFetcher.state !== "idle"}
+                  onClick={() => setApprovalDecision("Rejected")}
+                >
+                  Reject
+                </Button>
+              </>
+            ) : receipts.length > 0 ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -319,33 +346,6 @@ const PurchaseOrderHeader = () => {
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : isNeedsApproval && hasApprovalRequest && canApprove ? (
-              <>
-                <Button
-                  leftIcon={<LuCheckCheck />}
-                  variant="primary"
-                  isLoading={
-                    approvalFetcher.state !== "idle" &&
-                    approvalFetcher.formData?.get("decision") === "Approved"
-                  }
-                  isDisabled={approvalFetcher.state !== "idle"}
-                  onClick={() => setApprovalDecision("Approved")}
-                >
-                  Approve
-                </Button>
-                <Button
-                  leftIcon={<LuX />}
-                  variant="destructive"
-                  isLoading={
-                    approvalFetcher.state !== "idle" &&
-                    approvalFetcher.formData?.get("decision") === "Rejected"
-                  }
-                  isDisabled={approvalFetcher.state !== "idle"}
-                  onClick={() => setApprovalDecision("Rejected")}
-                >
-                  Reject
-                </Button>
-              </>
             ) : (
               <Button
                 leftIcon={<LuHandCoins />}
