@@ -22,7 +22,7 @@ import {
   getSalesOrderShipment,
   getSalesTerms
 } from "~/modules/sales";
-import { getCompany } from "~/modules/settings";
+import { getCompany, getCompanySettings } from "~/modules/settings";
 import { getBase64ImageFromSupabase } from "~/modules/shared";
 import { getLocale } from "~/utils/request";
 
@@ -34,11 +34,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { id } = params;
   if (!id) throw new Error("Could not find id");
 
-  const [company, shipment, shipmentLines] = await Promise.all([
-    getCompany(client, companyId),
-    getShipment(client, id),
-    getShipmentLinesWithDetails(client, id)
-  ]);
+  const [company, companySettings, shipment, shipmentLines] = await Promise.all(
+    [
+      getCompany(client, companyId),
+      getCompanySettings(client, companyId),
+      getShipment(client, id),
+      getShipmentLinesWithDetails(client, id)
+    ]
+  );
 
   if (company.error) {
     console.error(company.error);
@@ -109,37 +112,41 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         throw new Error("Failed to load customer");
       }
 
-      const thumbnailPaths = shipmentLines.data?.reduce<
-        Record<string, string | null>
-      >((acc, line) => {
-        if (line.thumbnailPath) {
-          acc[line.id!] = line.thumbnailPath;
-        }
-        return acc;
-      }, {});
+      let thumbnails: Record<string, string | null> = {};
 
-      const thumbnails: Record<string, string | null> =
-        (thumbnailPaths
-          ? await Promise.all(
-              Object.entries(thumbnailPaths).map(([id, path]) => {
-                if (!path) {
-                  return null;
-                }
-                return getBase64ImageFromSupabase(serviceRole, path).then(
-                  (data) => ({
-                    id,
-                    data
-                  })
-                );
-              })
-            )
-          : []
-        )?.reduce<Record<string, string | null>>((acc, thumbnail) => {
-          if (thumbnail) {
-            acc[thumbnail.id] = thumbnail.data;
+      if (companySettings.data?.includeThumbnailsOnSalesPdfs ?? true) {
+        const thumbnailPaths = shipmentLines.data?.reduce<
+          Record<string, string | null>
+        >((acc, line) => {
+          if (line.thumbnailPath) {
+            acc[line.id!] = line.thumbnailPath;
           }
           return acc;
-        }, {}) ?? {};
+        }, {});
+
+        thumbnails =
+          (thumbnailPaths
+            ? await Promise.all(
+                Object.entries(thumbnailPaths).map(([id, path]) => {
+                  if (!path) {
+                    return null;
+                  }
+                  return getBase64ImageFromSupabase(serviceRole, path).then(
+                    (data) => ({
+                      id,
+                      data
+                    })
+                  );
+                })
+              )
+            : []
+          )?.reduce<Record<string, string | null>>((acc, thumbnail) => {
+            if (thumbnail) {
+              acc[thumbnail.id] = thumbnail.data;
+            }
+            return acc;
+          }, {}) ?? {};
+      }
 
       const stream = await renderToStream(
         <PackingSlipPDF
@@ -224,37 +231,41 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         throw new Error("Failed to load customer");
       }
 
-      const thumbnailPaths = shipmentLines.data?.reduce<
-        Record<string, string | null>
-      >((acc, line) => {
-        if (line.thumbnailPath) {
-          acc[line.id!] = line.thumbnailPath;
-        }
-        return acc;
-      }, {});
+      let thumbnails: Record<string, string | null> = {};
 
-      const thumbnails: Record<string, string | null> =
-        (thumbnailPaths
-          ? await Promise.all(
-              Object.entries(thumbnailPaths).map(([id, path]) => {
-                if (!path) {
-                  return null;
-                }
-                return getBase64ImageFromSupabase(serviceRole, path).then(
-                  (data) => ({
-                    id,
-                    data
-                  })
-                );
-              })
-            )
-          : []
-        )?.reduce<Record<string, string | null>>((acc, thumbnail) => {
-          if (thumbnail) {
-            acc[thumbnail.id] = thumbnail.data;
+      if (companySettings.data?.includeThumbnailsOnSalesPdfs ?? true) {
+        const thumbnailPaths = shipmentLines.data?.reduce<
+          Record<string, string | null>
+        >((acc, line) => {
+          if (line.thumbnailPath) {
+            acc[line.id!] = line.thumbnailPath;
           }
           return acc;
-        }, {}) ?? {};
+        }, {});
+
+        thumbnails =
+          (thumbnailPaths
+            ? await Promise.all(
+                Object.entries(thumbnailPaths).map(([id, path]) => {
+                  if (!path) {
+                    return null;
+                  }
+                  return getBase64ImageFromSupabase(serviceRole, path).then(
+                    (data) => ({
+                      id,
+                      data
+                    })
+                  );
+                })
+              )
+            : []
+          )?.reduce<Record<string, string | null>>((acc, thumbnail) => {
+            if (thumbnail) {
+              acc[thumbnail.id] = thumbnail.data;
+            }
+            return acc;
+          }, {}) ?? {};
+      }
 
       const stream = await renderToStream(
         <PackingSlipPDF
@@ -334,37 +345,41 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         throw new Error("Failed to load supplier");
       }
 
-      const poThumbnailPaths = shipmentLines.data?.reduce<
-        Record<string, string | null>
-      >((acc, line) => {
-        if (line.thumbnailPath) {
-          acc[line.id!] = line.thumbnailPath;
-        }
-        return acc;
-      }, {});
+      let poThumbnails: Record<string, string | null> = {};
 
-      const poThumbnails: Record<string, string | null> =
-        (poThumbnailPaths
-          ? await Promise.all(
-              Object.entries(poThumbnailPaths).map(([id, path]) => {
-                if (!path) {
-                  return null;
-                }
-                return getBase64ImageFromSupabase(client, path).then(
-                  (data) => ({
-                    id,
-                    data
-                  })
-                );
-              })
-            )
-          : []
-        )?.reduce<Record<string, string | null>>((acc, thumbnail) => {
-          if (thumbnail) {
-            acc[thumbnail.id] = thumbnail.data;
+      if (companySettings.data?.includeThumbnailsOnPurchasingPdfs ?? true) {
+        const poThumbnailPaths = shipmentLines.data?.reduce<
+          Record<string, string | null>
+        >((acc, line) => {
+          if (line.thumbnailPath) {
+            acc[line.id!] = line.thumbnailPath;
           }
           return acc;
-        }, {}) ?? {};
+        }, {});
+
+        poThumbnails =
+          (poThumbnailPaths
+            ? await Promise.all(
+                Object.entries(poThumbnailPaths).map(([id, path]) => {
+                  if (!path) {
+                    return null;
+                  }
+                  return getBase64ImageFromSupabase(client, path).then(
+                    (data) => ({
+                      id,
+                      data
+                    })
+                  );
+                })
+              )
+            : []
+          )?.reduce<Record<string, string | null>>((acc, thumbnail) => {
+            if (thumbnail) {
+              acc[thumbnail.id] = thumbnail.data;
+            }
+            return acc;
+          }, {}) ?? {};
+      }
 
       const poStream = await renderToStream(
         <PackingSlipPDF

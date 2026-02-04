@@ -393,8 +393,8 @@ export default function SalesSettingsRoute() {
             <CardHeader>
               <CardTitle>PDFs</CardTitle>
               <CardDescription>
-                Show part thumbnails on quotes, sales orders, and sales
-                invoices.
+                Show part thumbnails on quotes, sales orders, sales invoices,
+                and shipments.
               </CardDescription>
             </CardHeader>
             <CardContent>
