@@ -44,6 +44,7 @@
     "db:push": "turbo run db:push",
     "db:restart": "run-s db:stop db:start",
     "db:seed": "turbo run db:seed --no-cache",
+    "db:seed:dev": "npm run db:seed:dev -w @carbon/database --",
     "db:start": "npm run db:start -w @carbon/database",
     "db:start:redis": "npm run db:start -w @carbon/kv",
     "db:stop": "npm run db:stop -w @carbon/database",
