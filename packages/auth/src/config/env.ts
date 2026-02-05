@@ -7,6 +7,8 @@ declare global {
       CARBON_EDITION: string;
       CLOUDFLARE_TURNSTILE_SITE_KEY: string;
       CONTROLLED_ENVIRONMENT: string;
+      ERP_URL: string;
+      MES_URL: string;
       POSTHOG_API_HOST: string;
       POSTHOG_PROJECT_PUBLIC_KEY: string;
       SUPABASE_URL: string;
@@ -26,6 +28,8 @@ declare global {
       CLOUDFLARE_TURNSTILE_SITE_KEY: string;
       CLOUDFLARE_TURNSTILE_SECRET_KEY: string;
       DOMAIN: string;
+      ERP_URL: string;
+      MES_URL: string;
       NOVU_SECRET_KEY: string;
       POSTHOG_API_HOST: string;
       POSTHOG_PROJECT_PUBLIC_KEY: string;
@@ -124,6 +128,13 @@ export const EXCHANGE_RATES_API_KEY = getEnv("EXCHANGE_RATES_API_KEY", {
   isRequired: false,
   isSecret: true
 });
+
+export const ERP_URL =
+  getEnv("ERP_URL", { isRequired: false, isSecret: false }) ??
+  "https://app.carbon.ms";
+export const MES_URL =
+  getEnv("MES_URL", { isRequired: false, isSecret: false }) ??
+  "https://mes.carbon.ms";
 
 export const GOOGLE_PLACES_API_KEY = getEnv("GOOGLE_PLACES_API_KEY", {
   isRequired: false
@@ -272,9 +283,11 @@ export const RATE_LIMIT = parseInt(
 
 export function getAppUrl() {
   if (VERCEL_ENV === "production" || NODE_ENV === "production") {
-    return CONTROLLED_ENVIRONMENT
-      ? "https://itar.carbon.ms"
-      : "https://app.carbon.ms";
+    return ERP_URL
+      ? ERP_URL
+      : CONTROLLED_ENVIRONMENT
+        ? "https://itar.carbon.ms"
+        : "https://app.carbon.ms";
   }
 
   if (VERCEL_ENV === "preview") {
@@ -286,9 +299,11 @@ export function getAppUrl() {
 
 export function getMESUrl() {
   if (VERCEL_ENV === "production" || NODE_ENV === "production") {
-    return CONTROLLED_ENVIRONMENT
-      ? "https://mes.itar.carbon.ms"
-      : "https://mes.carbon.ms";
+    return MES_URL
+      ? MES_URL
+      : CONTROLLED_ENVIRONMENT
+        ? "https://mes.itar.carbon.ms"
+        : "https://mes.carbon.ms";
   }
 
   if (VERCEL_ENV === "preview") {

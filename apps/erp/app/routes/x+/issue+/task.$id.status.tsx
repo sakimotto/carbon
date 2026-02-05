@@ -1,4 +1,4 @@
-import { assertIsPost, error } from "@carbon/auth";
+import { assertIsPost, ERP_URL, error } from "@carbon/auth";
 import { requirePermissions } from "@carbon/auth/auth.server";
 import { flash } from "@carbon/auth/session.server";
 import { notifyTaskStatusChanged } from "@carbon/ee/notifications";
@@ -51,9 +51,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await notifyTaskStatusChanged({ client }, integrations, {
         companyId,
         userId,
-        carbonUrl: `https://app.carbon.ms${path.to.issue(
-          update.data.nonConformanceId
-        )}`,
+        carbonUrl: `${ERP_URL}${path.to.issue(update.data.nonConformanceId)}`,
         task: {
           id,
           status,

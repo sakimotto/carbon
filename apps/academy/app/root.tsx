@@ -249,9 +249,11 @@ export default function App() {
         <Document mode={mode} theme={theme}>
           <header className="flex select-none items-center py-4 pl-5 pr-2 h-[var(--header-height)]">
             <div className="max-w-5xl mx-auto px-4 flex items-center justify-between gap-2 z-logo text-foreground w-full">
-              <Link
-                to="/"
-                className="cursor-pointer flex flex-row items-end gap-2 flex-shrink-0 font-display"
+              <a
+                href="https://app.carbon.ms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="cursor-pointer inline-flex flex-row items-end gap-2 flex-shrink-0 font-display"
               >
                 <img
                   src="/carbon-word-light.svg"
@@ -263,7 +265,7 @@ export default function App() {
                   alt="Carbon"
                   className="h-7 w-auto hidden dark:block"
                 />
-              </Link>
+              </a>
               <div className="flex items-center">
                 <div className="items-center gap-1 hidden md:flex">
                   <Button variant="ghost" asChild>
