@@ -14,7 +14,7 @@ import { getSupabaseServiceRole } from "../lib/supabase.ts";
 import { Database } from "../lib/types.ts";
 import { getNextSequence } from "../shared/get-next-sequence.ts";
 
-const pool = getConnectionPool(1);
+const pool = getConnectionPool(2);
 const db = getDatabaseClient<DB>(pool);
 
 const payloadValidator = z.discriminatedUnion("type", [
