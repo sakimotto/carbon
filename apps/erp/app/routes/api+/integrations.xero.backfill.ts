@@ -8,11 +8,10 @@ import { z } from "zod";
 const BackfillSettingsSchema = z.object({
   backfillCustomers: z.boolean().optional().default(true),
   backfillVendors: z.boolean().optional().default(true),
-  backfillItems: z.boolean().optional().default(true),
-  conflictResolution: z
-    .enum(["skip", "overwrite", "merge"])
-    .optional()
-    .default("merge")
+  backfillItems: z.boolean().optional().default(true)
+  // Note: syncConfig.entities.{entity}.owner settings are read directly
+  // by the provider from the integration metadata, so we don't need to
+  // pass them explicitly to the backfill task
 });
 
 export const config = {
@@ -72,19 +71,19 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     // Trigger the backfill task with settings
+    // Note: Entity owner settings (syncConfig) are read directly by the
+    // provider from integration metadata, so we only pass entity toggles
     const handle = await tasks.trigger(
       "accounting-backfill",
       {
         companyId,
         provider: ProviderID.XERO,
         batchSize: 50,
-        pageSize: 100,
         entityTypes: {
           customers: settings.backfillCustomers,
           vendors: settings.backfillVendors,
           items: settings.backfillItems
-        },
-        conflictResolution: settings.conflictResolution
+        }
       },
       {
         idempotencyKey: `backfill_${companyId}_${Date.now()}`,

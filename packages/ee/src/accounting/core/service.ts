@@ -60,7 +60,25 @@ export const getProviderIntegration = (
 ) => {
   const { accessToken, refreshToken, tenantId } = config?.credentials || {};
 
-  const syncConfig = DEFAULT_SYNC_CONFIG; // TODO use config?.syncConfig to make it configurable
+  // Merge user's sync config with defaults (user settings override defaults)
+  const syncConfig = config?.syncConfig
+    ? {
+        entities: {
+          ...DEFAULT_SYNC_CONFIG.entities,
+          ...Object.fromEntries(
+            Object.entries(config.syncConfig.entities).map(([key, value]) => [
+              key,
+              {
+                ...DEFAULT_SYNC_CONFIG.entities[
+                  key as keyof typeof DEFAULT_SYNC_CONFIG.entities
+                ],
+                ...value
+              }
+            ])
+          )
+        }
+      }
+    : DEFAULT_SYNC_CONFIG;
 
   // Create a callback function to update the integration metadata when tokens are refreshed
   const onTokenRefresh = async (auth: ProviderCredentials) => {

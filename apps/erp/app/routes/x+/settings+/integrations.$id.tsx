@@ -9,6 +9,93 @@ import { getIntegration, IntegrationForm } from "~/modules/settings";
 import { upsertCompanyIntegration } from "~/modules/settings/settings.server";
 import { path } from "~/utils/path";
 
+/**
+ * Transforms flat owner settings (customerOwner, vendorOwner, etc.) into
+ * the nested syncConfig.entities structure expected by the accounting sync.
+ */
+function buildIntegrationMetadata(
+  existingMetadata: Record<string, unknown>,
+  formData: Record<string, unknown>
+): Record<string, unknown> {
+  // Extract owner settings from form data
+  const ownerSettings = {
+    customerOwner: formData.customerOwner as string | undefined,
+    vendorOwner: formData.vendorOwner as string | undefined,
+    itemOwner: formData.itemOwner as string | undefined,
+    invoiceOwner: formData.invoiceOwner as string | undefined,
+    billOwner: formData.billOwner as string | undefined
+  };
+
+  // Check if any owner settings are present
+  const hasOwnerSettings = Object.values(ownerSettings).some(
+    (v) => v !== undefined
+  );
+
+  if (!hasOwnerSettings) {
+    // No owner settings, just merge as-is
+    return { ...existingMetadata, ...formData };
+  }
+
+  // Build syncConfig.entities from owner settings
+  const existingSyncConfig =
+    (existingMetadata.syncConfig as Record<string, unknown>) ?? {};
+  const existingEntities =
+    (existingSyncConfig.entities as Record<string, unknown>) ?? {};
+
+  const syncConfig = {
+    ...existingSyncConfig,
+    entities: {
+      ...existingEntities,
+      ...(ownerSettings.customerOwner && {
+        customer: {
+          ...(existingEntities.customer as Record<string, unknown>),
+          owner: ownerSettings.customerOwner
+        }
+      }),
+      ...(ownerSettings.vendorOwner && {
+        vendor: {
+          ...(existingEntities.vendor as Record<string, unknown>),
+          owner: ownerSettings.vendorOwner
+        }
+      }),
+      ...(ownerSettings.itemOwner && {
+        item: {
+          ...(existingEntities.item as Record<string, unknown>),
+          owner: ownerSettings.itemOwner
+        }
+      }),
+      ...(ownerSettings.invoiceOwner && {
+        invoice: {
+          ...(existingEntities.invoice as Record<string, unknown>),
+          owner: ownerSettings.invoiceOwner
+        }
+      }),
+      ...(ownerSettings.billOwner && {
+        bill: {
+          ...(existingEntities.bill as Record<string, unknown>),
+          owner: ownerSettings.billOwner
+        }
+      })
+    }
+  };
+
+  // Remove owner settings from formData since they're now in syncConfig
+  const {
+    customerOwner,
+    vendorOwner,
+    itemOwner,
+    invoiceOwner,
+    billOwner,
+    ...restFormData
+  } = formData;
+
+  return {
+    ...existingMetadata,
+    ...restFormData,
+    syncConfig
+  };
+}
+
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { client, companyId } = await requirePermissions(request, {
     update: "settings"
@@ -33,9 +120,42 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     };
   }
 
+  // Extract owner settings from syncConfig back into flat fields for the form
+  const metadata = (integrationData.data.metadata ?? {}) as Record<
+    string,
+    unknown
+  >;
+  const flattenedMetadata = flattenSyncConfigToOwnerSettings(metadata);
+
   return {
     installed: integrationData.data.active,
-    metadata: (integrationData.data.metadata ?? {}) as Record<string, unknown>
+    metadata: flattenedMetadata
+  };
+}
+
+/**
+ * Extracts owner settings from nested syncConfig.entities back into
+ * flat fields (customerOwner, vendorOwner, etc.) for the form.
+ */
+function flattenSyncConfigToOwnerSettings(
+  metadata: Record<string, unknown>
+): Record<string, unknown> {
+  const syncConfig = metadata.syncConfig as Record<string, unknown> | undefined;
+  const entities = syncConfig?.entities as
+    | Record<string, Record<string, unknown>>
+    | undefined;
+
+  if (!entities) {
+    return metadata;
+  }
+
+  return {
+    ...metadata,
+    customerOwner: entities.customer?.owner,
+    vendorOwner: entities.vendor?.owner,
+    itemOwner: entities.item?.owner,
+    invoiceOwner: entities.invoice?.owner,
+    billOwner: entities.bill?.owner
   };
 }
 
@@ -69,13 +189,13 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const existingMetadata =
     (existing.data?.metadata as Record<string, unknown>) ?? {};
 
+  // Build metadata, transforming owner settings into syncConfig structure
+  const metadata = buildIntegrationMetadata(existingMetadata, d);
+
   const update = await upsertCompanyIntegration(client, {
     id: integrationId,
     active: true,
-    metadata: {
-      ...existingMetadata,
-      ...d
-    },
+    metadata,
     companyId,
     updatedBy: userId
   });

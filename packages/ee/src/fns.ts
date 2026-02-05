@@ -17,6 +17,7 @@ const withServerOnly = () => {
  *
  * This function:
  * - Validates required fields at definition time
+ * - Computes `active` from OAuth config if not explicitly set
  * - Wraps server-only hooks (onInstall, onUninstall, onHealthcheck) with browser guards
  * - Preserves full type information for the integration config
  *
@@ -25,7 +26,7 @@ const withServerOnly = () => {
  * const MyIntegration = defineIntegration({
  *   name: "My Integration",
  *   id: "my-integration",
- *   active: true,
+ *   active: true, // must be true AND clientId must be set for OAuth integrations
  *   category: "Tools",
  *   logo: MyLogo,
  *   description: "...",
@@ -33,6 +34,10 @@ const withServerOnly = () => {
  *   images: [],
  *   settings: [],
  *   schema: z.object({}),
+ *   oauth: {
+ *     clientId: SOME_CLIENT_ID, // if empty/undefined, integration will be inactive
+ *     ...
+ *   },
  *   onInstall: async (companyId) => { ... },
  *   onHealthcheck: async (companyId, metadata) => { ... },
  * });
@@ -48,14 +53,30 @@ export function defineIntegration<T extends IntegrationOptions>(
   if (!options.name) {
     throw new Error(`Integration '${options.id}' must have a 'name' defined`);
   }
-  if (options.active && options.oauth && !options.oauth.clientId) {
-    throw new Error(
-      `Integration '${options.id}' has OAuth config but missing clientId`
-    );
-  }
 
   return {
     ...options,
+    /**
+     * Computes whether an integration should be active based on its configuration.
+     * - If `active` is explicitly false, return false
+     * - If the integration has OAuth config, also require clientId to be set and non-empty
+     * - Otherwise, use the `active` value (defaults to true)
+     */
+    get active() {
+      const isActive = options.active ?? true;
+
+      // If explicitly inactive, return false
+      if (!isActive) {
+        return false;
+      }
+
+      // If the integration has OAuth config, also require clientId to be configured
+      if (options.oauth) {
+        return !!options.oauth.clientId;
+      }
+
+      return isActive;
+    },
     get onInstall() {
       withServerOnly();
       return options.onInstall;

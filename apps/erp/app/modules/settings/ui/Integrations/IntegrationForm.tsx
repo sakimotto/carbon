@@ -1,6 +1,7 @@
 import type {
   IntegrationAction,
   IntegrationSetting,
+  IntegrationSettingGroup,
   IntegrationSettingOption
 } from "@carbon/ee";
 import { integrations as availableIntegrations } from "@carbon/ee";
@@ -189,7 +190,7 @@ function SettingField({ setting }: { setting: IntegrationSetting }) {
 
           // Build a simpler label that works well with Radix Select
           const label = (
-            <span className="flex items-center gap-2">
+            <span key={normalized.value} className="flex items-center gap-2">
               {icon}
               <span className="font-medium">{normalized.label}</span>
               {normalized.description && (
@@ -228,9 +229,11 @@ function SettingField({ setting }: { setting: IntegrationSetting }) {
  */
 function SettingsGroup({
   name,
+  description,
   settings
 }: {
   name: string;
+  description?: string;
   settings: IntegrationSetting[];
 }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -247,6 +250,9 @@ function SettingsGroup({
           }`}
         />
       </CollapsibleTrigger>
+      {description && (
+        <p className="text-sm text-muted-foreground">{description}</p>
+      )}
       <CollapsibleContent>
         <VStack spacing={4} className="pt-2">
           {settings.map((setting) => (
@@ -287,33 +293,45 @@ export function IntegrationForm({
 
   // Group settings by their group property
   // Settings without a group appear first (ungrouped)
-  const { ungroupedSettings, groupedSettings, groupNames } = useMemo(() => {
-    if (!integration) {
-      return {
-        ungroupedSettings: [] as IntegrationSetting[],
-        groupedSettings: new Map<string, IntegrationSetting[]>(),
-        groupNames: [] as string[]
-      };
-    }
-
-    const ungrouped: IntegrationSetting[] = [];
-    const grouped = new Map<string, IntegrationSetting[]>();
-
-    for (const setting of integration.settings) {
-      if (!setting.group) {
-        ungrouped.push(setting);
-      } else {
-        const existing = grouped.get(setting.group) ?? [];
-        grouped.set(setting.group, [...existing, setting]);
+  const { ungroupedSettings, groupedSettings, groupNames, groupDescriptions } =
+    useMemo(() => {
+      if (!integration) {
+        return {
+          ungroupedSettings: [] as IntegrationSetting[],
+          groupedSettings: new Map<string, IntegrationSetting[]>(),
+          groupNames: [] as string[],
+          groupDescriptions: new Map<string, string | undefined>()
+        };
       }
-    }
 
-    return {
-      ungroupedSettings: ungrouped,
-      groupedSettings: grouped,
-      groupNames: [...grouped.keys()]
-    };
-  }, [integration]);
+      const ungrouped: IntegrationSetting[] = [];
+      const grouped = new Map<string, IntegrationSetting[]>();
+
+      for (const setting of integration.settings) {
+        if (!setting.group) {
+          ungrouped.push(setting);
+        } else {
+          const existing = grouped.get(setting.group) ?? [];
+          grouped.set(setting.group, [...existing, setting]);
+        }
+      }
+
+      // Build group descriptions map from settingGroups
+      const descriptions = new Map<string, string | undefined>();
+      const settingGroups =
+        (integration as { settingGroups?: IntegrationSettingGroup[] })
+          .settingGroups ?? [];
+      for (const group of settingGroups) {
+        descriptions.set(group.name, group.description);
+      }
+
+      return {
+        ungroupedSettings: ungrouped,
+        groupedSettings: grouped,
+        groupNames: [...grouped.keys()],
+        groupDescriptions: descriptions
+      };
+    }, [integration]);
 
   const initialValues = useMemo(() => {
     if (!integration) return {};
@@ -407,6 +425,7 @@ export function IntegrationForm({
                   <SettingsGroup
                     key={groupName}
                     name={groupName}
+                    description={groupDescriptions.get(groupName)}
                     settings={groupedSettings.get(groupName) ?? []}
                   />
                 ))}

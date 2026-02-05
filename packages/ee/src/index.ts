@@ -21,6 +21,7 @@ export type {
   IntegrationOptions,
   IntegrationServerHooks,
   IntegrationSetting,
+  IntegrationSettingGroup,
   IntegrationSettingOption,
   OAuthConfig
 } from "./types";

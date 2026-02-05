@@ -42,6 +42,16 @@ export type IntegrationSetting = {
 };
 
 /**
+ * Definition for a settings group with optional description.
+ */
+export type IntegrationSettingGroup = {
+  /** Group name (must match the group property in settings) */
+  name: string;
+  /** Optional description shown below the group header */
+  description?: string;
+};
+
+/**
  * OAuth configuration for integrations that require OAuth authentication.
  * All fields are required to ensure proper OAuth flow.
  */
@@ -108,8 +118,12 @@ export type IntegrationConfig = {
   name: string;
   /** Unique identifier used in database and URLs */
   id: string;
-  /** Whether the integration is available for use */
-  active: boolean;
+  /**
+   * Whether the integration is available for use.
+   * For OAuth integrations, this must be true AND the OAuth clientId must be configured.
+   * Defaults to true if not specified.
+   */
+  active?: boolean;
   /** Category for grouping in the UI (e.g., "Accounting", "CAD", "Email") */
   category: string;
   /** Logo component for the integration */
@@ -124,6 +138,8 @@ export type IntegrationConfig = {
   images: string[];
   /** Configurable settings fields */
   settings: IntegrationSetting[];
+  /** Optional group definitions with descriptions */
+  settingGroups?: IntegrationSettingGroup[];
   /** Zod schema for validating settings */
   schema: ZodType;
   /** OAuth configuration (if the integration uses OAuth) */
@@ -144,9 +160,12 @@ export interface IntegrationOptions
 /**
  * The return type of defineIntegration().
  * Server hooks are wrapped with getters that enforce server-only execution.
+ * The `active` property is computed: must be true AND (if OAuth) clientId must be configured.
  */
 export type Integration<T extends IntegrationOptions = IntegrationOptions> =
-  Omit<T, keyof IntegrationServerHooks> & {
+  Omit<T, keyof IntegrationServerHooks | "active"> & {
+    /** Whether the integration is available for use (computed from OAuth config if not set) */
+    readonly active: boolean;
     readonly onInstall: T["onInstall"];
     readonly onUninstall: T["onUninstall"];
     readonly onHealthcheck: T["onHealthcheck"];

@@ -9,7 +9,6 @@ import {
   ProviderID,
   type ProviderIntegrationMetadata
 } from "@carbon/ee/accounting";
-import { PostgresDriver } from "kysely";
 import type { ComponentProps } from "react";
 import { z } from "zod";
 import { defineIntegration } from "../fns";
@@ -20,14 +19,18 @@ const coerceBoolean = z.preprocess(
   z.boolean()
 );
 
+const SystemOfRecordSchema = z.enum(["carbon", "accounting"]);
+
 const XeroSettingsSchema = z.object({
   backfillCustomers: coerceBoolean.optional().default(true),
   backfillVendors: coerceBoolean.optional().default(true),
   backfillItems: coerceBoolean.optional().default(true),
-  conflictResolution: z
-    .enum(["skip", "overwrite", "merge"])
-    .optional()
-    .default("merge")
+  // Per-entity system of record settings
+  customerOwner: SystemOfRecordSchema.optional().default("accounting"),
+  vendorOwner: SystemOfRecordSchema.optional().default("accounting"),
+  itemOwner: SystemOfRecordSchema.optional().default("carbon"),
+  invoiceOwner: SystemOfRecordSchema.optional().default("accounting"),
+  billOwner: SystemOfRecordSchema.optional().default("accounting")
 });
 
 export const Xero = defineIntegration({
@@ -41,6 +44,12 @@ export const Xero = defineIntegration({
   shortDescription:
     "Automatically post transactions from sales and purchase invoices.",
   images: [],
+  settingGroups: [
+    {
+      name: "Source of Truth",
+      description: "Which system's data takes priority when there are conflicts"
+    }
+  ],
   settings: [
     {
       name: "backfillCustomers",
@@ -70,31 +79,104 @@ export const Xero = defineIntegration({
       value: true
     },
     {
-      name: "conflictResolution",
-      label: "Conflict Resolution",
-      description:
-        "Determines how to handle records that exist in both systems",
-      group: "Sync Settings",
+      name: "customerOwner",
+      label: "Customers",
+      group: "Source of Truth",
       type: "options" as const,
       listOptions: [
         {
-          value: "skip",
-          label: "Skip",
-          description: "Keep existing Carbon data unchanged"
+          value: "accounting",
+          label: "Xero",
+          description: "Xero data overwrites Carbon data"
         },
         {
-          value: "overwrite",
-          label: "Overwrite",
-          description: "Replace Carbon data with Xero data"
-        },
-        {
-          value: "merge",
-          label: "Merge",
-          description: "Combine data from both systems"
+          value: "carbon",
+          label: "Carbon",
+          description: "Carbon data overwrites Xero data"
         }
       ],
       required: false,
-      value: "merge"
+      value: "accounting"
+    },
+    {
+      name: "vendorOwner",
+      label: "Vendors",
+      group: "Source of Truth",
+      type: "options" as const,
+      listOptions: [
+        {
+          value: "accounting",
+          label: "Xero",
+          description: "Xero data overwrites Carbon data"
+        },
+        {
+          value: "carbon",
+          label: "Carbon",
+          description: "Carbon data overwrites Xero data"
+        }
+      ],
+      required: false,
+      value: "accounting"
+    },
+    {
+      name: "itemOwner",
+      label: "Items",
+      group: "Source of Truth",
+      type: "options" as const,
+      listOptions: [
+        {
+          value: "carbon",
+          label: "Carbon",
+          description: "Carbon data overwrites Xero data"
+        },
+        {
+          value: "accounting",
+          label: "Xero",
+          description: "Xero data overwrites Carbon data"
+        }
+      ],
+      required: false,
+      value: "carbon"
+    },
+    {
+      name: "invoiceOwner",
+      label: "Invoices",
+      group: "Source of Truth",
+      type: "options" as const,
+      listOptions: [
+        {
+          value: "accounting",
+          label: "Xero",
+          description: "Xero data overwrites Carbon data"
+        },
+        {
+          value: "carbon",
+          label: "Carbon",
+          description: "Carbon data overwrites Xero data"
+        }
+      ],
+      required: false,
+      value: "accounting"
+    },
+    {
+      name: "billOwner",
+      label: "Bills",
+      group: "Source of Truth",
+      type: "options" as const,
+      listOptions: [
+        {
+          value: "accounting",
+          label: "Xero",
+          description: "Xero data overwrites Carbon data"
+        },
+        {
+          value: "carbon",
+          label: "Carbon",
+          description: "Carbon data overwrites Xero data"
+        }
+      ],
+      required: false,
+      value: "accounting"
     }
   ],
   schema: XeroSettingsSchema,
@@ -129,11 +211,7 @@ export const Xero = defineIntegration({
     return await provider.validate();
   },
   async onInstall(companyId) {
-    const { getPostgresClient, getPostgresConnectionPool } = await import(
-      "@carbon/database/client"
-    );
-
-    const pg = getPostgresClient(getPostgresConnectionPool(1), PostgresDriver);
+    const client = getCarbonServiceRole();
 
     const tables: CreateSubscriptionParams["table"][] = [
       "address",
@@ -146,7 +224,7 @@ export const Xero = defineIntegration({
     ];
 
     for (const table of tables) {
-      await createEventSystemSubscription(pg, {
+      await createEventSystemSubscription(client, {
         table,
         companyId,
         name: "xero-sync",
@@ -159,14 +237,10 @@ export const Xero = defineIntegration({
     }
   },
   async onUninstall(companyId) {
-    const { getPostgresClient, getPostgresConnectionPool } = await import(
-      "@carbon/database/client"
-    );
-
-    const pg = getPostgresClient(getPostgresConnectionPool(1), PostgresDriver);
+    const client = getCarbonServiceRole();
 
     // Delete all Xero sync subscriptions for this company
-    await deleteEventSystemSubscriptionsByName(pg, companyId, "xero-sync");
+    await deleteEventSystemSubscriptionsByName(client, companyId, "xero-sync");
   }
 });
 
