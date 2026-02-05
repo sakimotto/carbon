@@ -1,4 +1,4 @@
-import { getCarbonServiceRole } from "@carbon/auth";
+import { ERP_URL, getCarbonServiceRole } from "@carbon/auth";
 import type { Database } from "@carbon/database";
 import {
   createIssueSlackThread,
@@ -442,7 +442,7 @@ async function handleViewSubmission(
       createIssueSlackThread(
         serviceRole,
         {
-          carbonUrl: `https://app.carbon.ms${path.to.issue(ncrId)}`,
+          carbonUrl: `${ERP_URL}${path.to.issue(ncrId)}`,
           companyId,
           description,
           id: ncrId,
