@@ -46,6 +46,7 @@ import {
 } from "~/modules/shared";
 import { getUser } from "~/modules/users/users.server";
 import { loader as pdfLoader } from "~/routes/file+/purchase-order+/$orderId[.]pdf";
+import { getDatabaseClient } from "~/services/database.server";
 import type { Handle } from "~/utils/handle";
 import { path } from "~/utils/path";
 import { stripSpecialCharacters } from "~/utils/string";
@@ -119,10 +120,11 @@ export async function action(args: ActionFunctionArgs) {
   }
 
   // Process approval decision
+  const db = getDatabaseClient();
   const result =
     decision === "Approved"
-      ? await approveRequest(serviceRole, approvalRequestId, userId)
-      : await rejectRequest(serviceRole, approvalRequestId, userId);
+      ? await approveRequest(db, approvalRequestId, userId)
+      : await rejectRequest(db, approvalRequestId, userId);
 
   if (result.error) {
     throw redirect(
