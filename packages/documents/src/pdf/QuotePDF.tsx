@@ -111,12 +111,11 @@ const QuotePDF = ({
 
   const getMaxLeadTime = () => {
     let maxLeadTime = 0;
-    for (const line of quoteLines) {
-      if (line.status === "No Quote") continue;
-      const prices = pricesByLine[line.id] ?? [];
-      const price = prices.find((p) => p.quantity === line.quantity[0]);
-      if (price && price.leadTime > maxLeadTime) {
-        maxLeadTime = price.leadTime;
+    for (const prices of Object.values(pricesByLine)) {
+      for (const price of prices) {
+        if (price && price.leadTime > maxLeadTime) {
+          maxLeadTime = price.leadTime;
+        }
       }
     }
     return maxLeadTime;
@@ -505,9 +504,7 @@ const QuotePDF = ({
         <View style={tw("flex flex-row gap-8 mb-4 text-[10px]")}>
           {maxLeadTime > 0 && (
             <View style={tw("flex flex-row")}>
-              <Text style={tw("font-bold text-gray-800")}>
-                Overall Lead Time:{" "}
-              </Text>
+              <Text style={tw("font-bold text-gray-800")}>Max Lead Time: </Text>
               <Text style={tw("text-gray-600")}>
                 {maxLeadTime} {maxLeadTime === 1 ? "day" : "days"}
               </Text>
