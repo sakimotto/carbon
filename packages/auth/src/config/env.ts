@@ -109,6 +109,9 @@ const getEdition = () => {
   if (CARBON_EDITION === "enterprise") {
     return Edition.Enterprise;
   }
+  if (CARBON_EDITION === "test") {
+    return Edition.Test;
+  }
   return Edition.Community;
 };
 
