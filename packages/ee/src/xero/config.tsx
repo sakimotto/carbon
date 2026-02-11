@@ -246,7 +246,9 @@ export const Xero = defineIntegration({
       "supplier",
       "item",
       "salesInvoice",
-      "purchaseInvoice"
+      "purchaseInvoice",
+      "purchaseOrder",
+      "salesOrder"
     ];
 
     for (const table of tables) {

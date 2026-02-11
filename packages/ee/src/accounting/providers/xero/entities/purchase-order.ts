@@ -646,12 +646,15 @@ export class PurchaseOrderSyncer extends BaseEntitySyncer<
     context: ShouldSyncContext<Accounting.PurchaseOrder, Xero.PurchaseOrder>
   ): boolean | string {
     if (context.direction === "push" && context.localEntity) {
-      const nonSyncableStatuses: Accounting.PurchaseOrder["status"][] = [
-        "Draft",
-        "Planned"
+      // Only sync POs in locked statuses (finalized and receiving/invoicing)
+      const syncableStatuses: Accounting.PurchaseOrder["status"][] = [
+        "To Receive",
+        "To Receive and Invoice",
+        "To Invoice",
+        "Completed"
       ];
-      if (nonSyncableStatuses.includes(context.localEntity.status)) {
-        return `Purchase order must be past Draft/Planned before syncing (current status: ${context.localEntity.status})`;
+      if (!syncableStatuses.includes(context.localEntity.status)) {
+        return `Purchase order must be in a locked status to sync (current: ${context.localEntity.status})`;
       }
     }
 
