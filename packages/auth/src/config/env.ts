@@ -31,6 +31,9 @@ declare global {
       ERP_URL: string;
       MES_URL: string;
       NOVU_SECRET_KEY: string;
+      ONSHAPE_CLIENT_ID: string;
+      ONSHAPE_CLIENT_SECRET: string;
+      ONSHAPE_OAUTH_REDIRECT_URL: string;
       POSTHOG_API_HOST: string;
       POSTHOG_PROJECT_PUBLIC_KEY: string;
       QUICKBOOKS_CLIENT_SECRET: string;
@@ -157,6 +160,17 @@ export const NOVU_APPLICATION_ID = getEnv("NOVU_APPLICATION_ID", {
 export const NOVU_SECRET_KEY = getEnv("NOVU_SECRET_KEY", {
   isRequired: false,
   isSecret: true
+});
+
+export const ONSHAPE_CLIENT_ID = getEnv("ONSHAPE_CLIENT_ID", {
+  isRequired: false
+});
+export const ONSHAPE_CLIENT_SECRET = getEnv("ONSHAPE_CLIENT_SECRET", {
+  isRequired: false,
+  isSecret: true
+});
+export const ONSHAPE_OAUTH_REDIRECT_URL = getEnv("ONSHAPE_OAUTH_REDIRECT_URL", {
+  isRequired: false
 });
 
 export const QUICKBOOKS_CLIENT_ID = getEnv("QUICKBOOKS_CLIENT_ID", {
