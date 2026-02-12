@@ -41,9 +41,6 @@ export default $config({
         memoryUtilization: 80,
       },
       environment: {
-        AUTODESK_BUCKET_NAME: process.env.AUTODESK_BUCKET_NAME,
-        AUTODESK_CLIENT_ID: process.env.AUTODESK_CLIENT_ID,
-        AUTODESK_CLIENT_SECRET: process.env.AUTODESK_CLIENT_SECRET,
         CARBON_EDITION: process.env.CARBON_EDITION,
         CLOUDFLARE_TURNSTILE_SECRET_KEY:
           process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY,
@@ -74,11 +71,8 @@ export default $config({
         STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
         STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
         SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-        SUPABASE_ANON_PUBLIC: process.env.SUPABASE_ANON_PUBLIC,
-        SUPABASE_API_URL: process.env.SUPABASE_API_URL,
         SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
         SUPABASE_SERVICE_ROLE: process.env.SUPABASE_SERVICE_ROLE,
-        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
         SUPABASE_URL: process.env.SUPABASE_URL,
         TRIGGER_API_URL: process.env.TRIGGER_API_URL,
         TRIGGER_PROJECT_ID: process.env.TRIGGER_PROJECT_ID,
@@ -133,9 +127,6 @@ export default $config({
         memoryUtilization: 80,
       },
       environment: {
-        AUTODESK_BUCKET_NAME: process.env.AUTODESK_BUCKET_NAME,
-        AUTODESK_CLIENT_ID: process.env.AUTODESK_CLIENT_ID,
-        AUTODESK_CLIENT_SECRET: process.env.AUTODESK_CLIENT_SECRET,
         CARBON_EDITION: process.env.CARBON_EDITION,
         CLOUDFLARE_TURNSTILE_SECRET_KEY:
           process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY,
@@ -154,10 +145,7 @@ export default $config({
         RESEND_API_KEY: process.env.RESEND_API_KEY,
         SESSION_SECRET: process.env.SESSION_SECRET,
         SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY,
-        SUPABASE_ANON_PUBLIC: process.env.SUPABASE_ANON_PUBLIC,
-        SUPABASE_API_URL: process.env.SUPABASE_API_URL,
         SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
-        SUPABASE_SERVICE_ROLE: process.env.SUPABASE_SERVICE_ROLE,
         SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
         SUPABASE_URL: process.env.SUPABASE_URL,
         TRIGGER_API_URL: process.env.TRIGGER_API_URL,
