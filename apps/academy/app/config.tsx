@@ -1116,11 +1116,11 @@ export const modules: Config = [
               {
                 id: "purchase-orders",
                 loomUrl:
-                  "https://www.loom.com/share/51e0c6dd053b4a3e904fc795d4fc298f?sid=0bb2081d-6bc4-4efb-8361-d2717dda9781",
+                  "https://www.loom.com/embed/77cabb75b1cc428992ba65756df2ccbf",
                 name: "Purchase Orders",
                 description:
                   "Learn how to create and manage purchase orders effectively.",
-                duration: 0
+                duration: 199
               },
               {
                 id: "receiving-purchase-order",
